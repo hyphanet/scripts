@@ -1,0 +1,25 @@
+#!/bin/bash
+PORT="$1"
+FILENAME="$2"
+URL="$3"
+IDENT="$4"
+PCLASS="$5"
+export FILENAME
+export URL
+(echo ClientHello
+ echo "Name=Toad-update-${FILENAME}-${PORT}-${URL}"
+ echo ExpectedVersion=2
+ echo End
+ echo
+ echo ClientPut
+ echo "URI=$URL"
+ echo "Identifier=$IDENT"
+ echo Verbosity=1023
+ echo MaxRetries=-1
+ echo UploadFrom=disk
+ echo "Filename=$FILENAME"
+ echo Persistence=forever
+ echo PriorityClass=$PCLASS
+ echo Global=true
+ echo End
+) | nc 127.0.0.1 $PORT | sed "/^URI=/d"

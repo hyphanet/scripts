@@ -1,0 +1,37 @@
+#!/bin/bash
+# Put the real keys in ~/bin/insert-update-keys
+source ~/bin/insert-update-keys
+rm -R /usr/src/cvs/freenet-temp*
+TEMPLOC=/usr/src/cvs/freenet-temp-$RANDOM
+cp -a /usr/src/cvs/eclipse-workspace/Freenet\ 0.7/ $TEMPLOC
+cd $TEMPLOC
+echo Updating
+svn update
+echo Reverting
+svn revert . -R
+echo Building
+ant distclean
+while [[ ! -s lib/freenet-ext.jar ]] ; do rm -f lib/freenet-ext.jar; ant get-extjar; done
+ant -Dsvn.revision=$(svnversion .)
+VERSION=`/root/bin/getversion $TEMPLOC`
+FILENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}.jar
+SOURCENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}-src.tar.bz2
+cp -a $TEMPLOC/lib/freenet-cvs-snapshot.jar $FILENAME
+ant distclean
+tar cjf $SOURCENAME $TEMPLOC
+echo Inserting update for build number $VERSION
+set -m
+/root/bin/insert-update-inner 9481 $FILENAME "${OLDKEY}/update-$VERSION" update-old-$VERSION 1 &
+/root/bin/insert-update-inner 9481 $FILENAME "${NEWKEY}/update-$VERSION" update-new-$VERSION 0 &
+/root/bin/insert-update-inner 7482 $FILENAME "${OLDKEY}/update-$VERSION" update-old-$VERSION 1 &
+/root/bin/insert-update-inner 7482 $FILENAME "${NEWKEY}/update-$VERSION" update-new-$VERSION 0 &
+/root/bin/insert-update-inner 9481 $SOURCENAME "${OLDKEY}/update-${VERSION}-source" update-old-${VERSION}-source 2 &
+/root/bin/insert-update-inner 9481 $SOURCENAME "${NEWKEY}/update-source-${VERSION}" update-new-${VERSION}-source 2 &
+/root/bin/insert-update-inner 7482 $SOURCENAME "${OLDKEY}/${VERSION}-source" update-old-${VERSION}-source 2 &
+/root/bin/insert-update-inner 7482 $SOURCENAME "${NEWKEY}/update-source-${VERSION}" update-new-${VERSION}-source 2 &
+
+jobs
+wait %1
+wait %2
+wait %3
+wait %4
