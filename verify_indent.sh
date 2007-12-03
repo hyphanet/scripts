@@ -56,7 +56,8 @@ then
 	if test -s nok
 	then 
 		echo -e "\tThat's FALSE.\n"
-	else
+	elif test -s list
+	then
 		echo -e "\tThat's TRUE.\n"
 	fi
 	cat ok nok
