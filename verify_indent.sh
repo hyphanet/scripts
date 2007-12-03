@@ -26,13 +26,13 @@ then
 		mkdir $RAND-$FILENAME && cd $RAND-$FILENAME
 
 		mkdir orig && cd orig
-		svnlook cat $REPOSITORY $file --revision $REV > $FILENAME
+		svnlook cat $REPOSITORY $file --revision $PREVIOUSREV > $FILENAME
 		javac -classpath $CLASSPATH $JAVACOPT $FILENAME
 		rm $FILENAME
 		cd ..
 
 		mkdir new && cd new
-		svnlook cat $REPOSITORY $file --revision $PREVIOUSREV > $FILENAME
+		svnlook cat $REPOSITORY $file --revision $REV > $FILENAME
 		javac -classpath $CLASSPATH $JAVACOPT $FILENAME
 		rm $FILENAME
 		cd ../
