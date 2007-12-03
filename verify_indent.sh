@@ -42,12 +42,12 @@ then
 		then
 			for hash in $(find orig -type f -name \*class|sort)
 			do
-				sha1sum "$hash" |awk '{print $2 " : " $1;}' > ../ok
+				sha1sum "$hash" |awk '{print $2 " : " $1;}' >> ../ok
 			done
 		else
 			for hash in $(find orig -type f -name \*class|sort)
 			do
-				echo $hash : $(sha1sum "$hash"|awk '{print $1;}') : $(sha1sum "${hash/orig/new}"|awk '{print $1;}') > ../nok
+				echo $hash : $(sha1sum "$hash"|awk '{print $1;}') : $(sha1sum "${hash/orig/new}"|awk '{print $1;}') >> ../nok
 			done
 		fi
 		cd ..
