@@ -39,17 +39,17 @@ grep -E '^[ ]{3}M /' log |awk '{print $2;}'|grep -iE .java$ > list
 while read file
 do
 	FILENAME="$(echo $file|sed 's/.*\///g')"
-	mkdir $RAND-$FILENAME && cd $RAND-$FILENAME
+	mkdir "$RAND-$FILENAME" && cd "$RAND-$FILENAME"
 
 	mkdir orig && cd orig
-	svn cat -r $PREVIOUSREV $REPOSITORY/$file > $FILENAME
-	javac -classpath $CLASSPATH $JAVACOPT $FILENAME
+	svn cat -r $PREVIOUSREV $REPOSITORY/$file > "$FILENAME"
+	javac -classpath "$CLASSPATH" $JAVACOPT "$FILENAME"
 	rm $FILENAME
 	cd ..
 
 	mkdir new && cd new
-	svn cat -r $REV $REPOSITORY/$file > $FILENAME
-	javac -classpath $CLASSPATH $JAVACOPT $FILENAME
+	svn cat -r $REV $REPOSITORY/$file > "$FILENAME"
+	javac -classpath "$CLASSPATH" $JAVACOPT "$FILENAME"
 	rm $FILENAME
 	cd ../
 
