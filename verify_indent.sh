@@ -22,18 +22,21 @@ then
 	svnlook changed $REPOSITORY --revision $REV |awk '{print $2;}'|grep -iE .java$ > list
 	while read file
 	do
+		RESULT=0
 		FILENAME="$(echo $file|sed 's/.*\///g')"
 		mkdir "$RAND-$FILENAME" && cd "$RAND-$FILENAME"
 
 		mkdir orig && cd orig
 		svnlook cat $REPOSITORY "$file" --revision $PREVIOUSREV > "$FILENAME"
 		javac -classpath $CLASSPATH $JAVACOPT "$FILENAME"
+		RESULT=$(( $RESULT + $? ))
 		rm "$FILENAME"
 		cd ..
 
 		mkdir new && cd new
 		svnlook cat $REPOSITORY "$file" --revision $REV > "$FILENAME"
 		javac -classpath $CLASSPATH $JAVACOPT "$FILENAME"
+		RESULT=$(( $RESULT + $? ))
 		rm "$FILENAME"
 		cd ../
 
@@ -49,6 +52,11 @@ then
 			do
 				echo $hash : $(sha1sum "$hash"|awk '{print $1;}') : $(sha1sum "${hash/orig/new}"|awk '{print $1;}') >> ../nok
 			done
+		fi
+
+		if [[ $RESULT -ne 0 ]]
+		then
+			echo "$FILENAME failed pre-compilation: we can't check whether it's a commit indent or not"  >> ../nok
 		fi
 		cd ..
 	done <list
