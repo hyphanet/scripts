@@ -13,7 +13,7 @@ LC_ALL=en_GB
 RAND=$RANDOM
 REV=$1
 PREVIOUSREV=$(( $REV - 1 ))
-JAVACOPT="-source 1.4 -target 1.4 -nowarn -g:none"
+JAVACOPT="-source 1.5 -target 1.5 -nowarn -g:none"
 REPOSITORY="https://emu.freenetproject.org/svn"
 CLASSPATH="/home/nextgens/src/freenet/node1/freenet-cvs-snapshot.jar:/home/nextgens/src/freenet/node1/freenet-ext.jar"
 

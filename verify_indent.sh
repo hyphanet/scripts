@@ -11,7 +11,7 @@ REPOSITORY="/var/freenet-svn/svn/"
 REV=$1
 PREVIOUSREV=$(( $REV - 1 ))
 AUTHOR="$(svnlook author $REPOSITORY --revision $REV)"
-JAVACOPT=" -source 1.4 -target 1.4 -nowarn -g:none"
+JAVACOPT=" -source 1.5 -target 1.5 -nowarn -g:none"
 CLASSPATH="/var/www/downloads/alpha/$(cat /var/www/downloads/alpha/.latest):/var/www/downloads/alpha/freenet-ext.jar"
 
 if [[ $(svnlook info $REPOSITORY --revision $REV | grep -icE '^[ ]*[Ii]ndent(ing)?([ ])*(:|$)') -gt 0 ]]
