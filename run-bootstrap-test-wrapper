@@ -1,0 +1,13 @@
+#!/bin/bash
+su - freenet-tests /var/local/run-bootstrap-test
+time=`date +"/var/www/freenet/tests/bootstrap/%Y/%m/%d/output.%H-%M-%S.log"`
+mkdir -p `dirname $time`
+STATUS=$?
+if [[ $STATUS == 0 ]]; then
+	mv ~freenet-tests/log.bootstrap $time
+	chown root.root $time
+	(echo Subject: Bootstrap test completed; echo; tail -n40 $time; echo; echo Log at $time; echo ".") | /usr/sbin/sendmail toad
+else
+	mv ~freenet-tests/log.bootstrap ${time}.failed
+	(echo Subject: Bootstrap test FAILED; echo; cat ${time}.failed; echo ".") | /usr/sbin/sendmail toad
+fi

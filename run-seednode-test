@@ -1,0 +1,5 @@
+#!/bin/bash
+wget --no-check-cert https://checksums.freenetproject.org/latest/seednodes.fref -O /tmp/seednodes.fref || exit 1
+java -Xmx128M -cp /usr/src/cvs/eclipse-workspace/Freenet\ 0.7/lib/freenet-ext.jar:/usr/src/cvs/eclipse-workspace/Freenet\ 0.7/bin/ freenet.node.simulator.SeednodePingTest
+# > log.seednodes 2>&1
+exit $?

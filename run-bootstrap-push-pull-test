@@ -1,0 +1,6 @@
+#!/bin/bash
+rm -f seednodes.fref
+wget --no-check-cert https://checksums.freenetproject.org/latest/seednodes.fref -O seednodes.fref || exit 1
+java -Xmx128M -cp /usr/src/cvs/eclipse-workspace/Freenet\ 0.7/lib/freenet-ext.jar:/usr/src/cvs/eclipse-workspace/Freenet\ 0.7/bin/ freenet.node.simulator.BootstrapPushPullTest amphibian-servalan.dyndns.org
+# > log.push-pull 2>&1
+exit $?

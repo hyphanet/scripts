@@ -1,0 +1,14 @@
+#!/bin/bash
+FILENAME=`date +"log.pull.%Y%m%d-%H%M%S.log"`
+su - freenet-tests /var/local/run-bootstrap-pull-test "$FILENAME"
+STATUS=$?
+time=`date +"/var/www/freenet/tests/boot-pull/%Y/%m/%d/output.%H-%M-%S.log"`
+mkdir -p `dirname $time`
+if [[ $STATUS == 0 ]]; then
+	mv ~freenet-tests/$FILENAME $time
+	chown root.root $time
+	(echo Subject: Pull bootstrap test completed; echo; cat $time | grep RESULT; echo; echo Log at $time; echo ".") | /usr/sbin/sendmail toad
+else
+	mv ~freenet-tests/$FILENAME ${time}.failed
+	(echo Subject: Pull bootstrap test FAILED; echo; cat ${time}.failed; echo ".") | /usr/sbin/sendmail toad
+fi
