@@ -1,0 +1,34 @@
+#!/bin/bash
+su - toad -c "cd /usr/src/cvs/eclipse-workspace/app-new_installer; ./build-all.sh"
+su - toad /home/toad/bin/sign-installer-jars
+VERSION=`su nobody -c "java -cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.jar freenet.node.Version" | sed "s/^Freenet: Fred 0.7 (protocol [0-9]*.[0-9]*) build //" | cut -d " " -f 1`
+echo Version is $VERSION
+TEMPDIR=`mktemp -d`
+cp /usr/src/cvs/eclipse-workspace/app-new_installer/dist/* $TEMPDIR
+cd $TEMPDIR
+echo Copied to $TEMPDIR
+echo Signing the jars
+for i in $(ls -1 *jar); do jarsigner -storepass azerty $i emu; done
+cp /usr/src/cvs/eclipse-workspace/app-new_installer/dist/*.sig $TEMPDIR
+echo Uploading to Google Code
+cp new_installer_offline.jar new_installer_offline_${VERSION}.jar
+cp new_installer_offline.jar.sig new_installer_offline_${VERSION}.jar.sig
+ls -l new_installer_offline_${VERSION}.jar
+#echo /root/bin/googlecode_upload.py -s "Freenet installer for build $VERSION" -p freenet -u matthew.toseland new_installer_offline_${VERSION}.jar
+#/root/bin/googlecode_upload.py -s "Freenet installer for build $VERSION" -p freenet -u matthew.toseland new_installer_offline_${VERSION}.jar || exit
+#echo Uploading signature to Google Code
+#/root/bin/googlecode_upload.py -s "Freenet installer for build $VERSION (gpg signature)" -p freenet -u matthew.toseland new_installer_offline_${VERSION}.jar || exit
+cp new_installer_offline_${VERSION}.jar new_installer_offline_${VERSION}.jar.sig ~browser/
+rm new_installer_offline_${VERSION}.jar new_installer_offline_${VERSION}.jar.sig
+chmod a+r ~browser/new_installer_offline_${VERSION}.jar*
+echo Uploading to emu
+rsync -v new_installer* sha1test.jar* wrapper* emu.freenetproject.org:/var/www/downloads/alpha/installer/
+echo ssh emu.freenetproject.org "cp /var/www/downloads/alpha/installer/new_installer_offline.jar /var/www/downloads/alpha/installer/new_installer_offline_${VERSION}.jar"
+ssh emu.freenetproject.org -- "cp /var/www/downloads/alpha/installer/new_installer_offline.jar /var/www/downloads/alpha/installer/new_installer_offline_${VERSION}.jar"
+rsync -v new_installer_offline.jar.sig emu.freenetproject.org:/var/www/downloads/alpha/installer/new_installer_offline_${VERSION}.jar.sig
+OLDVERSION=$[$VERSION-5]
+echo Deleting old version ${OLDVERSION}
+ssh emu.freenetproject.org rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
+ssh emu.freenetproject.org -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${VERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+echo NOW UPLOAD THE JARS TO GOOGLE CODE:
+echo ~browser/new_installer_offline_${VERSION}.jar and ~browser/new_installer_offline_${VERSION}.jar.sig
