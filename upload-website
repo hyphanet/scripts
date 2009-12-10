@@ -1,0 +1,22 @@
+#!/bin/bash
+FREENETVERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build`
+FREENETJARVERSION=$FREENETVERSION
+FREENETTAG=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag`
+TEMPDIR=`mktemp -d`
+echo TEMPDIR is "$TEMPDIR"
+cp -a /usr/src/cvs/eclipse-workspace/website/ $TEMPDIR || exit
+chmod 600 $TEMPDIR || exit
+cd $TEMPDIR/website || exit
+rm .project
+rm -Rf .git/
+find . -type f | (while read x; do cat "$x" | sed "s/FREENETVERSION/$FREENETVERSION/g;s/FREENETTAG/$FREENETTAG/g;s/FREENETJARVERSION/$FREENETJARVERSION/g" > "${x}.1"; mv "${x}.1" "${x}"; done)
+chmod +x make-pages.sh make-static-page.sh
+chown -R toad.toad $TEMPDIR
+chmod 700 $TEMPDIR
+su - toad -c "cd $TEMPDIR/website; ./make-pages.sh" || exit
+chmod 600 $TEMPDIR
+chown -R 1019.1016 . || exit
+cd output
+rsync -rvz --owner --group --numeric-ids --delete . emu.freenetproject.org:/var/www/freenet-website
+rm -Rf $TEMPDIR
+ssh emu.freenetproject.org "cat /var/www/downloads/alpha/installer/mac/freenet.jnlp | sed \"s/new_installer_offline_[0-9]\\+.jar/new_installer_offline_${FREENETVERSION}.jar/\" > 1; cat 1 > /var/www/downloads/alpha/installer/mac/freenet.jnlp; cat /var/www/downloads/alpha/installer/mac/freenet.jnlp"
