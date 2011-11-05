@@ -1,0 +1,34 @@
+#!/bin/bash
+su - toad -c "cd /usr/src/cvs/eclipse-workspace/testnet-javainstaller; ./build-all.sh"
+VERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet.build`
+echo Version is $VERSION
+TEMPDIR=`mktemp -d`
+cp /usr/src/cvs/eclipse-workspace/testnet-javainstaller/dist/* $TEMPDIR
+cd $TEMPDIR
+echo Copied to $TEMPDIR
+echo Signing the jars
+for i in $(ls -1 *jar); do jarsigner -storepass azerty $i emu; done
+cp *jar /usr/src/cvs/eclipse-workspace/testnet-javainstaller/dist/
+sux - toad /home/toad/bin/sign-testnet-installer-jars
+cp /usr/src/cvs/eclipse-workspace/testnet-javainstaller/dist/*jar.sig .
+(cd /usr/src/cvs/eclipse-workspace/testnet-javainstaller/scripts/; sha1sum update-testnet.cmd > update-testnet.cmd.sha1; sha1sum update-testnet.sh > update-testnet.sh.sha1; cd /usr/src/cvs/eclipse-workspace/testnet-javainstaller/res/; sha1sum wrapper.conf > wrapper.conf.sha1)
+eval `ssh-agent -s`
+ssh-add
+cp /usr/src/cvs/eclipse-workspace/testnet-javainstaller/res/wrapper.conf wrapper-testnet.conf
+cp /usr/src/cvs/eclipse-workspace/testnet-javainstaller/res/wrapper.conf.sha1 wrapper-testnet.conf.sha1
+rsync /usr/src/cvs/eclipse-workspace/testnet-javainstaller/scripts/update-testnet.* wrapper-testnet.conf* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/update/
+cp testnet_installer_offline.jar testnet_installer_offline_${VERSION}.jar
+cp testnet_installer_offline.jar.sig testnet_installer_offline_${VERSION}.jar.sig
+ls -l testnet_installer_offline_${VERSION}.jar
+cp testnet_installer_offline_${VERSION}.jar* /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/
+rm testnet_installer_offline_${VERSION}.jar testnet_installer_offline_${VERSION}.jar.sig
+echo Uploading to emu
+rsync -v testnet_installer* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/installer/
+echo ssh osprey.vm.bytemark.co.uk "cp /var/www/downloads/alpha/installer/testnet_installer_offline.jar /var/www/downloads/alpha/installer/testnet_installer_offline_${VERSION}.jar"
+ssh osprey.vm.bytemark.co.uk -- "cp /var/www/downloads/alpha/installer/testnet_installer_offline.jar /var/www/downloads/alpha/installer/testnet_installer_offline_${VERSION}.jar"
+rsync -v testnet_installer_offline.jar.sig osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/installer/testnet_installer_offline_${VERSION}.jar.sig
+OLDVERSION=$[$VERSION-5]
+echo Deleting old version ${OLDVERSION}
+ssh osprey.vm.bytemark.co.uk rm /var/www/downloads/alpha/installer/testnet_installer_offline_${OLDVERSION}.jar
+ssh osprey.vm.bytemark.co.uk -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/testnet_installer_offline.jar .*$/testnet_installer_offline.jar installer\/testnet_installer_offline_${VERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+ssh-agent -k

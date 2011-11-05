@@ -1,0 +1,8 @@
+#!/bin/bash
+cd /usr/src/cvs/eclipse-workspace/testnet-javainstaller/dist
+
+#eval `gpg-agent --daemon`
+
+for x in testnet_installer.jar testnet_installer_offline.jar; do echo Signing ${x}; rm -f ${x}.sig; sha1sum ${x} > ${x}.sha1; gpg --sign --detach-sign ${x}; done
+
+#killall gpg-agent

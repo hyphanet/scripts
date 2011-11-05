@@ -1,0 +1,38 @@
+#!/bin/bash
+PLUGIN=$1
+if [[ $PLUGIN == "WoT" ]]; then PLUGIN=WebOfTrust; fi
+TEMPLOC=`mktemp -d`
+cp -a /usr/src/cvs/eclipse-workspace/plugin-$PLUGIN/ $TEMPLOC
+echo Copied data
+cd $TEMPLOC/plugin-$PLUGIN
+git reset --hard
+ln -s /usr/src/cvs/eclipse-workspace/fred $TEMPLOC/fred
+#export JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+#export PATH=${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:$PATH
+ant clean || exit
+ant distclean
+ant || exit
+GITVERSION=`git describe --always --abbrev=40`
+mv dist/${PLUGIN}.jar ${PLUGIN}-${GITVERSION}.jar
+sha1sum ${PLUGIN}-${GITVERSION}.jar > ${PLUGIN}-${GITVERSION}.jar.sha1
+eval `ssh-agent -s`
+ssh-add
+rsync -vz ${PLUGIN}-${GITVERSION}.jar* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/${PLUGIN}/
+cp ${PLUGIN}-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar || exit
+cp ${PLUGIN}-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/FreenetReleased/${PLUGIN}.jar || exit
+rm ${PLUGIN}-${GITVERSION}.jar*
+echo Uploaded new snapshot
+echo "http://downloads.freenetproject.org/alpha/plugins/${PLUGIN}/${PLUGIN}-${GITVERSION}.jar" > ../${PLUGIN}.jar.url
+(cd ..; sha1sum ${PLUGIN}.jar.url > ${PLUGIN}.jar.url.sha1)
+rsync -vz ../${PLUGIN}.jar.url* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/
+ssh osprey.vm.bytemark.co.uk -- "cat /var/www/downloads/alpha/.registry | sed \"s/${PLUGIN}.jar .*$/${PLUGIN}.jar plugins\\/${PLUGIN}\\/${PLUGIN}-${GITVERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+echo Uploaded new pointers
+ant clean
+rm -Rf .git
+tar cjf ../${PLUGIN}-${GITVERSION}-source.tar.bz2 .
+rsync -vz ../${PLUGIN}-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/
+echo Uploaded source
+(echo ClientHello; echo Name=Toad-update-${PLUGIN}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=${PLUGIN}-${GITVERSION}.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar"; echo "TargetFilename=${PLUGIN}.jar"; echo Persistence=forever; echo PriorityClass=2; echo Global=true; echo End) > $TEMPLOC/upload
+cat $TEMPLOC/upload | nc 127.0.0.1 9481
+cat $TEMPLOC/upload | nc 127.0.0.1 19841
+rm -Rf $TEMPLOC

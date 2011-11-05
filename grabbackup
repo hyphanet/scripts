@@ -1,0 +1,15 @@
+#!/bin/bash
+cp -a latest-backup last-backup
+rsync -avz backupgrabber@osprey.vm.bytemark.co.uk:latest-backup .
+TARGET=backup-`date +%A`
+rm -Rf $TARGET
+cp -a latest-backup $TARGET
+TARGET=backup-day-`date +%d`
+rm -Rf $TARGET
+cp -a latest-backup $TARGET
+TARGET=backup-`date +%B`
+rm -Rf $TARGET
+cp -a latest-backup $TARGET
+TARGET=backup-`date +%Y`
+rm -Rf $TARGET
+cp -a latest-backup $TARGET

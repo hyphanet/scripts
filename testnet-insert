@@ -1,39 +1,40 @@
 #!/bin/bash
-# Put the real keys in ~/bin/insert-update-keys
-SEEDNODESFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes.fref
-TAG=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag`
+# Put the real keys in ~/bin/testnet-update-keys
+SEEDNODESFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref
+TAG=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet.tag`
 KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
-gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg
+gpg -o $KEYS/keys ~/bin/testnet-update-keys.gpg
 source $KEYS/keys || exit
 echo Deleting old temporary files
 rm -R /usr/src/cvs/freenet-temp*
 TEMPLOC=/usr/src/cvs/freenet-temp-$RANDOM
 echo Temporary file location: $TEMPLOC
-cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
+cp -a /usr/src/cvs/eclipse-workspace/testnet/ $TEMPLOC
 cd $TEMPLOC
 git reset --hard
 git checkout $TAG
+rm -Rf tmp*
+rm -f lib/freenet-ext.jar
 cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar || exit
 REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 RECOMMENDED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 3; fi
 if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 3; fi
 ant clean
-cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar lib/freenet-cvs-snapshot.jar
-VERSION=`/root/bin/getversion $TEMPLOC`
-#VERSION=1231
-FILENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}.jar
-SOURCENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}-src.tar.bz2
-if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar ]]; then cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar $FILENAME; else echo NOT FOUND JAR; exit; fi
+cp /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/testnet-${TAG}.jar lib/testnet-cvs-snapshot.jar || exit
+VERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet.build`
+FILENAME=/var/lib/freenet-experimental/testnet-cvs-r${VERSION}.jar
+SOURCENAME=/var/lib/freenet-experimental/testnet-cvs-r${VERSION}-src.tar.bz2
+if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/testnet-${TAG}.jar ]]; then cp /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/testnet-${TAG}.jar $FILENAME; else echo NOT FOUND JAR; exit; fi
 chown freenete.toad $FILENAME
-if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 ]]; then cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 $SOURCENAME; else echo NOT FOUND SOURCE; exit; fi
+if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/testnet-${TAG}-source.tar.bz2 ]]; then cp /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/testnet-${TAG}-source.tar.bz2 $SOURCENAME; else echo NOT FOUND SOURCE; exit; fi
 chown freenete.toad $SOURCENAME
 echo Inserting update for build number $VERSION
 set -m
 
 # SECURITY: Insert via secondary testing node, NOT VIA MAIN NODE
 # This avoids the insert keys ever being known to the main node.
-for PORT in 9482; do
+for PORT in 19841; do
 
 TEMPFILE1=`mktemp /tmp/insert.temp.XXXXXXXXXX`
 echo Temp file $TEMPFILE1
@@ -43,8 +44,8 @@ echo ExpectedVersion=2 >> $TEMPFILE1
 echo End >> $TEMPFILE1
 echo >> $TEMPFILE1
 
-INSTALLERFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/new_installer_offline_${VERSION}.jar
-WININSTALLERFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/FreenetInstaller-${VERSION}.exe
+INSTALLERFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/testnet_installer_offline_${VERSION}.jar
+WININSTALLERFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/TestnetInstaller-${VERSION}.exe
 
 if [[ ! -f $INSTALLERFILE ]]
 then
@@ -62,7 +63,7 @@ for WHAT in binary source installer wininstaller seednodes fullchangelog iptocou
 
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
 PCLASS=0
-URI=NEWKEY
+URI=$NEWKEY
 IDENT=update-new-$VERSION
 if [[ $WHAT == "source" ]]; then
   INSERTFILE=$SOURCENAME
@@ -93,7 +94,7 @@ if [[ $WHAT == "seednodes" ]]; then
   IDENT=${IDENT}-seednodes
 fi
 if [[ $WHAT == "fullchangelog" ]]; then
-  INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+  INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.testnet.${TAG}.txt
   URI=${URI}/fullchangelog-$VERSION
   IDENT=${IDENT}-fullchangelog
 fi

@@ -1,0 +1,11 @@
+#!/bin/bash
+cd ~toad
+cat seedrefs-testnet/* > seednodes-testnet.fref
+if (grep -i "priv" seednodes-testnet.fref); then echo Corrupt file; exit; fi
+if (egrep "^End" seednodes-testnet.fref | egrep -v "^End$"); then echo Corrupt file; exit; fi
+sha1sum seednodes-testnet.fref > seednodes-testnet.fref.sha1
+rm ~toad/seednodes-testnet.fref.gpg
+cp seednodes-testnet.fref /usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref
+sha1sum /usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref > /usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref.sha1
+gpg --sign --detach-sign /usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref
+rsync -v /usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/opennet/

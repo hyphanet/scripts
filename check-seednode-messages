@@ -1,0 +1,3 @@
+#!/bin/bash
+(cat seednodes-failed.mbox  | grep "RESULT:.*NOT CONNECTED IN LAST WEEK" | cut -d " "  -f 1 | cut -d ":" -f 2) | (while read x; do grep --files-with-match -e "$x" seedrefs/*; done) | (while read x; do echo "$x"; done) | sed "s/^seedrefs\///g" | sed -n "s/^.*---//p"
+# | sed -n "s/^.*-\\([^-]*@.*$\\)/\\1/p" 

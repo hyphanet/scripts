@@ -1,0 +1,180 @@
+#!/usr/bin/perl -w
+
+######
+# Author: erik aronesty <earonesty@cpan.org>
+# License: public domain
+# Source: send2goog.googlecode.com
+#####
+
+use strict;
+use Getopt::Long;
+use LWP::UserAgent;
+use Data::Dumper;
+
+my $ua = new LWP::UserAgent;					# web browser object
+
+if (!$ENV{HOME}) {
+	$ENV{HOME} = "$ENV{HOMEDRIVE}$ENV{HOMEPATH}"		# for windows users
+}
+
+my $CFG_FILE = "$ENV{HOME}/.send2goog.conf";			# location of config file
+my %CFG;							# configuration hash
+
+our ($user, $pass, $project, $summ);				# we use "our" so we can refer to them as $$_ in a loop
+
+my (@labels, $batch);
+
+###
+# most of the code revolves around getting/setting config options
+# if you want to just look at the upload part, search for "upload part" below
+###
+
+GetOptions("user=s"=>\$user, "pass=s"=>\$pass, "batch"=>\$batch,
+	"descr=s"=>\$summ, "project"=>\$project, "label=s"=>\@labels) || usage();
+
+$project = shift @ARGV if (@ARGV > 1);
+my $file = shift @ARGV;
+
+usage("Must specify file") if !$file;
+
+my $fkey = $file;
+
+$fkey =~ s/.*\///;
+$fkey =~ s/\b\d+\b/#/g;		# this is supposed to get rid of verison info
+
+# if some things are missing from the command line
+if (!$project || !$user || !$pass || !$summ || !@labels) {
+	loadcfg();								# load local config
+	my $need = 0;
+	for (qw(project user pass summ)) {
+		no strict 'refs';
+		no warnings 'uninitialized';
+		$$_ = $CFG{$fkey}{$_} if !$$_;					# get default for file key
+		$$_ = $CFG{_default_}{$_} if !$$_;				# get default
+		if (!$batch) {
+			$$_ = prompt("Enter $_", $$_);				# prompt for value
+        		if (! ($$_ eq $CFG{$fkey}{$_}))  {
+				$CFG{$fkey}{$_} = $$_;				# save per-file pref
+				$CFG{_default_}{$_} = $$_;			# copy to default global
+				$need = 1;					# need to save
+			}
+		}
+	}
+
+	if (!@labels) {								# not in args?
+	  my @labdef = $CFG{$fkey}{labels} ? @{$CFG{$fkey}{labels}} : ();	# load labels
+
+	  my $i = 0;								# label index
+	  if (!$batch) {
+		while (my $lab = prompt("Enter label", $labdef[$i++])) {
+			push @labels, $lab;
+		}
+		$CFG{$fkey}{labels} = \@labels;
+		$need = 1;
+	  } else {
+		@labels = @labdef;						# don't prompt
+	  }
+	}
+
+	savecfg() if $need;							# save config
+}
+
+for (qw(project user pass summ)) {
+	no strict 'refs';
+	usage("Need $_") if (!$$_);					# die unless all vars are defined
+}
+
+###
+# finally the "upload part"
+###
+my $url = "https://$user:$pass\@$project.googlecode.com/files";
+
+@labels = map {('label', $_)} @labels;					# put the word 'label' before each
+
+# yep, that's it, one function does it all
+my $res = $ua->post($url,
+	Content_Type => 'form-data',
+	Content => [ summary=>$summ,
+		     filename=>[$file],
+		     @labels
+		   ]
+);
+
+# show the results and explicitly call exit with success/fail
+if ($res->is_success) {
+        print $res->content, "\n";
+	exit 0;
+} else {
+        print STDERR $res->status_line, "\n";
+    	exit 1;
+}
+
+sub prompt {
+	print $_[0] . ($_[1] ? " ($_[1]): " : ": ");	# show the prompt, and the default value if any
+	my $r = <STDIN>;
+	chomp($r);
+	$r = $_[1] if !$r;			# assign the default value if needed
+	return $r;
+}
+
+sub grab {
+	my ($f) = @_;
+	local $/=undef;
+	open IN, $f;
+	my $r = <IN>;				# read in the whole file as one string
+	close IN;
+	return $r;
+}
+
+sub scrib {
+	my ($f, $d) = @_;
+	open OUT, ">$f";			# write out a string as a whole file
+	print OUT $d;
+	close OUT;
+}
+
+sub savecfg {
+	my $chmod;
+	if (! -e $CFG_FILE) {
+		$chmod = 1;
+	}
+	require Data::Dumper; 			# dump config hash into the config file
+	scrib($CFG_FILE, Data::Dumper->Dump([\%CFG]));
+	chmod 0600, $CFG_FILE;
+}
+
+sub loadcfg
+{
+	require Safe; 				# somewhat safe evaluation container
+	my $cont = new Safe;
+	my $cfg = eval {
+		package CFG;
+		$cont->rdo($CFG_FILE);		# read in the config
+	};
+	if ($cfg) {
+		%CFG = %{$cfg};				# assign to the global hash
+	}
+}
+
+sub usage {
+	my $msg = "$_[0]\n\n" if $_[0];		# put the reason on the first line, if any
+
+	no warnings 'uninitialized';
+
+	die <<EOF;
+${msg}USAGE: send2goog [options] [<project>] <file>
+
+Sends file specified by <file> to google code.
+
+Options are saved in ~/.send2goog.conf
+
+Options are:
+	-u[ser]      username
+	-p[ass]      password
+	-r           project name
+	-d[escr]     file summary/description
+	-l[abel]     label (can specify more than 1 time)
+	-b[atch]     run in batch mode (never prompt)
+EOF
+}
+

@@ -1,0 +1,8 @@
+#!/bin/bash
+cp /usr/src/cvs/eclipse-workspace/app-new_installer/scripts/update.cmd .
+sha1sum update.cmd > update.cmd.sha1
+cp /usr/src/cvs/eclipse-workspace/app-wininstaller/src_freenetinstaller/files_install/update.cmd update-new.cmd
+sha1sum update-new.cmd > update-new.cmd.sha1
+cp /usr/src/cvs/eclipse-workspace/app-new_installer/scripts/update.sh .
+sha1sum update.sh > update.sh.sha1
+rsync update.cmd update-new.cmd update.cmd.sha1 update-new.cmd.sha1 update.sh update.sh.sha1 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/update/

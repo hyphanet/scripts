@@ -1,0 +1,19 @@
+#!/bin/bash
+NEWVER=$1
+OLDVER=$[ $NEWVER - 1 ]
+echo Comparing $NEWVER to $OLDVER
+TEMPDIR=`mktemp -d -p /tmp tmp.XXXXXXX`
+cd $TEMPDIR
+cp -a /usr/src/cvs/eclipse-workspace/fred .
+mkdir $OLDVER
+mkdir $NEWVER
+cd fred
+git checkout build0${OLDVER}
+cp src/freenet/l10n/freenet.l10n.en.properties ../$OLDVER
+git checkout build0${NEWVER}
+cp src/freenet/l10n/freenet.l10n.en.properties ../$NEWVER
+cd ..
+diff -u0 $OLDVER/freenet.l10n.en.properties $NEWVER/freenet.l10n.en.properties > ${OLDVER}-${NEWVER}.diff.txt
+less ${OLDVER}-${NEWVER}.diff.txt
+rsync -vz ${OLDVER}-${NEWVER}.diff.txt osprey.vm.bytemark.co.uk:/var/www/emu/l10n/
+rm -Rf $TEMPDIR

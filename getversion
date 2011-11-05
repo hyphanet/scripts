@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$1"
+chmod -R a+rX .
+su nobody -c "java -cp lib/freenet-cvs-snapshot.jar freenet.node.Version" | sed "s/^Freenet: Fred 0.7 (protocol [0-9]*.[0-9]*) build //" | cut -d " " -f 1

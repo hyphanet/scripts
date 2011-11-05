@@ -1,0 +1,70 @@
+#!/bin/bash
+MAINVER="TESTNET 0.7.5"
+echo Clearing ~freenet-buildwin
+rm -Rf ~freenet-buildwin/*
+rm -Rf ~freenet-buildwin/.[a-zA-Z0-9]*
+mkdir ~freenet-buildwin/.ssh
+cat ~/.ssh/id_rsa.pub > ~freenet-buildwin/.ssh/authorized_keys
+chmod 700 ~freenet-buildwin/.ssh
+mkdir ~freenet-buildwin/bin
+(echo "cd tmp" ; echo "cd testnet-wininstaller" ; echo "wine cmd /c build.cmd") > ~freenet-buildwin/bin/build-alpha
+mkdir ~freenet-buildwin/tmp
+cp -a /usr/src/cvs/eclipse-workspace/testnet-wininstaller ~freenet-buildwin/tmp
+(cd ~freenet-buildwin/tmp/testnet-wininstaller; git checkout alpha)
+echo Copied
+GITVERSION=`cd ~freenet-buildwin/tmp/testnet-wininstaller && git describe --always --abbrev=40`
+if [[ -z $GITVERSION ]]; then echo Could not get git version; exit 1; fi
+echo Git version is $GITVERSION
+rm -Rf ~freenet-buildwin/tmp/testnet-wininstaller/.git
+mkdir ~freenet-buildwin/tmp/testnet-wininstaller/lib
+
+# Copy files
+
+ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet.jar ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/freenet-testnet.jar || exit
+ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/freenet-ext.jar || exit
+cp /usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes-testnet.fref ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/seednodes-testnet.fref || exit
+for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
+  ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/${x}.jar ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/plugins/${x}.jar || exit
+done
+cp ~freenet-buildwin/tmp/testnet-wininstaller/bin/Ahk2Exe.exe ~freenet-buildwin/tmp/testnet-wininstaller/bin/AutoHotkeySC.bin ~freenet-buildwin/tmp/testnet-wininstaller/res/tool_ahk/
+echo Copied dependancies.
+
+VERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet.build`
+echo VERSION is $VERSION
+echo Updating build
+(cd ~freenet-buildwin/tmp/testnet-wininstaller; cat src/freenetinstaller/FreenetInstaller_Include_Info.inc | sed "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" > 1; cat 1 > src/freenetinstaller/FreenetInstaller_Include_Info.inc; cat 1)
+chown -R freenet-buildwin.freenet-buildwin ~freenet-buildwin
+chmod +x ~freenet-buildwin/bin/build-alpha
+echo Running the build
+rm ~freenet-buildwin/tmp/testnet-wininstaller/bin/*
+eval `ssh-agent -s`
+ssh-add
+ssh -n freenet-buildwin@localhost xvfb-run ~freenet-buildwin/bin/build-alpha
+kill -9 `pgrep -u freenet-buildwin`
+cd
+mkdir -p tmp-wi
+cd tmp-wi
+rm /root/tmp-wi/*
+cp ~freenet-buildwin/tmp/testnet-wininstaller/bin/TestnetInstaller.exe TestnetInstaller-${VERSION}.exe
+cd ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/updater/ || exit
+sha1sum update-testnet.cmd > update-testnet.cmd.sha1 || exit
+cd ~/tmp-wi
+
+rsync ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/updater/update-testnet*cmd* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/update/
+
+echo Uploading
+cp TestnetInstaller-${VERSION}.exe ~toad/
+echo Signing
+su - toad -c "gpg --sign --detach-sign TestnetInstaller-${VERSION}.exe"
+cp ~toad/TestnetInstaller-${VERSION}.exe.sig .
+echo Uploading to Google Code
+#/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION Windows installer" -p freenet -u matthew.toseland TestnetInstaller-alpha-${VERSION}.exe || exit
+cp TestnetInstaller-${VERSION}.exe ~browser/
+chmod a+r ~browser/TestnetInstaller-${VERSION}.exe
+echo Uploading to emu
+rsync -v TestnetInstaller-${VERSION}.exe* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/installer/
+cp TestnetInstaller-${VERSION}.exe* /usr/src/cvs/eclipse-workspace/FreenetReleased/testnet/
+ssh osprey.vm.bytemark.co.uk -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/TestnetInstaller.exe .*$/TestnetInstaller.exe installer\/TestnetInstaller-${VERSION}.exe/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+
+ssh-agent -k
+
