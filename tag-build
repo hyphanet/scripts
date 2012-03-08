@@ -1,0 +1,48 @@
+#!/bin/bash
+DIFF=`git diff`
+if [[ ! -z $DIFF ]]; then
+        echo You did not commit the files!
+        echo "$DIFF"
+        exit
+fi
+DIFF=
+if grep TESTNET src/freenet/node/Version.java ; then echo TRYING TO RELEASE A TESTNET BUILD AS A REAL BUILD ; exit; fi
+BUILD=$1
+if [[ -z $BUILD ]]; then exit; fi
+if ! grep "buildNumber = $BUILD" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit; fi
+TAG=build0$BUILD
+echo Releasing build $TAG
+echo Please enter changelog:
+cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+git tag -s $TAG -F /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+echo CHANGELOG:
+cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+echo Confirm release of $TAG? y/n
+read x
+if [[ $x != "y" ]]; then
+	git tag -d $TAG
+	echo FAILED
+	exit
+fi
+git push --tags origin
+git push stable $TAG
+git push origin
+git push stable
+echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit
+echo $BUILD > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build
+BRANCH=`git branch | grep "^*" | cut -b 3-`
+if test $BRANCH != "master"; then
+	echo Merging back into master
+	git checkout master
+	git merge $TAG || exit
+	echo Delete branch $BRANCH? y/n
+	read x
+	if [[ $x == "y" ]]; then
+		git branch -d $BRANCH
+		git push origin :$BRANCH
+		echo Deleted branch $BRANCH
+	else
+		git checkout $BRANCH
+	fi
+	git push origin master
+fi
