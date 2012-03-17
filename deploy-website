@@ -1,0 +1,140 @@
+#!/bin/bash
+set -o errexit
+
+moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in/"
+websiteDeployDir="/var/www/freenet-website/"
+
+defaultWebsiteDir="../website-official"
+defaultFredDir="../fred-official"
+
+startingDir=`pwd`
+websiteDir="$1"
+fredDir="$2"
+
+#Attempt defaults if unspecified.
+if [[ -z $1 ]]
+then
+    websiteDir="$defaultWebsiteDir"
+fi
+websiteOutputDir="$websiteDir/output"
+
+if [[ -z $2 ]]
+then
+    fredDir="$defaultFredDir"
+fi
+
+#Show help if requested.
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]
+then
+    echo "Usage: $0 [path to website repo] [path to fred-offical repo]"
+    echo
+    echo "Generates and prompts for confirmation to deploy the version of the"
+    echo "website at [path to website repo] for the latest version of Fred"
+    echo "in the git repo at [path to fred-offical repo]."
+    echo
+    echo "If these arguments are not supplied, \"$defaultWebsiteDir\" and"
+    echo "\"$defaultFredDir\" are used."
+    echo
+    echo "The fred-offical repo is used to determine the version and build tag"
+    echo "for substitution. The version is regex'd from Version.java, and the"
+    echo "build tag is last git tag listed matching '^build[0-9]{5}'."
+    echo
+    echo "The following values are substituted:"
+    echo "FREENETVERSION with the build number. Ex: 1405"
+    echo "FREENETTAG with the build tag. Ex: build014105"
+    echo "FREENETJARVERSION with the same as FREENETVERSION. Ex: 1405"
+    echo
+    echo "Pages containing MONEYBALANCE or MONEYDAYS are copied to"
+    echo "$moneyBalanceDir"
+    echo "so the values can be periodically updated automatically."
+
+    exit 1  
+fi
+
+#Determine version information.
+cd "$fredDir"
+buildVersion=`perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java"`
+buildTag=`git tag -l | grep '^build[0-9]\{5\}' | tail -n 1`
+jarVersion="$buildTag"
+cd "$startingDir"
+
+#Generate website.
+cd "$websiteDir"
+./make-pages.sh
+
+#Determine which languages are present.
+presentLangs=`perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }'`
+cd "$startingDir"
+
+echo "Using FREENETVERSION \"$buildVersion\""
+echo "Using FREENETTAG \"$buildTag\""
+echo "Using FREENETJARVERSION \"$jarVersion\""
+echo "Website contains languages: $presentLangs"
+for value in "$buildVersion", "$buildTag", "$jarVersion", "$presentLangs"
+do
+    if [[ -z "$value" ]]
+    then
+        echo "Unable to find required value. Failed sanity check. Exiting."
+        exit 2
+    fi
+done
+echo -n "Deploy [y/N]? "
+read response
+
+#Case insensitive.
+if [[ `echo "$response" | tr '[:upper:]' '[:lower:]'` != "y" ]]
+then
+    echo "User declined to deploy. Exiting."
+    exit 1
+fi
+
+#Make temporary directory, copy files into it before making substitutions.
+#Avoids making changes to source material.
+tempSub=`mktemp -d`
+tempBal=`mktemp -d`
+echo "Created temporary directories \"$tempSub\" and \"$tempBal\"."
+cp -ar "$websiteOutputDir/"* "$tempSub"
+
+#Substitute, copying to the money balance substitution directory anything with MONEYBALANCE or MONEYDAYS.
+echo "Substituting."
+#Including a trailing slash - assumes mktemp -d does not include one.
+#Used to strip absolute component from path when copying to substitution dir.
+tempSubLength=$((${#tempSub}+1))
+for file in `find "$tempSub" -type f`
+do
+    sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g;s/FREENETJARVERSION/'"$jarVersion"'/g' "$file"
+    if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
+    then
+        relativePath=${file:$tempSubLength}
+        echo "\"$relativePath\" contains money substitutions."
+        target="$tempBal/$relativePath"
+        #Remove filename - up to slash from the back.
+        dir=${target%/*}
+        mkdir -p "$dir"
+        cp -a "$file" "$target"
+    fi
+done
+
+echo "Substitution complete."
+
+#Set permissions and copy to website root and balance substitution directory.
+#Trailing slash on rsync source so that contents of the directory are copied.
+echo "Setting permissions."
+sudo chmod 600 "$tempBal"
+sudo chown -R www-freenet-website:www-freenet-website "$tempBal"
+sudo chmod 600 "$tempSub"
+sudo chown -R www-freenet-website:www-freenet-website "$tempSub"
+
+echo "Copying to target from temporary directories."
+sudo rsync -r --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
+sudo rsync -r --owner --group --delete  "$tempSub"/ "$websiteDeployDir"
+
+echo "Removing temporary directories."
+sudo rm -rf "$tempSub"
+sudo rm -rf "$tempBal"
+
+echo "Updating money totals."
+sudo /root/bin/fix-money-totals
+echo "Deploy complete."
+
+exit 0
