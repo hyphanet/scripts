@@ -7,6 +7,7 @@ websiteDeployDir="/var/www/freenet-website/"
 defaultWebsiteDir="../website-official"
 defaultFredDir="../fred-official"
 
+cd `dirname $0`
 startingDir=`pwd`
 websiteDir="$1"
 fredDir="$2"
