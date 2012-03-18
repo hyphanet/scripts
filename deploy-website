@@ -83,7 +83,7 @@ fi
 cd "$fredDir"
 buildVersion=`perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java"`
 buildTag=`git tag -l | grep '^build[0-9]\{5\}' | tail -n 1`
-jarVersion="$buildTag"
+jarVersion="$buildVersion"
 cd "$startingDir"
 
 #Generate website.
