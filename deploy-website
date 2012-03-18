@@ -9,6 +9,14 @@ defaultFredDir="../fred-official"
 
 cd `dirname $0`
 startingDir=`pwd`
+
+#Check for the update flag
+update=false
+if getopts "u" opt; then
+    update=true
+    shift
+fi
+
 websiteDir="$1"
 fredDir="$2"
 
@@ -27,7 +35,7 @@ fi
 #Show help if requested.
 if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]
 then
-    echo "Usage: $0 [path to website repo] [path to fred-offical repo]"
+    echo "Usage: $0 [-u] [path to website repo] [path to fred-offical repo]"
     echo
     echo "Generates and prompts for confirmation to deploy the version of the"
     echo "website at [path to website repo] for the latest version of Fred"
@@ -35,6 +43,9 @@ then
     echo
     echo "If these arguments are not supplied, \"$defaultWebsiteDir\" and"
     echo "\"$defaultFredDir\" are used."
+    echo
+    echo "OPTIONS"
+    echo "      -u  Update the website and fred repos before deploying."
     echo
     echo "The fred-offical repo is used to determine the version and build tag"
     echo "for substitution. The version is regex'd from Version.java, and the"
@@ -50,6 +61,22 @@ then
     echo "so the values can be periodically updated automatically."
 
     exit 1  
+fi
+
+#If requested, perform update before gathering information from repos.
+if $update; then
+    echo "Updating fred-official."
+    cd "$fredDir"
+    #To update tags
+    git remote update
+    #To update Version.java
+    git pull
+
+    echo "Updating website-official."
+    cd "$websiteDir"
+    git pull
+
+    cd "$startingDir"
 fi
 
 #Determine version information.
