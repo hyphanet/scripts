@@ -54,7 +54,6 @@ then
     echo "The following values are substituted:"
     echo "FREENETVERSION with the build number. Ex: 1405"
     echo "FREENETTAG with the build tag. Ex: build014105"
-    echo "FREENETJARVERSION with the same as FREENETVERSION. Ex: 1405"
     echo
     echo "Pages containing MONEYBALANCE or MONEYDAYS are copied to"
     echo "$moneyBalanceDir"
@@ -83,7 +82,6 @@ fi
 cd "$fredDir"
 buildVersion=`perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java"`
 buildTag=`git tag -l | grep '^build[0-9]\{5\}' | tail -n 1`
-jarVersion="$buildVersion"
 cd "$startingDir"
 
 #Generate website.
@@ -96,9 +94,8 @@ cd "$startingDir"
 
 echo "Using FREENETVERSION \"$buildVersion\""
 echo "Using FREENETTAG \"$buildTag\""
-echo "Using FREENETJARVERSION \"$jarVersion\""
 echo "Website contains languages: $presentLangs"
-for value in "$buildVersion", "$buildTag", "$jarVersion", "$presentLangs"
+for value in "$buildVersion", "$buildTag", "$presentLangs"
 do
     if [[ -z "$value" ]]
     then
@@ -130,7 +127,7 @@ echo "Substituting."
 tempSubLength=$((${#tempSub}+1))
 for file in `find "$tempSub" -type f`
 do
-    sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g;s/FREENETJARVERSION/'"$jarVersion"'/g' "$file"
+    sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g' "$file"
     if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
     then
         relativePath=${file:$tempSubLength}
