@@ -1,11 +1,18 @@
 #!/bin/bash
-MAINVER=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.mainver`
+
+# variables used by this script
+# these variables are probably different for everybody
+# so create $HOME/.freenetrc and override those with your desired values.
+
+RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+
+MAINVER=`cat "${RELEASE_DIRECTORY}/freenet.mainver"`
 TEMPLOC=`mktemp -d`
 cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
 echo Copied data
 cd $TEMPLOC/fred/
-GITVERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag`
-VERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build`
+GITVERSION=`cat "${RELEASE_DIRECTORY}/freenet.tag"`
+VERSION=`cat "${RELEASE_DIRECTORY}/freenet.build"`
 echo Git version is $GITVERSION version is $VERSION
 git checkout $GITVERSION || exit
 git reset --hard
@@ -15,7 +22,7 @@ rm -Rf build/ dist/
 rm lib/*
 cp -a . ../fred-clean
 mkdir lib 2>/dev/null
-cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar || exit
+cp "${RELEASE_DIRECTORY}/freenet-ext.jar" lib/freenet-ext.jar || exit
 mkdir lib/freenet; cp lib/freenet-ext.jar lib/freenet/
 REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 RECOMMENDED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
@@ -32,18 +39,18 @@ mv dist/freenet.jar freenet-${GITVERSION}.jar || exit
 sha1sum freenet-${GITVERSION}.jar > freenet-${GITVERSION}.jar.sha1
 cp freenet-${GITVERSION}.jar ~toad
 echo Copying freenet-${GITVERSION}.jar*
-cp freenet-${GITVERSION}.jar* /usr/src/cvs/eclipse-workspace/FreenetReleased/ || exit
-echo Checking that /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-build0${VERSION}.jar exists.
-[[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-build0${VERSION}.jar ]] || exit
-echo Checking that /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${GITVERSION}.jar exists.
-[[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${GITVERSION}.jar ]] || exit
-rm /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.jar
-ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.jar
+cp freenet-${GITVERSION}.jar* "{RELEASE_DIRECTORY}/" || exit
+echo Checking that ${RELEASE_DIRECTORY}/freenet-build0${VERSION}.jar exists.
+[[ -e "${RELEASE_DIRECTORY}/freenet-build0${VERSION}.jar" ]] || exit
+echo Checking that ${RELEASE_DIRECTORY}/freenet-${GITVERSION}.jar exists.
+[[ -e "${RELEASE_DIRECTORY}/freenet-${GITVERSION}.jar" ]] || exit
+rm "{RELEASE_DIRECTORY}/freenet.jar"
+ln -s "{RELEASE_DIRECTORY}/freenet-${GITVERSION}.jar" "{RELEASE_DIRECTORY}/freenet.jar"
 su - toad -c "gpg --sign --detach-sign freenet-${GITVERSION}.jar"
 cp ~toad/freenet-${GITVERSION}.jar.sig .
 rm ~toad/freenet-${GITVERSION}.jar*
 cp freenet-${GITVERSION}.jar* /var/lib/freenet-experimental/
-cp freenet-${GITVERSION}.jar.sig /usr/src/cvs/eclipse-workspace/FreenetReleased/ || exit
+cp freenet-${GITVERSION}.jar.sig "{RELEASE_DIRECTORY}/" || exit
 #/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION" -p freenet -u matthew.toseland freenet-${GITVERSION}.jar || exit
 cp freenet-${GITVERSION}.jar* ~browser
 chmod a+r ~browser/freenet-${GITVERSION}.jar*
@@ -76,7 +83,7 @@ cp ../freenet-${GITVERSION}-source.tar.bz2* ~browser/
 chmod a+r ~browser/freenet-${GITVERSION}-source.tar.bz2
 rsync -vz ../freenet-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2
 rsync -vz ../freenet-${GITVERSION}-source.tar.bz2.sig osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2.sig
-cp ../freenet-${GITVERSION}-source.tar.bz2* /usr/src/cvs/eclipse-workspace/FreenetReleased
+cp ../freenet-${GITVERSION}-source.tar.bz2* "{RELEASE_DIRECTORY}/"
 echo Uploaded source code to emu
 rm -Rf $TEMPLOC
 cd
