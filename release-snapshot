@@ -76,6 +76,8 @@ sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GI
 # upload all files
 rsync -vvzP "freenet-${GITVERSION}-snapshot.jar"* freenet-testing-latest.jar.url .registry "freenet-${GITVERSION}-source.tar.bz2"* "${TARGET_HOST}:/var/www/downloads/alpha/"
 
+# make sure release directory subdirectory exists
+mkdir -p "${RELEASE_DIRECTORY}/pre"
 # copy files to local release directory
 mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
 
