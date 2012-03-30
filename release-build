@@ -6,6 +6,7 @@
 
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
+START_STOP_SSH_AGENT="1"
 
 # override these variables, if necessary
 if [ -f "${HOME}/.freenetrc" ]; then
@@ -37,8 +38,13 @@ if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else 
 echo "contrib.version.min=$REQUIRED_EXT" >> override.properties
 echo "contrib.version.rec=$RECOMMENDED_EXT" >> override.properties
 ant -f build-clean.xml || exit
-eval `ssh-agent -s`
-ssh-add
+
+# start ssh agent and collect password
+if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
+	eval `ssh-agent -s`
+	ssh-add
+fi
+
 rsync --delete -rz javadoc/* osprey.vm.bytemark.co.uk:/var/www/freenet-website/javadocs
 # Jars
 mv dist/freenet.jar freenet-${GITVERSION}.jar || exit
@@ -94,4 +100,8 @@ echo Uploaded source code to emu
 rm -Rf $TEMPLOC
 cd
 /root/bin/compare-l10n ${VERSION}
-ssh-agent -k
+
+# shut down the ssh agent
+if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
+	ssh-agent -k
+fi
