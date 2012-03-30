@@ -7,6 +7,11 @@
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
 
+# override these variables, if necessary
+if [ -f "${HOME}/.freenetrc" ]; then
+	. "${HOME}/.freenetrc"
+fi
+
 MAINVER=`cat "${RELEASE_DIRECTORY}/freenet.mainver"`
 TEMPLOC=`mktemp -d`
 cp -a "${WORKSPACE_FRED}/" $TEMPLOC
