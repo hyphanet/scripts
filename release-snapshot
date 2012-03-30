@@ -5,7 +5,7 @@
 # so create $HOME/.freenetrc and override those with your desired values.
 
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
-RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased/pre/"
+RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 FREENET_EXT_JAR="/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar"
 SIGNING_USER="toad"
 START_STOP_SSH_AGENT="1"
@@ -77,7 +77,7 @@ sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GI
 rsync -vvzP "freenet-${GITVERSION}-snapshot.jar"* freenet-testing-latest.jar.url .registry "freenet-${GITVERSION}-source.tar.bz2"* "${TARGET_HOST}:/var/www/downloads/alpha/"
 
 # copy files to local release directory
-mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}"
+mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
 
 # clean up
 popd
@@ -89,4 +89,4 @@ if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
 fi
 
 # upload binary and signature to freenet
-(echo ClientHello; echo Name=Toad-update-${GITVERSION}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/freenet-${GITVERSION}-snapshot.jar"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar.sig"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/freenet-${GITVERSION}-snapshot.jar.sig"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar.sig"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
+(echo ClientHello; echo Name=Toad-update-${GITVERSION}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/pre/freenet-${GITVERSION}-snapshot.jar"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar.sig"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/pre/freenet-${GITVERSION}-snapshot.jar.sig"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar.sig"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
