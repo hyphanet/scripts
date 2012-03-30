@@ -5,10 +5,11 @@
 # so create $HOME/.freenetrc and override those with your desired values.
 
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
 
 MAINVER=`cat "${RELEASE_DIRECTORY}/freenet.mainver"`
 TEMPLOC=`mktemp -d`
-cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
+cp -a "${WORKSPACE_FRED}/" $TEMPLOC
 echo Copied data
 cd $TEMPLOC/fred/
 GITVERSION=`cat "${RELEASE_DIRECTORY}/freenet.tag"`
