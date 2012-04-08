@@ -118,7 +118,7 @@ fi
 tempSub=`mktemp -d`
 tempBal=`mktemp -d`
 echo "Created temporary directories \"$tempSub\" and \"$tempBal\"."
-cp -ar "$websiteOutputDir/"* "$tempSub"
+rsync -ar "$websiteOutputDir/"* "$tempSub"
 
 #Substitute, copying to the money balance substitution directory anything with MONEYBALANCE or MONEYDAYS.
 echo "Substituting."
@@ -127,7 +127,10 @@ echo "Substituting."
 tempSubLength=$((${#tempSub}+1))
 for file in `find "$tempSub" -type f`
 do
-    sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g' "$file"
+    if grep -Fq -e FREENET "$file"
+    then
+       sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g' "$file"
+    fi
     if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
     then
         relativePath=${file:$tempSubLength}
@@ -145,14 +148,14 @@ echo "Substitution complete."
 #Set permissions and copy to website root and balance substitution directory.
 #Trailing slash on rsync source so that contents of the directory are copied.
 echo "Setting permissions."
-sudo chmod 600 "$tempBal"
+sudo chmod 700 "$tempBal"
 sudo chown -R www-freenet-website:www-freenet-website "$tempBal"
-sudo chmod 600 "$tempSub"
+sudo chmod 700 "$tempSub"
 sudo chown -R www-freenet-website:www-freenet-website "$tempSub"
 
 echo "Copying to target from temporary directories."
-sudo rsync -r --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
-sudo rsync -r --owner --group --delete  "$tempSub"/ "$websiteDeployDir"
+sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
+sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployDir"
 
 echo "Removing temporary directories."
 sudo rm -rf "$tempSub"
