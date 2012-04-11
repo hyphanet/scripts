@@ -10,6 +10,8 @@ echo Git version is $GITVERSION version is $VERSION
 git checkout $GITVERSION || exit
 git reset --hard
 ant clean -Dsuppress.gjs=false || exit
+# Remove junk.
+git status | tail -n +5 | head -n -1 | grep "^#" | sed "s/^#\t//" | (while read x; do rm "$x"; done)
 rm lib/freenet-cvs-snapshot.jar
 rm -Rf build/ dist/
 rm lib/*
@@ -61,8 +63,6 @@ mv fred-clean fred
 cd fred
 git checkout $GITVERSION || exit
 git reset --hard
-# Remove junk.
-git status | tail -n +5 | head -n -1 | grep "^#" | sed "s/^#\t//" | (while read x; do rm "$x"; done)
 rm -Rf .git
 rm -Rf tmp
 tar cjf ../freenet-${GITVERSION}-source.tar.bz2 .
