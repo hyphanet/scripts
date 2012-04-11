@@ -1,0 +1,106 @@
+#!/bin/bash
+# TODO MAJOR: Ask for a build number on the command line, autodetect otherwise.
+# Attempts to verify that the latest build corresponds to the bytecode.
+# Main requirement is to run the script on a system using the same Java compiler as the system that released it.
+# For builds by toad, this is the latest sun JVM on Debian stable.
+TEMPBASE=~/
+FREENET_EXT_JAR=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar
+## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
+## TODO MAJOR: Verify the installers
+## TODO MAJOR: Fetch the freenet jar from multiple sources e.g. Freenet over FCP.
+## TODO Option to avoid re-cloning each time. It may be safer to re-clone each time however.
+## TODO: Automatically download freenet-ext.jar if not present, in a secure fashion.
+## TODO: Deal with freenet-ext.jar updating automatically.
+## TODO: Verify freenet-ext.jar itself.
+## TODO: Hard-code the certificate for SSL see the code in update.sh in app-new_installer
+## TODO: Detect who released it and complain if not the same compiler? Or even install several copies?
+TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
+cd $TMPDIR
+echo Using "$TMPDIR"
+if ! git clone git://github.com/freenet/fred-official.git; then
+	echo Failed: Unable to clone repository.
+	exit 1
+fi
+cd fred-official
+TAG=`git tag | grep "^build" | sort | tail -n1`
+echo Using build "$TAG"
+if ! git checkout "$TAG"; then
+	echo Failed: Unable to checkout tag "$TAG"
+	exit 2
+fi
+if ! git tag -v "$TAG"; then
+    echo Failed to verify tag "$TAG"
+    exit 11
+fi
+BUILD=`cat src/freenet/node/Version.java | grep "buildNumber = " | sed -n "s/^[ \t]*private static final int buildNumber = \([0-9]*\);$/\1/p"`
+if [[ -z $BUILD ]]; then
+	echo Unable to determine build number.
+	exit 3
+fi
+echo Build number $BUILD
+if ! cp "$FREENET_EXT_JAR" lib/freenet/freenet-ext.jar; then
+	echo Unable to copy freenet-ext.jar from "$FREENET_EXT_JAR"
+	exit 12
+fi
+if ! (ant clean && ant); then
+	echo Unable to build from repository.
+	exit 8
+fi
+cd ..
+# Unpack it because it's the jar that matters
+mkdir unpacked-built
+cd unpacked-built
+if ! unzip ../fred-official/dist/freenet.jar; then
+    echo Failed to unpack built jar
+    exit 9
+fi
+cd ..
+if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" -O freenet.jar.sig; then
+	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" from osprey.
+	exit 4
+fi
+if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" -O freenet.jar; then
+	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" from osprey.
+	exit 5;
+fi
+if ! gpg freenet.jar.sig; then
+	echo "Unable to verify signature on jar"
+	exit 6;
+fi
+mkdir unpacked-official
+cd unpacked-official
+if ! unzip ../freenet.jar; then
+	echo Failed to unpack official released jar
+	exit 7;
+fi
+cd ..
+
+# Ready to do the comparison
+(cd unpacked-official; find -type f) | sort > unpacked-official.list
+(cd unpacked-built; find -type f) | sort > unpacked-built.list
+if ! cmp unpacked-official.list unpacked-built.list; then
+    echo FAILED TO VERIFY: Different files in official vs built
+    echo Files in official but not in built are marked as +
+    echo Files in built but not in official are marked with -
+    diff -u unpacked-built.list unpacked-official.list
+    exit 9
+fi
+
+DIFFS="differences"
+rm $DIFFS
+# There must be a better way to do this, my bash-fu sucks.
+# We can't use a variable because of the brackets.
+cat unpacked-official.list |
+	(while read x; do
+	    if ! cmp "unpacked-official/$x" "unpacked-built/$x"; then
+		echo "Files are different: $x"
+		echo "$x" >> $DIFFS
+	    fi)
+if [[ -s "differences" ]]; then
+    echo VERIFY FAILED: FILES ARE DIFFERENT:
+    cat $DIFFS
+    exit 10
+fi
+cd ..
+rm -Rf $TMPDIR
+echo Success
