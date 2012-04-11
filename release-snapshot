@@ -7,6 +7,8 @@ git reset --hard
 mkdir lib 2>/dev/null
 cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar; mkdir lib/freenet; cp lib/freenet-ext.jar lib/freenet/
 ant clean -Dsuppress.gjs=false || exit
+# Remove junk.
+git status | tail -n +5 | head -n -1 | grep "^#" | sed "s/^#\t//" | (while read x; do rm "$x"; done)
 rm lib/freenet-cvs-snapshot.jar
 cp -a . ../fred-clean
 REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
