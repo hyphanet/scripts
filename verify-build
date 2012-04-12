@@ -5,6 +5,7 @@
 # For builds by toad, this is the latest sun JVM on Debian stable.
 TEMPBASE=~/
 FREENET_EXT_JAR=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar
+GIT_URL=git://github.com/freenet/fred-official.git
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
 ## TODO MAJOR: Fetch the freenet jar from multiple sources e.g. Freenet over FCP.
@@ -17,17 +18,13 @@ FREENET_EXT_JAR=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar
 TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
 cd $TMPDIR
 echo Using "$TMPDIR"
-if ! git clone git://github.com/freenet/fred-official.git; then
+TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
+echo Using build "$TAG"
+if ! git clone "$GIT_URL" fred --branch="$TAG" --depth=1; then
 	echo Failed: Unable to clone repository.
 	exit 1
 fi
-cd fred-official
-TAG=`git tag | grep "^build" | sort | tail -n1`
-echo Using build "$TAG"
-if ! git checkout "$TAG"; then
-	echo Failed: Unable to checkout tag "$TAG"
-	exit 2
-fi
+cd fred
 if ! git tag -v "$TAG"; then
     echo Failed to verify tag "$TAG"
     exit 11
@@ -50,7 +47,7 @@ cd ..
 # Unpack it because it's the jar that matters
 mkdir unpacked-built
 cd unpacked-built
-if ! unzip ../fred-official/dist/freenet.jar; then
+if ! unzip ../fred/dist/freenet.jar; then
     echo Failed to unpack built jar
     exit 9
 fi
