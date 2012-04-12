@@ -3,8 +3,8 @@
 # Attempts to verify that the latest build corresponds to the bytecode.
 # Main requirement is to run the script on a system using the same Java compiler as the system that released it.
 # For builds by toad, this is the latest sun JVM on Debian stable.
-TEMPBASE=~/
-FREENET_EXT_JAR=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar
+: ${TEMPBASE:=~/}
+: ${FREENET_EXT_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar}
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
 ## TODO MAJOR: Fetch the freenet jar from multiple sources e.g. Freenet over FCP.
