@@ -42,7 +42,7 @@ if ! cp "$FREENET_EXT_JAR" lib/freenet/freenet-ext.jar; then
 	echo Unable to copy freenet-ext.jar from "$FREENET_EXT_JAR"
 	exit 12
 fi
-if ! (ant clean && ant); then
+if ! (ant clean && ant package-only); then
 	echo Unable to build from repository.
 	exit 8
 fi
