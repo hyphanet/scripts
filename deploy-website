@@ -163,7 +163,6 @@ sudo rm -rf "$tempBal"
 
 echo "Updating money totals."
 sudo /root/bin/fix-money-totals
-sudo chmod 755 /var/www/freenet-website
 echo "Deploy complete."
 
 exit 0
