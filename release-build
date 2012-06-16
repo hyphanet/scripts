@@ -56,10 +56,7 @@ cd ..
 rm -Rf fred
 mv fred-clean fred
 cd fred
-git checkout $GITVERSION || exit
-git reset --hard
 rm -Rf .git
-rm -Rf tmp
 tar cjf ../freenet-${GITVERSION}-source.tar.bz2 .
 #echo Uploading source to Google Code
 #/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION source code" -p freenet -u matthew.toseland ../freenet-${GITVERSION}-source.tar.bz2 || exit
