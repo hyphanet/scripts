@@ -23,7 +23,7 @@ echo "contrib.version.rec=$RECOMMENDED_EXT" >> override.properties
 ant -f build-clean.xml || exit
 eval `ssh-agent -s`
 ssh-add
-rsync --delete -rz javadoc/* osprey.vm.bytemark.co.uk:/var/www/freenet-website/javadocs
+rsync --delete -rz javadoc/* osprey.vm.bytemark.co.uk:/var/www/freenet-javadocs
 # Jars
 mv dist/freenet.jar freenet-${GITVERSION}.jar || exit
 sha1sum freenet-${GITVERSION}.jar > freenet-${GITVERSION}.jar.sha1
