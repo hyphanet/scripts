@@ -54,21 +54,20 @@ ssh osprey.vm.bytemark.co.uk -- "cp /var/www/downloads/alpha/.registry .; cat /v
 echo Uploaded new pointers
 cd ..
 rm -Rf fred
-mv fred-clean fred
-cd fred
-rm -Rf .git
-tar cjf ../freenet-${GITVERSION}-source.tar.bz2 .
+mv fred-clean freenet-${GITVERSION}
+rm -Rf freenet-${GITVERSION}/.git
+tar cjf freenet-${GITVERSION}-source.tar.bz2 freenet-${GITVERSION}
 #echo Uploading source to Google Code
 #/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION source code" -p freenet -u matthew.toseland ../freenet-${GITVERSION}-source.tar.bz2 || exit
 #echo Uploaded source code to Google Code
-cp ../freenet-${GITVERSION}-source.tar.bz2* ~toad/
+cp freenet-${GITVERSION}-source.tar.bz2* ~toad/
 su - toad -c "gpg --sign --detach-sign freenet-${GITVERSION}-source.tar.bz2"
-cp ~toad/freenet-${GITVERSION}-source.tar.bz2.sig ..
-cp ../freenet-${GITVERSION}-source.tar.bz2* ~browser/
+cp ~toad/freenet-${GITVERSION}-source.tar.bz2.sig .
+cp freenet-${GITVERSION}-source.tar.bz2* ~browser/
 chmod a+r ~browser/freenet-${GITVERSION}-source.tar.bz2
-rsync -vz ../freenet-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2
-rsync -vz ../freenet-${GITVERSION}-source.tar.bz2.sig osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2.sig
-cp ../freenet-${GITVERSION}-source.tar.bz2* /usr/src/cvs/eclipse-workspace/FreenetReleased
+rsync -vz freenet-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2
+rsync -vz freenet-${GITVERSION}-source.tar.bz2.sig osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2.sig
+cp freenet-${GITVERSION}-source.tar.bz2* /usr/src/cvs/eclipse-workspace/FreenetReleased
 echo Uploaded source code to emu
 rm -Rf $TEMPLOC
 cd

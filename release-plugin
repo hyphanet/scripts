@@ -30,8 +30,10 @@ ssh osprey.vm.bytemark.co.uk -- "cat /var/www/downloads/alpha/.registry | sed \"
 echo Uploaded new pointers
 git clean -dfx
 rm -Rf .git
-tar cjf ../${PLUGIN}-${GITVERSION}-source.tar.bz2 .
-rsync -vz ../${PLUGIN}-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/
+cd ..
+mv plugin-$PLUGIN ${PLUGIN}-${GITVERSION}
+tar cjf ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${PLUGIN}-${GITVERSION}
+rsync -vz ${PLUGIN}-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/
 echo Uploaded source
 (echo ClientHello; echo Name=Toad-update-${PLUGIN}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=${PLUGIN}-${GITVERSION}.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar"; echo "TargetFilename=${PLUGIN}.jar"; echo Persistence=forever; echo PriorityClass=2; echo Global=true; echo End) > $TEMPLOC/upload
 cat $TEMPLOC/upload | nc 127.0.0.1 9481

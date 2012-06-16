@@ -35,11 +35,10 @@ ssh osprey.vm.bytemark.co.uk -- "cat /var/www/downloads/alpha/.registry | sed \"
 echo Uploaded new pointers
 cd ..
 rm -Rf fred
-mv fred-clean fred
-cd fred
-rm -Rf .git
-tar cjf ../freenet-${GITVERSION}-source.tar.bz2 .
-rsync -vvz ../freenet-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2
+mv fred-clean freenet-${GITVERSION}
+rm -Rf freenet-${GITVERSION}/.git
+tar cjf freenet-${GITVERSION}-source.tar.bz2 freenet-${GITVERSION}
+rsync -vvz freenet-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2
 echo Uploaded source
 rm -Rf $TEMPLOC
 ssh-agent -k
