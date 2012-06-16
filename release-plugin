@@ -9,6 +9,7 @@ git reset --hard
 ln -s /usr/src/cvs/eclipse-workspace/fred $TEMPLOC/fred
 #export JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
 #export PATH=${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:$PATH
+git reset --hard
 ant clean || exit
 ant distclean
 ant || exit
