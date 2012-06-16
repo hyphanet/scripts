@@ -4,10 +4,10 @@ cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
 echo Copied data
 cd $TEMPLOC/fred/
 git reset --hard
-mkdir lib 2>/dev/null
-cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar; mkdir lib/freenet; cp lib/freenet-ext.jar lib/freenet/
 git clean -dfx
 cp -a . ../fred-clean
+mkdir lib 2>/dev/null
+cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar; mkdir lib/freenet; cp lib/freenet-ext.jar lib/freenet/
 REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 RECOMMENDED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 3; fi
