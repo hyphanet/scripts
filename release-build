@@ -9,12 +9,7 @@ VERSION=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build`
 echo Git version is $GITVERSION version is $VERSION
 git checkout $GITVERSION || exit
 git reset --hard
-ant clean -Dsuppress.gjs=false || exit
-# Remove junk.
-git status | tail -n +5 | head -n -1 | grep "^#" | sed "s/^#\t//" | (while read x; do rm "$x"; done)
-rm lib/freenet-cvs-snapshot.jar
-rm -Rf build/ dist/
-rm lib/*
+git clean -dfx
 cp -a . ../fred-clean
 mkdir lib 2>/dev/null
 cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar || exit
