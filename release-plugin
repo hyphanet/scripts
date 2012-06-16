@@ -28,7 +28,7 @@ echo "http://downloads.freenetproject.org/alpha/plugins/${PLUGIN}/${PLUGIN}-${GI
 rsync -vz ../${PLUGIN}.jar.url* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/
 ssh osprey.vm.bytemark.co.uk -- "cat /var/www/downloads/alpha/.registry | sed \"s/${PLUGIN}.jar .*$/${PLUGIN}.jar plugins\\/${PLUGIN}\\/${PLUGIN}-${GITVERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
 echo Uploaded new pointers
-ant clean
+git clean -dfx
 rm -Rf .git
 tar cjf ../${PLUGIN}-${GITVERSION}-source.tar.bz2 .
 rsync -vz ../${PLUGIN}-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/
