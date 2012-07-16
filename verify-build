@@ -5,7 +5,7 @@
 # For builds by toad, this is the latest sun JVM on Debian stable.
 : ${TEMPBASE:=~/}
 : ${FREENET_EXT_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar}
-GIT_URL=git://github.com/freenet/fred-official.git
+: ${GIT_URL:=git://github.com/freenet/fred-official.git}
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
 ## TODO MAJOR: Fetch the freenet jar from multiple sources e.g. Freenet over FCP.
