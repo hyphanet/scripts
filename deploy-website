@@ -9,33 +9,13 @@ defaultFredDir="../fred-official"
 
 cd `dirname $0`
 startingDir=`pwd`
-
-#Check for the update flag
 update=false
-if getopts "u" opt; then
-    update=true
-    shift
-fi
+websiteDir=""
+fredDir=""
 
-websiteDir="$1"
-fredDir="$2"
-
-#Attempt defaults if unspecified.
-if [[ -z $1 ]]
-then
-    websiteDir="$defaultWebsiteDir"
-fi
-websiteOutputDir="$websiteDir/output"
-
-if [[ -z $2 ]]
-then
-    fredDir="$defaultFredDir"
-fi
-
-#Show help if requested.
-if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]
-then
-    echo "Usage: $0 [-u] [path to website repo] [path to fred-offical repo]"
+show_help() {
+    echo "Usage: $0 [-u|--update] [[-w|--website] path to website repo]"
+    echo "[[-f|--fred] path to fred-offical repo]"
     echo
     echo "Generates and prompts for confirmation to deploy the version of the"
     echo "website at [path to website repo] for the latest version of Fred"
@@ -45,7 +25,9 @@ then
     echo "\"$defaultFredDir\" are used."
     echo
     echo "OPTIONS"
-    echo "      -u  Update the website and fred repos before deploying."
+    echo "      -u, --update  Update the website and fred repos before deploying."
+    echo "      -w, --website Path to a clone of the website-official repo."
+    echo "      -f, --fred    Path to a clone of the fred-official repo."
     echo
     echo "The fred-offical repo is used to determine the version and build tag"
     echo "for substitution. The version is regex'd from Version.java, and the"
@@ -56,10 +38,62 @@ then
     echo "FREENETTAG with the build tag. Ex: build014105"
     echo
     echo "Pages containing MONEYBALANCE or MONEYDAYS are copied to"
-    echo "$moneyBalanceDir"
+    echo "\"$moneyBalanceDir\""
     echo "so the values can be periodically updated automatically."
+}
 
-    exit 1  
+while :
+do
+    case $1 in
+        -h | --help | -\?)
+            show_help
+            exit 0
+            ;;
+        -u | --update)
+            update=true
+            shift
+            ;;
+        -w | --website)
+            websiteDir="$2"
+            shift 2
+            ;;
+        -w=* | --website=*)
+            # Delete everything up until "=" from the path.
+            websiteDir=${1#*=}
+            shift
+            ;;
+        -f | --fred)
+            fredDir="$2"
+            shift 2
+            ;;
+        -f=* | --fred=*)
+            fredDir=${1#*=}
+            shift
+            ;;
+        --) # End of all options
+            shift
+            break
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        *)  # No more options; stop parsing.
+            break
+            ;;
+    esac
+done
+
+#Attempt defaults if unspecified.
+if [[ ! "$websiteDir" ]]
+then
+    websiteDir="$defaultWebsiteDir"
+fi
+websiteOutputDir="$websiteDir/output"
+
+if [[ ! "$fredDir" ]]
+then
+    fredDir="$defaultFredDir"
 fi
 
 #If requested, perform update before gathering information from repos.
@@ -97,7 +131,7 @@ echo "Using FREENETTAG \"$buildTag\""
 echo "Website contains languages: $presentLangs"
 for value in "$buildVersion" "$buildTag" "$presentLangs"
 do
-    if [[ -z "$value" ]]
+    if [[ ! "$value" ]]
     then
         echo "Unable to find required value. Failed sanity check. Exiting."
         exit 2
