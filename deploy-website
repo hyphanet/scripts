@@ -7,8 +7,8 @@ websiteDeployDir="/var/www/freenet-website/"
 defaultWebsiteDir="../website-official"
 defaultFredDir="../fred-official"
 
-cd `dirname $0`
-startingDir=`pwd`
+cd $(dirname $0)
+startingDir=$(pwd)
 update=false
 websiteDir=""
 fredDir=""
@@ -114,8 +114,8 @@ fi
 
 #Determine version information.
 cd "$fredDir"
-buildVersion=`perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java"`
-buildTag=`git tag -l | grep '^build[0-9]\{5\}' | tail -n 1`
+buildVersion=$(perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java")
+buildTag=$(git tag -l | grep '^build[0-9]\{5\}' | tail -n 1)
 cd "$startingDir"
 
 #Generate website.
@@ -123,7 +123,7 @@ cd "$websiteDir"
 ./make-pages.sh
 
 #Determine which languages are present.
-presentLangs=`perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }'`
+presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
 cd "$startingDir"
 
 echo "Using FREENETVERSION \"$buildVersion\""
@@ -141,7 +141,7 @@ echo -n "Deploy [y/N]? "
 read response
 
 #Case insensitive.
-if [[ `echo "$response" | tr '[:upper:]' '[:lower:]'` != "y" ]]
+if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]
 then
     echo "User declined to deploy. Exiting."
     exit 1
@@ -149,8 +149,8 @@ fi
 
 #Make temporary directory, copy files into it before making substitutions.
 #Avoids making changes to source material.
-tempSub=`mktemp -d`
-tempBal=`mktemp -d`
+tempSub=$(mktemp -d)
+tempBal=$(mktemp -d)
 echo "Created temporary directories \"$tempSub\" and \"$tempBal\"."
 rsync -ar "$websiteOutputDir/"* "$tempSub"
 
@@ -159,7 +159,7 @@ echo "Substituting."
 #Including a trailing slash - assumes mktemp -d does not include one.
 #Used to strip absolute component from path when copying to substitution dir.
 tempSubLength=$((${#tempSub}+1))
-for file in `find "$tempSub" -type f`
+for file in $(find "$tempSub" -type f)
 do
     if grep -Fq -e FREENET "$file"
     then
