@@ -95,7 +95,7 @@ cd "$startingDir"
 echo "Using FREENETVERSION \"$buildVersion\""
 echo "Using FREENETTAG \"$buildTag\""
 echo "Website contains languages: $presentLangs"
-for value in "$buildVersion", "$buildTag", "$presentLangs"
+for value in "$buildVersion" "$buildTag" "$presentLangs"
 do
     if [[ -z "$value" ]]
     then
