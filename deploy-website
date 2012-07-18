@@ -10,6 +10,7 @@ defaultFredDir="../fred-official"
 cd $(dirname $0)
 startingDir=$(pwd)
 update=false
+dryRun=false
 websiteDir=""
 fredDir=""
 
@@ -28,6 +29,8 @@ show_help() {
     echo "      -u, --update  Update the website and fred repos before deploying."
     echo "      -w, --website Path to a clone of the website-official repo."
     echo "      -f, --fred    Path to a clone of the fred-official repo."
+    echo "      -d, --dry-run Generate the website, but pause to allow inspection of the"
+    echo "                    output instead of deploying or updating the money totals."
     echo
     echo "The fred-offical repo is used to determine the version and build tag"
     echo "for substitution. The version is regex'd from Version.java, and the"
@@ -68,6 +71,10 @@ do
             ;;
         -f=* | --fred=*)
             fredDir=${1#*=}
+            shift
+            ;;
+        -d | --dry-run)
+            dryRun=true
             shift
             ;;
         --) # End of all options
@@ -137,13 +144,22 @@ do
         exit 2
     fi
 done
+
+if $dryRun; then
+    echo -n "Continue dry run [y/N]?"
+else
 echo -n "Deploy [y/N]? "
+fi
 read response
 
 #Case insensitive.
 if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]
 then
+    if $dryRun; then
+        echo "User declined to continue dry run. Exiting."
+    else
     echo "User declined to deploy. Exiting."
+    fi
     exit 1
 fi
 
@@ -187,16 +203,29 @@ sudo chown -R www-freenet-website:www-freenet-website "$tempBal"
 sudo chmod 700 "$tempSub"
 sudo chown -R www-freenet-website:www-freenet-website "$tempSub"
 
+if $dryRun; then
+    echo "---Dry run---"
+    echo "If desired, please inspect these temporary directories:"
+    echo " * Would be deployed to balance directory: $tempBal"
+    echo " * Would be deployed to website directory: $tempSub"
+    echo "Waiting - press a key for the temporary directories to be removed."
+    read -er -n 1
+else
 echo "Copying to target from temporary directories."
 sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
 sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployDir"
+fi
 
 echo "Removing temporary directories."
 sudo rm -rf "$tempSub"
 sudo rm -rf "$tempBal"
 
+if $dryRun; then
+    echo "Dry run complete."
+else
 echo "Updating money totals."
 sudo /root/bin/fix-money-totals
 echo "Deploy complete."
+fi
 
 exit 0
