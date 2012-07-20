@@ -30,7 +30,9 @@ show_help() {
     echo "the website when --testing is present and not present, respectively."
     echo
     echo "OPTIONS"
-    echo "      -u, --update  Update the website and fred repos before deploying."
+    echo "     -u, --update   Update the website and fred repos before deploying."
+    echo "                    This removes any local modifications and updates to the"
+    echo "                    remote master branch."
     echo "      -w, --website Path to a clone of the website -official or -staging repo."
     echo "      -f, --fred    Path to a clone of the fred-official repo."
     echo "      -d, --dry-run Generate the website, but pause to allow inspection of the"
@@ -117,18 +119,29 @@ then
     fredDir="$defaultFredDir"
 fi
 
+# Discard any local changes, update remote branches and tags, and
+# check out to the latest master branch.
+git_update() {
+    #To update tags and branches.
+    git remote update
+    echo "Discarding any local changes."
+    git clean -dfx
+    git reset --hard origin/master
+    echo "Checking out latest master branch."
+    git checkout -q origin/master
+    git branch -f master origin/master
+    git checkout master
+}
+
 #If requested, perform update before gathering information from repos.
 if $update; then
     echo "Updating fred-official."
     cd "$fredDir"
-    #To update tags
-    git remote update
-    #To update Version.java
-    git pull
+    git_update
 
     echo "Updating website repo."
     cd "$websiteDir"
-    git pull
+    git_update
 
     cd "$startingDir"
 fi
