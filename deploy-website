@@ -2,15 +2,18 @@
 set -o errexit
 
 moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in/"
-websiteDeployDir="/var/www/freenet-website/"
+websiteDeployLiveDir="/var/www/freenet-website/"
+websiteDeployTestingDir="/var/www/freenet-website-testing/"
 
-defaultWebsiteDir="../website-official"
+defaultWebsiteOfficialDir="../website-official"
+defaultWebsiteStagingDir="../website-staging"
 defaultFredDir="../fred-official"
 
 cd $(dirname $0)
 startingDir=$(pwd)
 update=false
 dryRun=false
+testing=false
 websiteDir=""
 fredDir=""
 
@@ -22,15 +25,18 @@ show_help() {
     echo "website at [path to website repo] for the latest version of Fred"
     echo "in the git repo at [path to fred-offical repo]."
     echo
-    echo "If these arguments are not supplied, \"$defaultWebsiteDir\" and"
-    echo "\"$defaultFredDir\" are used."
+    echo "If these arguments are not supplied, \"$defaultFredDir\" is used for Fred;"
+    echo "\"$defaultWebsiteStagingDir\" and \"$defaultWebsiteOfficialDir\" are used for"
+    echo "the website when --testing is present and not present, respectively."
     echo
     echo "OPTIONS"
     echo "      -u, --update  Update the website and fred repos before deploying."
-    echo "      -w, --website Path to a clone of the website-official repo."
+    echo "      -w, --website Path to a clone of the website -official or -staging repo."
     echo "      -f, --fred    Path to a clone of the fred-official repo."
     echo "      -d, --dry-run Generate the website, but pause to allow inspection of the"
     echo "                    output instead of deploying or updating the money totals."
+    echo "      -t, --testing Deploy to the testing subdomain, and do not update the"
+    echo "                    money totals."
     echo
     echo "The fred-offical repo is used to determine the version and build tag"
     echo "for substitution. The version is regex'd from Version.java, and the"
@@ -77,6 +83,10 @@ do
             dryRun=true
             shift
             ;;
+        -t | --testing)
+            testing=true
+            shift
+            ;;
         --) # End of all options
             shift
             break
@@ -94,7 +104,11 @@ done
 #Attempt defaults if unspecified.
 if [[ ! "$websiteDir" ]]
 then
-    websiteDir="$defaultWebsiteDir"
+    if $testing; then
+        websiteDir="$defaultWebsiteStagingDir"
+    else
+    websiteDir="$defaultWebsiteOfficialDir"
+    fi
 fi
 websiteOutputDir="$websiteDir/output"
 
@@ -112,7 +126,7 @@ if $update; then
     #To update Version.java
     git pull
 
-    echo "Updating website-official."
+    echo "Updating website repo."
     cd "$websiteDir"
     git pull
 
@@ -136,6 +150,7 @@ cd "$startingDir"
 echo "Using FREENETVERSION \"$buildVersion\""
 echo "Using FREENETTAG \"$buildTag\""
 echo "Website contains languages: $presentLangs"
+echo "Using website repo in: \"$websiteDir\""
 for value in "$buildVersion" "$buildTag" "$presentLangs"
 do
     if [[ ! "$value" ]]
@@ -148,7 +163,11 @@ done
 if $dryRun; then
     echo -n "Continue dry run [y/N]?"
 else
-echo -n "Deploy [y/N]? "
+    if $testing; then
+        echo -n "Deploy to testing site [y/N]?"
+    else
+echo -n "Deploy to live site [y/N]? "
+    fi
 fi
 read response
 
@@ -210,10 +229,14 @@ if $dryRun; then
     echo " * Would be deployed to website directory: $tempSub"
     echo "Waiting - press a key for the temporary directories to be removed."
     read -er -n 1
+elif $testing; then
+    echo "Copying to testing target from temporary directories."
+    echo "Testing mode: not updating money totals."
+    sudo rsync -ar --owner --group --delete "$tempSub"/ "$websiteDeployTestingDir"
 else
-echo "Copying to target from temporary directories."
+echo "Copying to live target from temporary directories."
 sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
-sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployDir"
+sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
 fi
 
 echo "Removing temporary directories."
@@ -222,10 +245,12 @@ sudo rm -rf "$tempBal"
 
 if $dryRun; then
     echo "Dry run complete."
+elif $testing; then
+    echo "Deploy to testing site complete."
 else
 echo "Updating money totals."
 sudo /root/bin/fix-money-totals
-echo "Deploy complete."
+echo "Deploy to live site complete."
 fi
 
 exit 0
