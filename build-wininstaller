@@ -10,7 +10,7 @@ mkdir ~freenet-buildwin/bin
 (echo "cd tmp" ; echo "cd app-wininstaller" ; echo "wine cmd /c build.cmd") > ~freenet-buildwin/bin/build-alpha
 mkdir ~freenet-buildwin/tmp
 cp -a /usr/src/cvs/eclipse-workspace/app-wininstaller ~freenet-buildwin/tmp
-(cd ~freenet-buildwin/tmp/app-wininstaller; git checkout alpha)
+(cd ~freenet-buildwin/tmp/app-wininstaller; git checkout master)
 echo Copied
 GITVERSION=`cd ~freenet-buildwin/tmp/app-wininstaller && git describe --always --abbrev=40`
 if [[ -z $GITVERSION ]]; then echo Could not get git version; exit 1; fi
