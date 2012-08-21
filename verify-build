@@ -85,14 +85,13 @@ fi
 
 DIFFS="differences"
 rm $DIFFS
-# There must be a better way to do this, my bash-fu sucks.
-# We can't use a variable because of the brackets.
-cat unpacked-official.list |
-	(while read x; do
-	    if ! cmp "unpacked-official/$x" "unpacked-built/$x"; then
-		echo "Files are different: $x"
-		echo "$x" >> $DIFFS
-	    fi)
+while read x; do
+    if ! cmp "unpacked-official/$x" "unpacked-built/$x"; then
+        echo "File is different: $x"
+        echo "$x" >> "$DIFFS"
+    fi
+done < unpacked-official.list
+
 if [[ -s "differences" ]]; then
     echo VERIFY FAILED: FILES ARE DIFFERENT:
     cat $DIFFS
