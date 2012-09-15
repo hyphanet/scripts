@@ -2,7 +2,7 @@
 # TODO MAJOR: Ask for a build number on the command line, autodetect otherwise.
 # Attempts to verify that the latest build corresponds to the bytecode.
 # Main requirement is to run the script on a system using the same Java compiler as the system that released it.
-# For builds by toad, this is the latest sun JVM on Debian stable.
+# For builds by toad, this is Sun 1.6.0_26 (sun-java6-jdk; 6.26-0squeeze1) on Debian Squeeze.
 : ${TEMPBASE:=~/}
 : ${FREENET_EXT_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar}
 : ${GIT_URL:=git://github.com/freenet/fred-official.git}
