@@ -26,10 +26,17 @@ do
     case $1 in
         --help | -h | -\?)
             echo "--tag TAG specifies build tag to checkout."
+            echo "--repo PATH specifies path to a fred-official repository."
+            echo "            If this is not specified, the script will make a fresh clone to its"
+            echo "            temporary directory."
             exit 0
             ;;
         --tag)
             TAG="$2"
+            shift 2
+            ;;
+        --repo)
+            REPO=$(readlink -f "$2")
             shift 2
             ;;
         --) # End of all options
@@ -55,6 +62,8 @@ if [[ -z "$TAG" ]]; then
 TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
 fi
 echo Using build "$TAG"
+# No path to an existing repo was specified so clone a fresh one.
+if [[ -z "$REPO" ]]; then
     REPO="$TMPDIR/fred"
     echo "Cloning new fred-official repository into \"$REPO\"."
 if ! git clone "$GIT_URL" "$REPO" --branch="$TAG" --depth=1; then
@@ -62,6 +71,34 @@ if ! git clone "$GIT_URL" "$REPO" --branch="$TAG" --depth=1; then
 	exit 1
 fi
     cd "$REPO"
+else
+    echo "Using existing repository in \"$REPO\"."
+    cd "$REPO"
+    if ! git remote update; then
+        echo Unable to update git repository.
+        exit 13
+    fi
+    if ! git checkout "$TAG"; then
+        echo Unable to checkout build tag.
+        exit 14
+    fi
+    # Check for local changes; offer to undo.
+    CHANGED=$(git diff-index --name-only HEAD --)
+    if [[ -n "$CHANGED" ]]; then
+        echo There are local changes to the following files:
+        echo "$CHANGED"
+        echo Discard?
+
+        read response
+        #Case insensitive.
+        if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+            echo Not discarding changes. Aborting verification.
+            exit 14
+        fi
+    fi
+    git clean -dfx
+    git reset --hard
+fi
 if ! git tag -v "$TAG"; then
     echo Failed to verify tag "$TAG"
     exit 11
