@@ -119,7 +119,9 @@ if ! cmp unpacked-official.list unpacked-built.list; then
 fi
 
 DIFFS="differences"
-rm $DIFFS
+if [[ -e "$DIFFS" ]]; then
+    rm "$DIFFS"
+fi
 while read x; do
     if ! cmp "unpacked-official/$x" "unpacked-built/$x"; then
         echo "File is different: $x"
