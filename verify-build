@@ -1,5 +1,4 @@
 #!/bin/bash
-# TODO MAJOR: Ask for a build number on the command line, autodetect otherwise.
 # Attempts to verify that the latest build corresponds to the bytecode.
 # Main requirement is to run the script on a system using the same Java compiler as the system that released it.
 # For builds by toad, this is Sun 1.6.0_26 (sun-java6-jdk; 6.26-0squeeze1) on Debian Squeeze.
@@ -18,7 +17,36 @@
 TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
 cd $TMPDIR
 echo Using "$TMPDIR"
+
+while :
+do
+    case $1 in
+        --help | -h | -\?)
+            echo "--tag TAG specifies build tag to checkout."
+            exit 0
+            ;;
+        --tag)
+            TAG=$2
+            shift 2
+            ;;
+        --) # End of all options
+            shift
+            break
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        *)  # No more options; stop parsing.
+            break
+            ;;
+    esac
+done
+
+if [ -z "$TAG" ]; then
+    echo Determining build tag from remote Git repository.
 TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
+fi
 echo Using build "$TAG"
 if ! git clone "$GIT_URL" fred --branch="$TAG" --depth=1; then
 	echo Failed: Unable to clone repository.
