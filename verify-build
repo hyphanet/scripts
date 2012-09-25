@@ -97,7 +97,6 @@ else
             exit 14
         fi
     fi
-    git clean -dfx
     git reset --hard
 fi
 if ! git tag -v "$TAG"; then
