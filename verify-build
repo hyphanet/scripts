@@ -122,7 +122,7 @@ cd ..
 # Unpack it because it's the jar that matters
 cd "$TMPDIR"
 mkdir unpacked-built
-if ! unzip "$REPO/dist/freenet.jar" -d unpacked-built; then
+if ! unzip "$REPO/dist/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
@@ -139,7 +139,7 @@ if ! gpg --verify freenet.jar.sig freenet.jar; then
 	exit 6;
 fi
 mkdir unpacked-official
-if ! unzip freenet.jar -d unpacked-official; then
+if ! unzip freenet.jar -d unpacked-official > /dev/null; then
 	echo Failed to unpack official released jar
 	exit 7;
 fi
