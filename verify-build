@@ -177,6 +177,9 @@ if [[ -s "differences" ]]; then
     cat $DIFFS
     exit 10
 fi
+echo "Verification successful."
+echo "Official jar SHA512: $(sha512sum freenet.jar)"
+echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
+echo "Git repository is at object $(cat "$REPO/.git/HEAD")"
 cd ..
 rm -Rf $TMPDIR
-echo Success
