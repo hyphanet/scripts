@@ -50,7 +50,7 @@ do
     esac
 done
 
-if [ -z "$TAG" ]; then
+if [[ -z "$TAG" ]]; then
     echo Determining build tag from remote Git repository.
 TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
 fi
