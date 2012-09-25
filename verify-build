@@ -60,17 +60,17 @@ echo Using "$TMPDIR"
 # The tag was not specified so autodetect.
 if [[ -z "$TAG" ]]; then
     echo Determining build tag from remote Git repository.
-TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
+    TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
 fi
 echo Using build "$TAG"
 # No path to an existing repo was specified so clone a fresh one.
 if [[ -z "$REPO" ]]; then
     REPO="$TMPDIR/fred"
     echo "Cloning new fred-official repository into \"$REPO\"."
-if ! git clone "$GIT_URL" "$REPO" --branch="$TAG" --depth=1; then
-	echo Failed: Unable to clone repository.
-	exit 1
-fi
+    if ! git clone "$GIT_URL" "$REPO" --branch="$TAG" --depth=1; then
+        echo Failed: Unable to clone repository.
+        exit 1
+    fi
     cd "$REPO"
 else
     echo "Using existing repository in \"$REPO\"."
@@ -165,8 +165,8 @@ while read x; do
             echo "Please review the differences:"
             diff "unpacked-official/$x" "unpacked-built/$x"
         else
-        echo "File is different: $x"
-        echo "$x" >> "$DIFFS"
+            echo "File is different: $x"
+            echo "$x" >> "$DIFFS"
         fi
     fi
 done < unpacked-official.list
