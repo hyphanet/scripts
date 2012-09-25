@@ -21,10 +21,6 @@ if [[ ! -e "$FREENET_EXT_JAR" ]]; then
     exit 10
 fi
 
-TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
-cd $TMPDIR
-echo Using "$TMPDIR"
-
 while :
 do
     case $1 in
@@ -50,16 +46,21 @@ do
     esac
 done
 
+TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
+echo Using "$TMPDIR"
+
 if [[ -z "$TAG" ]]; then
     echo Determining build tag from remote Git repository.
 TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
 fi
 echo Using build "$TAG"
-if ! git clone "$GIT_URL" fred --branch="$TAG" --depth=1; then
+    REPO="$TMPDIR/fred"
+    echo "Cloning new fred-official repository into \"$REPO\"."
+if ! git clone "$GIT_URL" "$REPO" --branch="$TAG" --depth=1; then
 	echo Failed: Unable to clone repository.
 	exit 1
 fi
-cd fred
+    cd "$REPO"
 if ! git tag -v "$TAG"; then
     echo Failed to verify tag "$TAG"
     exit 11
@@ -80,13 +81,12 @@ if ! (ant clean && ant package-only); then
 fi
 cd ..
 # Unpack it because it's the jar that matters
+cd "$TMPDIR"
 mkdir unpacked-built
-cd unpacked-built
-if ! unzip ../fred/dist/freenet.jar; then
+if ! unzip "$REPO/dist/freenet.jar" -d unpacked-built; then
     echo Failed to unpack built jar
     exit 9
 fi
-cd ..
 if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" -O freenet.jar.sig; then
 	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" from osprey.
 	exit 4
@@ -100,12 +100,10 @@ if ! gpg freenet.jar.sig; then
 	exit 6;
 fi
 mkdir unpacked-official
-cd unpacked-official
-if ! unzip ../freenet.jar; then
+if ! unzip freenet.jar -d unpacked-official; then
 	echo Failed to unpack official released jar
 	exit 7;
 fi
-cd ..
 
 # Ready to do the comparison
 (cd unpacked-official; find -type f) | sort > unpacked-official.list
