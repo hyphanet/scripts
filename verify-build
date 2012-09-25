@@ -172,14 +172,19 @@ while read x; do
     fi
 done < unpacked-official.list
 
+summary() {
+    echo "Official jar SHA512: $(sha512sum freenet.jar)"
+    echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
+    echo "Git repository is at object $(cat "$REPO/.git/HEAD")"
+}
+
 if [[ -s "differences" ]]; then
     echo VERIFY FAILED: FILES ARE DIFFERENT:
     cat $DIFFS
+    summary
     exit 10
 fi
 echo "Verification successful."
-echo "Official jar SHA512: $(sha512sum freenet.jar)"
-echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
-echo "Git repository is at object $(cat "$REPO/.git/HEAD")"
+summary
 cd ..
 rm -Rf $TMPDIR
