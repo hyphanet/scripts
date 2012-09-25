@@ -17,7 +17,8 @@
 
 # Exit with an error if freenet-ext does not exist.
 if [[ ! -e "$FREENET_EXT_JAR" ]]; then
-    echo "freenet-ext.jar does not exist at the path \"$FREENET_EXT_JAR\". Please define a valid path."
+    echo "The path \"$FREENET_EXT_JAR\" does not exist."
+    echo "Please set the FREENET_EXT_JAR environment variable to a path to freenet-ext.jar"
     exit 10
 fi
 
