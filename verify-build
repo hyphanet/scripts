@@ -49,6 +49,7 @@ done
 TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
 echo Using "$TMPDIR"
 
+# The tag was not specified so autodetect.
 if [[ -z "$TAG" ]]; then
     echo Determining build tag from remote Git repository.
 TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
