@@ -89,11 +89,11 @@ if ! unzip "$REPO/dist/freenet.jar" -d unpacked-built; then
     exit 9
 fi
 if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" -O freenet.jar.sig; then
-	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" from osprey.
+	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" from the official Freenet website.
 	exit 4
 fi
 if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" -O freenet.jar; then
-	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" from osprey.
+	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" from the official Freenet website.
 	exit 5;
 fi
 if ! gpg --verify freenet.jar.sig freenet.jar; then
