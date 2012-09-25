@@ -160,8 +160,14 @@ if [[ -e "$DIFFS" ]]; then
 fi
 while read x; do
     if ! cmp "unpacked-official/$x" "unpacked-built/$x"; then
+        if [[ "$x" = "./META-INF/MANIFEST.MF" ]]; then
+            echo "Manifest file is different; this is expected."
+            echo "Please review the differences:"
+            diff "unpacked-official/$x" "unpacked-built/$x"
+        else
         echo "File is different: $x"
         echo "$x" >> "$DIFFS"
+        fi
     fi
 done < unpacked-official.list
 
