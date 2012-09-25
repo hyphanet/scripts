@@ -96,8 +96,9 @@ else
             echo Not discarding changes. Aborting verification.
             exit 14
         fi
+
+        git reset --hard
     fi
-    git reset --hard
 fi
 if ! git tag -v "$TAG"; then
     echo Failed to verify tag "$TAG"
