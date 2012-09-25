@@ -14,6 +14,13 @@
 ## TODO: Verify freenet-ext.jar itself.
 ## TODO: Hard-code the certificate for SSL see the code in update.sh in app-new_installer
 ## TODO: Detect who released it and complain if not the same compiler? Or even install several copies?
+
+# Exit with an error if freenet-ext does not exist.
+if [[ ! -e "$FREENET_EXT_JAR" ]]; then
+    echo "freenet-ext.jar does not exist at the path \"$FREENET_EXT_JAR\". Please define a valid path."
+    exit 10
+fi
+
 TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
 cd $TMPDIR
 echo Using "$TMPDIR"
