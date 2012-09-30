@@ -30,7 +30,8 @@ while :
 do
     case $1 in
         --help | - | -\?)
-            echo "Builds and uploads a release snapshot."
+            echo "Builds and releases a version of Fred."
+            echo "Prompts for confirmation before releasing."
             echo "Configuration file is at ${HOME}/.freenetrc by default."
             echo "Requires --snapshot or --build."
             echo
