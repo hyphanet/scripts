@@ -132,8 +132,8 @@ if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
 fi
 
 # create and update pointer files
-echo "http://downloads.freenetproject.org/alpha/freenet-${GITVERSION}-snapshot.jar" > freenet-testing-latest.jar.url
-wget -O ".registry" "http://downloads.freenetproject.org/alpha/.registry"
+echo "https://downloads.freenetproject.org/alpha/freenet-${GITVERSION}-snapshot.jar" > freenet-testing-latest.jar.url
+wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry"
 sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GITVERSION}-snapshot.jar/" .registry
 
 # upload all files
