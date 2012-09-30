@@ -108,6 +108,7 @@ if [[ -z $BUILD ]]; then
 	echo Unable to determine build number.
 	exit 3
 fi
+
 REQUIRED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
 RECOMMENDED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
 if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 7; fi
@@ -140,7 +141,7 @@ if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" -O fre
 	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" from the official Freenet website.
 	exit 5;
 fi
-if ! gpg --verify freenet.jar.sig freenet.jar; then
+if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
 	echo "Unable to verify signature on jar"
 	exit 6;
 fi
