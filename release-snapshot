@@ -75,7 +75,7 @@ done
 
 # override these variables, if necessary
 if [ -f "${CONFIG}" ]; then
-	. "${CONFIG}"
+    . "${CONFIG}"
 fi
 
 # Target should be set.
@@ -152,11 +152,11 @@ git archive --format=tar HEAD | bzip2 -v9 > "${ARCHIVE_FILENAME}" || exit 11
 sha1sum "${JAR_FILENAME}" > "${JAR_FILENAME}.sha1"
 sha1sum "${ARCHIVE_FILENAME}" > "${ARCHIVE_FILENAME}.sha1"
 if [ -n "${SIGNING_USER}" ]; then
-	echo "Switching to signing user \"${SIGNING_USER}\""
-	su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/${JAR_FILENAME}.sig\" \"${TEMPLOC}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${TEMPLOC}/${ARCHIVE_FILENAME}.sig\" \"${TEMPLOC}/${ARCHIVE_FILENAME}\""
+    echo "Switching to signing user \"${SIGNING_USER}\""
+    su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/${JAR_FILENAME}.sig\" \"${TEMPLOC}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${TEMPLOC}/${ARCHIVE_FILENAME}.sig\" \"${TEMPLOC}/${ARCHIVE_FILENAME}\""
 else
-	gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}"
-	gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}"
+    gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}"
+    gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}"
 fi
 
 # make sure release directory exists
@@ -208,8 +208,8 @@ sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar ${JAR_FILENA
 
 # start ssh agent and collect password
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
-	eval $(ssh-agent -s)
-	ssh-add
+    eval $(ssh-agent -s)
+    ssh-add
 fi
 
 # upload all files
@@ -224,7 +224,7 @@ fi
 
 # shut down the ssh agent
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
-	ssh-agent -k
+    ssh-agent -k
 fi
 
 # Return to starting directory and remove temporary.
