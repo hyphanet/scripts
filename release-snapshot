@@ -97,8 +97,9 @@ mv dist/freenet.jar "freenet-${GITVERSION}-snapshot.jar" || exit
 # create source archive
 git archive --format=tar HEAD | bzip2 -v9 > "freenet-${GITVERSION}-source.tar.bz2"
 
-# ...and checksum and sign the shit out of it.
+# Generate checksums and signatures for the jar and source archive.
 sha1sum "freenet-${GITVERSION}-snapshot.jar" > "freenet-${GITVERSION}-snapshot.jar.sha1"
+sha1sum "freenet-${GITVERSION}-source.tar.bz2" > "freenet-${GITVERSION}-source.tar.bz2.sha1"
 if [ -n "${SIGNING_USER}" ]; then
 	echo "Switching to signing user \"${SIGNING_USER}\""
 	su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar\"; gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2\""
