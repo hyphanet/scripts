@@ -13,7 +13,6 @@ if [ -f "${HOME}/.freenetrc" ]; then
 	. "${HOME}/.freenetrc"
 fi
 
-MAINVER=`cat "${RELEASE_DIRECTORY}/freenet.mainver"`
 TEMPLOC=`mktemp -d`
 cp -a "${WORKSPACE_FRED}/" $TEMPLOC
 echo Copied data
@@ -60,7 +59,6 @@ cp ~toad/freenet-${GITVERSION}.jar.sig .
 rm ~toad/freenet-${GITVERSION}.jar*
 cp freenet-${GITVERSION}.jar* /var/lib/freenet-experimental/
 cp freenet-${GITVERSION}.jar.sig "{RELEASE_DIRECTORY}/" || exit
-#/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION" -p freenet -u matthew.toseland freenet-${GITVERSION}.jar || exit
 cp freenet-${GITVERSION}.jar* ~browser
 chmod a+r ~browser/freenet-${GITVERSION}.jar*
 rsync -vz freenet-${GITVERSION}.jar* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/
@@ -76,9 +74,6 @@ rm -Rf fred
 mv fred-clean freenet-${GITVERSION}
 rm -Rf freenet-${GITVERSION}/.git
 tar cjf freenet-${GITVERSION}-source.tar.bz2 freenet-${GITVERSION}
-#echo Uploading source to Google Code
-#/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION source code" -p freenet -u matthew.toseland ../freenet-${GITVERSION}-source.tar.bz2 || exit
-#echo Uploaded source code to Google Code
 cp freenet-${GITVERSION}-source.tar.bz2* ~toad/
 su - toad -c "gpg --sign --detach-sign freenet-${GITVERSION}-source.tar.bz2"
 cp ~toad/freenet-${GITVERSION}-source.tar.bz2.sig .
