@@ -6,6 +6,8 @@
 
 # Default path to configuration file.
 CONFIG="${HOME}/.freenetrc"
+# What to build / release. Possible values: "build", "snapshot"
+TARGET=""
 
 # Path to Fred repository.
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
@@ -30,9 +32,15 @@ do
         --help | - | -\?)
             echo "Builds and uploads a release snapshot."
             echo "Configuration file is at ${HOME}/.freenetrc by default."
+            echo "Requires --snapshot or --build."
             echo
             echo "--config CONFIG   Path to freenetrc"
-            echo "--dry-run         If present, skips uploading"
+            echo "--dry-run         If present, builds packages and skips releasing."
+            echo "--build           If present packages the highest-numbered build tag."
+            echo "                  Builds documentation."
+            echo "--snapshot        If present packages the current HEAD."
+            echo "                  Outputs into a pre/ subdirectory of the release directory."
+            echo "                  Skips building documentation."
             exit 0
             ;;
         --config)
@@ -41,6 +49,14 @@ do
             ;;
         --dry-run)
             DRY_RUN=true
+            shift
+            ;;
+        --snapshot)
+            TARGET="snapshot"
+            shift
+            ;;
+        --build)
+            TARGET="build"
             shift
             ;;
         --) # End of all options
@@ -62,10 +78,37 @@ if [ -f "${CONFIG}" ]; then
 	. "${CONFIG}"
 fi
 
+# Target should be set.
+if [[ -z "$TARGET" ]]; then
+    echo "Target not set. Please specify --build or --snapshot."
+    exit 13
+fi
+
+# If releasing a snapshot it goes into the pre/ subdirectory.
+if [[ "$TARGET" = "snapshot" ]]; then
+    RELEASE_DIRECTORY="${RELEASE_DIRECTORY}/pre"
+fi
+
 TEMPLOC=$(mktemp -d)
 echo "Created temporary directory ${TEMPLOC}."
 git clone "${WORKSPACE_FRED}" "${TEMPLOC}" || exit 2
 pushd "${TEMPLOC}"
+
+# If releasing a stable build checkout the latest build tag.
+if [[ "$TARGET" = "build" ]]; then
+    # Get highest-numbered build tag.
+    GITVERSION=$(git tag | grep '^build' | sort | tail -n1)
+    # Strip "build" from the front.
+    VERSION=${GITVERSION:5}
+    # Strip possible leading zeros.
+    VERSION=${VERSION#0}
+    git checkout "$GITVERSION" || exit 12
+elif [[ "$TARGET" = "snapshot" ]]; then
+    GITVERSION=$(git describe --always --abbrev=40)
+else
+    echo "Unrecognized internal TARGET of \"$TARGET\"."
+    exit 14
+fi
 
 # copy freenet-ext.jar
 mkdir -p lib 2>/dev/null
@@ -80,38 +123,61 @@ git reset --hard || exit 6
 # extract version and build numbers
 REQUIRED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
 RECOMMENDED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
-if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 7; fi
-if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 8; fi
+if [[ -n "$REQUIRED_EXT" ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 7; fi
+if [[ -n "$RECOMMENDED_EXT" ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 8; fi
 echo "contrib.version.min=$REQUIRED_EXT" >> override.properties
 echo "contrib.version.rec=$RECOMMENDED_EXT" >> override.properties
 
+if [[ "$TARGET" = "build" ]]; then
+    ant -f build-clean.xml || exit 16
+    JAR_FILENAME="freenet-${GITVERSION}.jar"
+elif [[ "$TARGET" = "snapshot" ]]; then
 # now build it (without api doc)
 ant -f build-clean.xml -Ddoc.skip=true || exit 9
-
-# get git version
-GITVERSION=$(git describe --always --abbrev=40)
-
-# move file in position
-mv dist/freenet.jar "freenet-${GITVERSION}-snapshot.jar" || exit 10
-
-# create source archive
-git archive --format=tar HEAD | bzip2 -v9 > "freenet-${GITVERSION}-source.tar.bz2" || exit 11
-
-# Generate checksums and signatures for the jar and source archive.
-sha1sum "freenet-${GITVERSION}-snapshot.jar" > "freenet-${GITVERSION}-snapshot.jar.sha1"
-sha1sum "freenet-${GITVERSION}-source.tar.bz2" > "freenet-${GITVERSION}-source.tar.bz2.sha1"
-if [ -n "${SIGNING_USER}" ]; then
-	echo "Switching to signing user \"${SIGNING_USER}\""
-	su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar\"; gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2\""
+    JAR_FILENAME="freenet-${GITVERSION}-snapshot.jar"
 else
-	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig" "${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar"
-	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig" "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2"
+    echo "Unrecognized internal TARGET of \"$TARGET\"."
+    exit 15
 fi
 
-# make sure release directory subdirectory exists
-mkdir -p "${RELEASE_DIRECTORY}/pre"
+ARCHIVE_FILENAME="freenet-${GITVERSION}-source.tar.bz2"
+
+# move file in position
+mv dist/freenet.jar "${JAR_FILENAME}" || exit 10
+
+# create source archive
+git archive --format=tar HEAD | bzip2 -v9 > "${ARCHIVE_FILENAME}" || exit 11
+
+# Generate checksums and signatures for the jar and source archive.
+sha1sum "${JAR_FILENAME}" > "${JAR_FILENAME}.sha1"
+sha1sum "${ARCHIVE_FILENAME}" > "${ARCHIVE_FILENAME}.sha1"
+if [ -n "${SIGNING_USER}" ]; then
+	echo "Switching to signing user \"${SIGNING_USER}\""
+	su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/${JAR_FILENAME}.sig\" \"${TEMPLOC}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${TEMPLOC}/${ARCHIVE_FILENAME}.sig\" \"${TEMPLOC}/${ARCHIVE_FILENAME}\""
+else
+	gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}"
+	gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}"
+fi
+
+# make sure release directory exists
+mkdir -p "${RELEASE_DIRECTORY}"
 # copy files to local release directory
-mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
+mv "freenet-${GITVERSION}"* "${RELEASE_DIRECTORY}"
+
+# Localization comparison for build.
+if [[ "$TARGET" = "build" ]]; then
+    NEWVER="$VERSION"
+    OLDVER=$(NEWVER - 1)
+    echo Comparing $NEWVER to $OLDVER
+    for VER in "$OLDVER" "$NEWVER"
+    do
+        git checkout $(printf 'build%05d' "$VER")
+        cp "src/freenet/l10n/freenet.l10n.en.properties" "$VER"
+    done
+    diff -u0 "$OLDVER" "$NEWVER" > "${OLDVER}-${NEWVER}.diff.txt"
+    less "${OLDVER}-${NEWVER}.diff.txt"
+    mv -t "${RELEASE_DIRECTORY}" "${OLDVER}-${NEWVER}.diff.txt"
+fi
 
 clean_up() {
     # Return to starting directory and remove temporary.
@@ -119,11 +185,26 @@ clean_up() {
     rm -Rf $TEMPLOC
 }
 
+echo "Built $GITVERSION as a $TARGET release."
 if $DRY_RUN; then
-    echo "Dry run - exiting without upload."
+    echo "Dry run - exiting without performing release."
     clean_up
     exit 0
+else
+    echo -n "Perform release [y/N]?"
+    read response
+    if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+        echo "Aborting release."
+        exit 0
+    fi
 fi
+
+echo "Performing release."
+
+# create and update pointer files
+echo "https://downloads.freenetproject.org/alpha/${JAR_FILENAME}" > freenet-testing-latest.jar.url
+wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry"
+sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar ${JAR_FILENAME}/" .registry
 
 # start ssh agent and collect password
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
@@ -131,21 +212,58 @@ if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
 	ssh-add
 fi
 
-# create and update pointer files
-echo "https://downloads.freenetproject.org/alpha/freenet-${GITVERSION}-snapshot.jar" > freenet-testing-latest.jar.url
-wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry"
-sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GITVERSION}-snapshot.jar/" .registry
-
 # upload all files
-rsync -vvzP "freenet-${GITVERSION}-snapshot.jar"* freenet-testing-latest.jar.url .registry "freenet-${GITVERSION}-source.tar.bz2"* "${TARGET_HOST}:/var/www/downloads/alpha/"
+rsync -vvzP "${JAR_FILENAME}"* freenet-testing-latest.jar.url .registry "${ARCHIVE_FILENAME}"* "${TARGET_HOST}:/var/www/downloads/alpha/"
 
-# Return to starting directory and remove temporary.
-clean_up
+# Unlike a snapshot, a new build updates the localization diff and the stable-latest.url.
+if [[ "$TARGET" = "build" ]]; then
+    rsync -vz "${OLDVER}-${NEWVER}.diff.txt" "${TARGET_HOST}:/var/www/emu/l10n/"
+    rsync -vvzP freenet-testing-latest.jar.url "${TARGET_HOST}:/var/www/downloads/alpha/freenet-stable-latest.jar.url"
+    rsync --delete -rz javadoc/* "${TARGET_HOST}:/var/www/freenet-javadoc"
+fi
 
 # shut down the ssh agent
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
 	ssh-agent -k
 fi
 
+# Return to starting directory and remove temporary.
+clean_up
+
 # upload binary and signature to freenet
-(echo ClientHello; echo Name=Toad-update-${GITVERSION}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/pre/freenet-${GITVERSION}-snapshot.jar"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar.sig"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/pre/freenet-${GITVERSION}-snapshot.jar.sig"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar.sig"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
+if [[ "$TARGET" = "snapshot" ]]; then
+    (
+    echo ClientHello;
+    echo Name=Toad-update-${GITVERSION};
+    echo ExpectedVersion=2;
+    echo End;
+
+    echo ClientPut;
+    echo "URI=CHK@";
+    echo "Identifier=${JAR_FILENAME}";
+    echo Verbosity=1023;
+    echo MaxRetries=-1;
+    echo UploadFrom=disk;
+    echo "Filename=${RELEASE_DIRECTORY}/${JAR_FILENAME}";
+    echo "TargetFilename=${JAR_FILENAME}";
+    echo Persistence=forever;
+    echo PriorityClass=1;
+    echo Global=true;
+    echo End;
+
+    echo ClientPut;
+    echo "URI=CHK@";
+    echo "Identifier=${JAR_FILENAME}.sig";
+    echo Verbosity=1023;
+    echo MaxRetries=-1;
+    echo UploadFrom=disk;
+    echo "Filename=${RELEASE_DIRECTORY}/${JAR_FILENAME}.sig";
+    echo "TargetFilename=${JAR_FILENAME}.sig";
+    echo Persistence=forever;
+    echo PriorityClass=1;
+    echo Global=true;
+    echo End
+    ) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
+fi
+
+echo "Release complete."
