@@ -1,45 +1,94 @@
 #!/bin/bash
+
+# variables used by this script
+# these variables are probably different for everybody
+# so create $HOME/.freenetrc and override those with your desired values.
+
+WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
+RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+FREENET_EXT_JAR="/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar"
+SIGNING_USER="toad"
+START_STOP_SSH_AGENT="1"
+TARGET_HOST="osprey.vm.bytemark.co.uk"
+NODE_FCP_HOST="127.0.0.1"
+NODE_FCP_PORT="9481"
+
+# override these variables, if necessary
+if [ -f "${HOME}/.freenetrc" ]; then
+	. "${HOME}/.freenetrc"
+fi
+
 TEMPLOC=`mktemp -d`
-cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
-echo Copied data
-cd $TEMPLOC/fred/
-git reset --hard
-git clean -dfx
-cp -a . ../fred-clean
-mkdir lib 2>/dev/null
-cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar; mkdir lib/freenet; cp lib/freenet-ext.jar lib/freenet/
+echo "Created temporary directory ${TEMPLOC}."
+git clone "${WORKSPACE_FRED}" "${TEMPLOC}"
+pushd "${TEMPLOC}"
+
+# copy freenet-ext.jar
+mkdir -p lib 2>/dev/null
+cp "${FREENET_EXT_JAR}" lib/freenet-ext.jar
+mkdir -p lib/freenet
+cp lib/freenet-ext.jar lib/freenet/
+
+# clean
+ant clean -Dsuppress.gjs=false || exit
+rm -f lib/freenet-cvs-snapshot.jar
+
+# extract version and build numbers
 REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 RECOMMENDED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
 if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 3; fi
 if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 3; fi
 echo "contrib.version.min=$REQUIRED_EXT" >> override.properties
 echo "contrib.version.rec=$RECOMMENDED_EXT" >> override.properties
-ant -f build-clean.xml || exit
+
+# now build it (without api doc)
+ant -f build-clean.xml -Ddoc.skip=true || exit
+
+# get git version
 GITVERSION=`git describe --always --abbrev=40`
-export JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
-export PATH=${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:$PATH
-mv dist/freenet.jar freenet-${GITVERSION}-snapshot.jar || exit
-sha1sum freenet-${GITVERSION}-snapshot.jar > freenet-${GITVERSION}-snapshot.jar.sha1
-cp freenet-${GITVERSION}-snapshot.jar ~toad/
-su - toad -c "gpg --sign --detach-sign freenet-${GITVERSION}-snapshot.jar"
-cp ~toad/freenet-${GITVERSION}-snapshot.jar.sig .
-eval `ssh-agent -s`
-ssh-add
-rsync -vvz freenet-${GITVERSION}-snapshot.jar* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/
-cp freenet-${GITVERSION}-snapshot.jar* /usr/src/cvs/eclipse-workspace/FreenetReleased/pre/
-rm freenet-${GITVERSION}-snapshot.jar*
-echo Uploaded new snapshot
-echo "http://downloads.freenetproject.org/alpha/freenet-${GITVERSION}-snapshot.jar" > ../freenet-testing-latest.jar.url
-rsync -vvz ../freenet-testing-latest.jar.url osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-testing-latest.jar.url
-ssh osprey.vm.bytemark.co.uk -- "cat /var/www/downloads/alpha/.registry | sed \"s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GITVERSION}-snapshot.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
-echo Uploaded new pointers
-cd ..
-rm -Rf fred
-mv fred-clean freenet-${GITVERSION}
-rm -Rf freenet-${GITVERSION}/.git
-tar cjf freenet-${GITVERSION}-source.tar.bz2 freenet-${GITVERSION}
-rsync -vvz freenet-${GITVERSION}-source.tar.bz2 osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/freenet-${GITVERSION}-source.tar.bz2
-echo Uploaded source
-rm -Rf $TEMPLOC
-ssh-agent -k
-(echo ClientHello; echo Name=Toad-update-${GITVERSION}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/FreenetReleased/pre/freenet-${GITVERSION}-snapshot.jar"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar.sig"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/FreenetReleased/pre/freenet-${GITVERSION}-snapshot.jar.sig"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar.sig"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End) | nc 127.0.0.1 9481
+
+# move file in position
+mv dist/freenet.jar "freenet-${GITVERSION}-snapshot.jar" || exit
+
+# create source archive
+git archive --format=tar HEAD | bzip2 -v9 > "freenet-${GITVERSION}-source.tar.bz2"
+
+# ...and checksum and sign the shit out of it.
+sha1sum "freenet-${GITVERSION}-snapshot.jar" > "freenet-${GITVERSION}-snapshot.jar.sha1"
+if [ -n "${SIGNING_USER}" ]; then
+	su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar\"; gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2\""
+else
+	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig" "${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar"
+	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig" "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2"
+fi
+
+# start ssh agent and collect password
+if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
+	eval `ssh-agent -s`
+	ssh-add
+fi
+
+# create and update pointer files
+echo "http://downloads.freenetproject.org/alpha/freenet-${GITVERSION}-snapshot.jar" > freenet-testing-latest.jar.url
+wget -O ".registry" "http://downloads.freenetproject.org/alpha/.registry"
+sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GITVERSION}-snapshot.jar/" .registry
+
+# upload all files
+rsync -vvzP "freenet-${GITVERSION}-snapshot.jar"* freenet-testing-latest.jar.url .registry "freenet-${GITVERSION}-source.tar.bz2"* "${TARGET_HOST}:/var/www/downloads/alpha/"
+
+# make sure release directory subdirectory exists
+mkdir -p "${RELEASE_DIRECTORY}/pre"
+# copy files to local release directory
+mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
+
+# clean up
+popd
+#rm -Rf $TEMPLOC
+
+# shut down the ssh agent
+if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
+	ssh-agent -k
+fi
+
+# upload binary and signature to freenet
+(echo ClientHello; echo Name=Toad-update-${GITVERSION}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/pre/freenet-${GITVERSION}-snapshot.jar"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=freenet-${GITVERSION}-snapshot.jar.sig"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=${RELEASE_DIRECTORY}/pre/freenet-${GITVERSION}-snapshot.jar.sig"; echo "TargetFilename=freenet-${GITVERSION}-snapshot.jar.sig"; echo Persistence=forever; echo PriorityClass=1; echo Global=true; echo End) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
