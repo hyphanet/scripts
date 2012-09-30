@@ -107,6 +107,11 @@ else
 	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig" "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2"
 fi
 
+# make sure release directory subdirectory exists
+mkdir -p "${RELEASE_DIRECTORY}/pre"
+# copy files to local release directory
+mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
+
 clean_up() {
     # Return to starting directory and remove temporary.
     popd
@@ -132,11 +137,6 @@ sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar freenet-${GI
 
 # upload all files
 rsync -vvzP "freenet-${GITVERSION}-snapshot.jar"* freenet-testing-latest.jar.url .registry "freenet-${GITVERSION}-source.tar.bz2"* "${TARGET_HOST}:/var/www/downloads/alpha/"
-
-# make sure release directory subdirectory exists
-mkdir -p "${RELEASE_DIRECTORY}/pre"
-# copy files to local release directory
-mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
 
 # Return to starting directory and remove temporary.
 clean_up
