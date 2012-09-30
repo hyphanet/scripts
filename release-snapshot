@@ -4,6 +4,9 @@
 # these variables are probably different for everybody
 # so create $HOME/.freenetrc and override those with your desired values.
 
+# Default path to configuration file.
+CONFIG="${HOME}/.freenetrc"
+
 # Path to Fred repository.
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
 # Target directory for generated files.
@@ -21,9 +24,27 @@ NODE_FCP_HOST="127.0.0.1"
 # FCP host port.
 NODE_FCP_PORT="9481"
 
+while :
+do
+    case $1 in
+        --help | - | -\?)
+            echo "Builds and uploads a release snapshot."
+            echo "Configuration file is at ${HOME}/.freenetrc by default."
+            echo
+            echo "--config CONFIG   Path to freenetrc"
+            exit 0
+            ;;
+        --config)
+            CONFIG=$2
+            shift 2
+            break
+            ;;
+    esac
+done
+
 # override these variables, if necessary
-if [ -f "${HOME}/.freenetrc" ]; then
-	. "${HOME}/.freenetrc"
+if [ -f "${CONFIG}" ]; then
+	. "${CONFIG}"
 fi
 
 TEMPLOC=`mktemp -d`
