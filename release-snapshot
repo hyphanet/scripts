@@ -8,6 +8,8 @@
 CONFIG="${HOME}/.freenetrc"
 # What to build / release. Possible values: "build", "snapshot"
 TARGET=""
+# Whether to exit before deploying.
+DRY_RUN="false"
 
 # Path to Fred repository.
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
@@ -49,7 +51,7 @@ do
             shift 2
             ;;
         --dry-run)
-            DRY_RUN=true
+            DRY_RUN="true"
             shift
             ;;
         --snapshot)
@@ -187,7 +189,7 @@ clean_up() {
 }
 
 echo "Built $GITVERSION as a $TARGET release."
-if $DRY_RUN; then
+if [[ "$DRY_RUN" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     clean_up
     exit 0
