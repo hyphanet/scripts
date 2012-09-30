@@ -4,13 +4,21 @@
 # these variables are probably different for everybody
 # so create $HOME/.freenetrc and override those with your desired values.
 
+# Path to Fred repository.
 WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
+# Target directory for generated files.
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+# Path to freenet-ext.
 FREENET_EXT_JAR="/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar"
+# Username to su to to sign the output.
 SIGNING_USER="toad"
+# If "1" starts ssh agent before sending the update to the target host and stops it afterward.
 START_STOP_SSH_AGENT="1"
+# Hostname to send updates to.
 TARGET_HOST="osprey.vm.bytemark.co.uk"
+# FCP host hostname / IP.
 NODE_FCP_HOST="127.0.0.1"
+# FCP host port.
 NODE_FCP_PORT="9481"
 
 # override these variables, if necessary
