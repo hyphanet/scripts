@@ -167,7 +167,7 @@ mv "freenet-${GITVERSION}"* "${RELEASE_DIRECTORY}"
 # Localization comparison for build.
 if [[ "$TARGET" = "build" ]]; then
     NEWVER="$VERSION"
-    OLDVER=$(NEWVER - 1)
+    OLDVER=$((NEWVER - 1))
     echo Comparing $NEWVER to $OLDVER
     for VER in "$OLDVER" "$NEWVER"
     do
