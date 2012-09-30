@@ -53,13 +53,13 @@ do
     esac
 done
 
-TMPDIR=`mktemp -d --tmpdir=$TEMPBASE`
+TMPDIR=$(mktemp -d --tmpdir=$TEMPBASE)
 echo Using "$TMPDIR"
 
 # The tag was not specified so autodetect.
 if [[ -z "$TAG" ]]; then
     echo Determining build tag from remote Git repository.
-    TAG=`git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1`
+    TAG=$(git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1)
 fi
 echo Using build "$TAG"
 # No path to an existing repo was specified so clone a fresh one.
@@ -103,7 +103,7 @@ if ! git tag -v "$TAG"; then
     echo Failed to verify tag "$TAG"
     exit 11
 fi
-BUILD=`cat src/freenet/node/Version.java | grep "buildNumber = " | sed -n "s/^[ \t]*private static final int buildNumber = \([0-9]*\);$/\1/p"`
+BUILD=$(cat src/freenet/node/Version.java | grep "buildNumber = " | sed -n "s/^[ \t]*private static final int buildNumber = \([0-9]*\);$/\1/p")
 if [[ -z $BUILD ]]; then
 	echo Unable to determine build number.
 	exit 3
