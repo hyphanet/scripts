@@ -13,7 +13,7 @@ WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 # Path to freenet-ext.
 FREENET_EXT_JAR="/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar"
-# Username to su to to sign the output.
+# If set, su to a user to sign the output. Leave empty to sign as the current user.
 SIGNING_USER="toad"
 # If "1" starts ssh agent before sending the update to the target host and stops it afterward.
 START_STOP_SSH_AGENT="1"
@@ -100,6 +100,7 @@ git archive --format=tar HEAD | bzip2 -v9 > "freenet-${GITVERSION}-source.tar.bz
 # ...and checksum and sign the shit out of it.
 sha1sum "freenet-${GITVERSION}-snapshot.jar" > "freenet-${GITVERSION}-snapshot.jar.sha1"
 if [ -n "${SIGNING_USER}" ]; then
+	echo "Switching to signing user \"${SIGNING_USER}\""
 	su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar\"; gpg --sign --detach-sign -o \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig\" \"${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2\""
 else
 	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar.sig" "${TEMPLOC}/freenet-${GITVERSION}-snapshot.jar"
