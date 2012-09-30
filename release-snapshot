@@ -107,8 +107,15 @@ else
 	gpg --sign --detach-sign -o "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2.sig" "${TEMPLOC}/freenet-${GITVERSION}-source.tar.bz2"
 fi
 
+clean_up() {
+    # Return to starting directory and remove temporary.
+    popd
+    rm -Rf $TEMPLOC
+}
+
 if $DRY_RUN; then
     echo "Dry run - exiting without upload."
+    clean_up
     exit 0
 fi
 
@@ -131,9 +138,8 @@ mkdir -p "${RELEASE_DIRECTORY}/pre"
 # copy files to local release directory
 mv "freenet-${GITVERSION}-"* "${RELEASE_DIRECTORY}/pre"
 
-# clean up
-popd
-#rm -Rf $TEMPLOC
+# Return to starting directory and remove temporary.
+clean_up
 
 # shut down the ssh agent
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
