@@ -19,8 +19,6 @@ rsync /usr/src/cvs/eclipse-workspace/app-new_installer/scripts/update.* /usr/src
 cp new_installer_offline.jar new_installer_offline_${VERSION}.jar
 cp new_installer_offline.jar.sig new_installer_offline_${VERSION}.jar.sig
 ls -l new_installer_offline_${VERSION}.jar
-#echo /root/bin/googlecode_upload.py -s "Freenet installer for build $VERSION" -p freenet -u matthew.toseland new_installer_offline_${VERSION}.jar
-#/root/bin/googlecode_upload.py -s "Freenet installer for build $VERSION" -p freenet -u matthew.toseland new_installer_offline_${VERSION}.jar || exit
 cp new_installer_offline_${VERSION}.jar new_installer_offline_${VERSION}.jar.sig ~browser/
 cp new_installer_offline_${VERSION}.jar* /usr/src/cvs/eclipse-workspace/FreenetReleased/
 rm new_installer_offline_${VERSION}.jar new_installer_offline_${VERSION}.jar.sig

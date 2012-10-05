@@ -85,7 +85,7 @@ cp freenet-${GITVERSION}-source.tar.bz2* /usr/src/cvs/eclipse-workspace/FreenetR
 echo Uploaded source code to emu
 rm -Rf $TEMPLOC
 cd
-/root/bin/compare-l10n ${VERSION}
+compare-l10n ${VERSION}
 
 # shut down the ssh agent
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then

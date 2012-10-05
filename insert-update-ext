@@ -4,10 +4,10 @@ source ~/bin/insert-update-keys
 VERSION=12
 FILENAME=/var/lib/freenet-experimental/freenet-ext.${VERSION}.jar
 rsync emu.freenetproject.org:/var/www/downloads/alpha/freenet-ext.jar ${FILENAME}
-/root/bin/insert-update-inner 9481 $FILENAME "${OLDKEY}/ext-$VERSION" ext-update-old-$VERSION 1 &
-/root/bin/insert-update-inner 9481 $FILENAME "${NEWKEY}/ext-$VERSION" ext-update-new-$VERSION 0 &
-/root/bin/insert-update-inner 7482 $FILENAME "${OLDKEY}/ext-$VERSION" ext-update-old-$VERSION 1 &
-/root/bin/insert-update-inner 7482 $FILENAME "${NEWKEY}/ext-$VERSION" ext-update-new-$VERSION 0 &
+insert-update-inner 9481 $FILENAME "${OLDKEY}/ext-$VERSION" ext-update-old-$VERSION 1 &
+insert-update-inner 9481 $FILENAME "${NEWKEY}/ext-$VERSION" ext-update-new-$VERSION 0 &
+insert-update-inner 7482 $FILENAME "${OLDKEY}/ext-$VERSION" ext-update-old-$VERSION 1 &
+insert-update-inner 7482 $FILENAME "${NEWKEY}/ext-$VERSION" ext-update-new-$VERSION 0 &
 
 jobs
 wait %1

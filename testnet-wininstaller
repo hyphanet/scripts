@@ -44,7 +44,7 @@ kill -9 `pgrep -u freenet-buildwin`
 cd
 mkdir -p tmp-wi
 cd tmp-wi
-rm /root/tmp-wi/*
+rm *
 cp ~freenet-buildwin/tmp/testnet-wininstaller/bin/TestnetInstaller.exe TestnetInstaller-${VERSION}.exe
 cd ~freenet-buildwin/tmp/testnet-wininstaller/res/install_node/updater/ || exit
 sha1sum update-testnet.cmd > update-testnet.cmd.sha1 || exit
@@ -58,7 +58,6 @@ echo Signing
 su - toad -c "gpg --sign --detach-sign TestnetInstaller-${VERSION}.exe"
 cp ~toad/TestnetInstaller-${VERSION}.exe.sig .
 echo Uploading to Google Code
-#/root/bin/googlecode_upload.py -s "Freenet $MAINVER build $VERSION Windows installer" -p freenet -u matthew.toseland TestnetInstaller-alpha-${VERSION}.exe || exit
 cp TestnetInstaller-${VERSION}.exe ~browser/
 chmod a+r ~browser/TestnetInstaller-${VERSION}.exe
 echo Uploading to emu
