@@ -1,0 +1,22 @@
+#!/bin/bash
+# Download the IpToCountry.dat file.
+# Note that this is donationware, you should consider donating.
+# Also, don't run this script at 0:00, run it at a random time (both hours and minutes), and not too frequently (I run it once a week).
+# See here: http://software77.net/geo-ip/
+# And here: http://software77.net/faq.html#automated
+TEMPDIR=`mktemp -d`
+pushd $TEMPDIR
+cd $TEMPDIR
+wget software77.net/geo-ip/?DL=4 -O IpToCountry.dat || exit 1
+wget software77.net/geo-ip/?DL=5 -O IpToCountry.dat.MD5 || exit 2
+HASH=$(md5sum IpToCountry.dat | cut -d " " -f 1)
+CHECK=$(cat IpToCountry.dat.MD5)
+if [ "$HASH" = "$CHECK" ]; then
+	echo Downloaded successfully.
+else
+	echo Checksum failed.
+	exit 3
+fi
+cp IpToCountry.dat /usr/src/cvs/eclipse-workspace/IpToCountry/IpToCountry.dat
+popd
+rm -Rf $TEMPDIR
