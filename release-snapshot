@@ -165,7 +165,7 @@ fi
 # make sure release directory exists
 mkdir -p "${RELEASE_DIRECTORY}"
 # copy files to local release directory
-mv "freenet-${GITVERSION}"* "${RELEASE_DIRECTORY}"
+cp "freenet-${GITVERSION}"* "${RELEASE_DIRECTORY}"
 
 # Localization comparison for build.
 if [[ "$TARGET" = "build" ]]; then
