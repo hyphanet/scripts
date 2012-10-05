@@ -20,7 +20,7 @@ if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Requ
 if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 3; fi
 ant clean
 cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar lib/freenet-cvs-snapshot.jar
-VERSION=`/root/bin/getversion $TEMPLOC`
+VERSION=`getversion $TEMPLOC`
 #VERSION=1231
 FILENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}.jar
 SOURCENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}-src.tar.bz2
