@@ -5,6 +5,7 @@ TAG=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag`
 KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
 # Get it from http://software77.net/faq.html#automated
 COUNTRYDATA=/usr/src/cvs/eclipse-workspace/IpToCountry/IpToCountry.dat
+if [ ! -f "$COUNTRYDATA" ]; then echo WARNING: Inserting without country data; fi
 gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg
 source $KEYS/keys || exit
 echo Deleting old temporary files
