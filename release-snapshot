@@ -224,13 +224,13 @@ if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
 fi
 
 # upload all files
-rsync -vvzP "${JAR_FILENAME}"* freenet-testing-latest.jar.url .registry "${ARCHIVE_FILENAME}"* "${TARGET_HOST}:/var/www/downloads/alpha/"
+rsync -vvzP "${JAR_FILENAME}"* freenet-testing-latest.jar.url .registry "${ARCHIVE_FILENAME}"* "${TARGET_HOST}:/var/www/downloads/alpha/" || exit 24
 
 # Unlike a snapshot, a new build updates the localization diff and the stable-latest.url.
 if [[ "$TARGET" = "build" ]]; then
-    rsync -vz "${OLDVER}-${NEWVER}.diff.txt" "${TARGET_HOST}:/var/www/emu/l10n/"
-    rsync -vvzP freenet-testing-latest.jar.url "${TARGET_HOST}:/var/www/downloads/alpha/freenet-stable-latest.jar.url"
-    rsync --delete -rz javadoc/* "${TARGET_HOST}:/var/www/freenet-javadoc"
+    rsync -vz "${OLDVER}-${NEWVER}.diff.txt" "${TARGET_HOST}:/var/www/emu/l10n/" || exit 25
+    rsync -vvzP freenet-testing-latest.jar.url "${TARGET_HOST}:/var/www/downloads/alpha/freenet-stable-latest.jar.url" || exit 26
+    rsync --delete -rz javadoc/* "${TARGET_HOST}:/var/www/freenet-javadoc" || exit 27
 fi
 
 # shut down the ssh agent
