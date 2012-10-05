@@ -1,0 +1,125 @@
+#!/bin/bash
+# Insert a failed update. That is, insert the source, the changelog, but not the binaries and installer, which haven't been built.
+if [[ -z $1 ]]; then
+	echo "insert-bogus-update: Insert the changelog etc for a failed update."
+	echo "Usage: insert-bogus-update 1234"
+	exit 1
+fi
+TAG="build0$1"
+VERSION=$1
+# Put the real keys in ~/bin/insert-update-keys
+SEEDNODESFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes.fref
+KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
+gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg
+source $KEYS/keys || exit
+echo Deleting old temporary files
+rm -R /usr/src/cvs/freenet-temp*
+TEMPLOC=/usr/src/cvs/freenet-temp-$RANDOM
+echo Temporary file location: $TEMPLOC
+cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
+cd $TEMPLOC
+git reset --hard
+git checkout $TAG
+cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar || exit
+REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
+RECOMMENDED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
+if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 3; fi
+if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 3; fi
+ant clean
+cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar lib/freenet-cvs-snapshot.jar
+# Not inserting the jar.
+# Do insert the source code however.
+SOURCENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}-src.tar.bz2
+if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 ]]; 
+then 
+    cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 $SOURCENAME
+else 
+    echo Source not found. Packaging...
+    git archive --format=tar HEAD | bzip2 -v9 > "/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2" || exit 11
+    cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 $SOURCENAME
+fi
+chown freenete.toad $SOURCENAME
+echo Inserting changelog, source and seednodes for build number $VERSION
+set -m
+
+# SECURITY: Insert via secondary testing node, NOT VIA MAIN NODE
+# This avoids the insert keys ever being known to the main node.
+for PORT in 9482; do
+
+TEMPFILE1=`mktemp /tmp/insert.temp.XXXXXXXXXX`
+echo Temp file $TEMPFILE1
+echo ClientHello > $TEMPFILE1
+echo "Name=Toad-update-$VERSION" >> $TEMPFILE1
+echo ExpectedVersion=2 >> $TEMPFILE1
+echo End >> $TEMPFILE1
+echo >> $TEMPFILE1
+
+# Not inserting installers.
+
+for WHAT in source seednodes fullchangelog; do
+
+# Insert the binary LAST so that the node doesn't restart before completing the insert.
+PCLASS=2
+URI=NEWKEY
+IDENT=update-new-$VERSION
+if [[ $WHAT == "source" ]]; then
+  INSERTFILE=$SOURCENAME
+  PCLASS=$((PCLASS+3))
+  URI=${URI}/update-source-$VERSION
+  IDENT=${IDENT}-source
+fi
+if [[ $WHAT == "seednodes" ]]; then
+  INSERTFILE=$SEEDNODESFILE
+  URI=${URI}/seednodes-$VERSION
+  IDENT=${IDENT}-seednodes
+fi
+if [[ $WHAT == "fullchangelog" ]]; then
+  INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+  URI=${URI}/fullchangelog-$VERSION
+  IDENT=${IDENT}-fullchangelog
+fi
+TEMPFILE=`mktemp /tmp/insert.temp.XXXXXXXXXX`
+echo ClientPut >> $TEMPFILE
+echo "DontCompress=true" >> $TEMPFILE
+echo "CompatibilityMode=COMPAT_1250_EXACT" >> $TEMPFILE
+echo "URI=$URI" >> $TEMPFILE
+echo "Identifier=$IDENT" >> $TEMPFILE
+echo Verbosity=1023 >> $TEMPFILE
+echo MaxRetries=-1 >> $TEMPFILE
+echo UploadFrom=direct >> $TEMPFILE
+echo DataLength=`ls -l $INSERTFILE | cut -d " " -f 5` >> $TEMPFILE
+# SECURITY: Persistence=reboot so the keys are never written to disk
+echo Persistence=reboot >> $TEMPFILE
+echo PriorityClass=$PCLASS >> $TEMPFILE
+echo Global=true >> $TEMPFILE
+echo End >> $TEMPFILE
+
+SCRIPT=$KEYS/script
+echo -n "s/NEWKEY/" > $SCRIPT
+cat $KEYS/keys | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" >> $SCRIPT
+cat $SCRIPT | tr --delete "\n" > ${SCRIPT}.1 && mv ${SCRIPT}.1 $SCRIPT
+echo "/" >> $SCRIPT
+cat $TEMPFILE | sed -f $SCRIPT > $TEMPFILE.1
+mv $TEMPFILE.1 $TEMPFILE
+
+cat $TEMPFILE >> $TEMPFILE1
+cat $INSERTFILE >> $TEMPFILE1
+rm $TEMPFILE
+
+done
+
+SCRIPT=$KEYS/script
+
+#cat $TEMPFILE1 | nc 127.0.0.1 $PORT | sed "/^URI=/d" &
+cat $TEMPFILE1 | nc 127.0.0.1 $PORT | sed "/^URI=/d"
+
+done
+
+rm -Rf $KEYS
+rm -Rf $TEMPFILE1
+
+#jobs
+#wait %1
+#wait %2
+#wait %3
+#wait %4
