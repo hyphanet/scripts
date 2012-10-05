@@ -156,10 +156,10 @@ sha1sum "${JAR_FILENAME}" > "${JAR_FILENAME}.sha1"
 sha1sum "${ARCHIVE_FILENAME}" > "${ARCHIVE_FILENAME}.sha1"
 if [ -n "${SIGNING_USER}" ]; then
     echo "Switching to signing user \"${SIGNING_USER}\""
-    su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/${JAR_FILENAME}.sig\" \"${TEMPLOC}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${TEMPLOC}/${ARCHIVE_FILENAME}.sig\" \"${TEMPLOC}/${ARCHIVE_FILENAME}\""
+    su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/${JAR_FILENAME}.sig\" \"${TEMPLOC}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${TEMPLOC}/${ARCHIVE_FILENAME}.sig\" \"${TEMPLOC}/${ARCHIVE_FILENAME}\"" || exit 17
 else
-    gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}"
-    gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}"
+    gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}" || exit 17
+    gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}" || exit 17
 fi
 
 # make sure release directory exists
