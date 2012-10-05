@@ -3,6 +3,8 @@
 SEEDNODESFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes.fref
 TAG=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag`
 KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
+# Get it from http://software77.net/faq.html#automated
+COUNTRYDATA=/usr/src/cvs/eclipse-workspace/IpToCountry/IpToCountry.dat
 gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg
 source $KEYS/keys || exit
 echo Deleting old temporary files
@@ -98,7 +100,7 @@ if [[ $WHAT == "fullchangelog" ]]; then
   IDENT=${IDENT}-fullchangelog
 fi
 if [[ $WHAT == "iptocountryv4" ]]; then
-  INSERTFILE=/usr/src/cvs/eclipse-workspace/IpToCountry/IpToCountry.dat
+  INSERTFILE=$COUNTRYDATA
   URI=${URI}/iptocountryv4-$VERSION
   IDENT=${IDENT}-iptocountryv4
   PCLASS=$((PCLASS+2))
