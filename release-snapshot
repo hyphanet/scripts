@@ -156,7 +156,15 @@ sha1sum "${JAR_FILENAME}" > "${JAR_FILENAME}.sha1"
 sha1sum "${ARCHIVE_FILENAME}" > "${ARCHIVE_FILENAME}.sha1"
 if [ -n "${SIGNING_USER}" ]; then
     echo "Switching to signing user \"${SIGNING_USER}\""
-    su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${TEMPLOC}/${JAR_FILENAME}.sig\" \"${TEMPLOC}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${TEMPLOC}/${ARCHIVE_FILENAME}.sig\" \"${TEMPLOC}/${ARCHIVE_FILENAME}\"" || exit 17
+    SWITCHTEMP=$(mktemp -d)
+    cp "${TEMPLOC}/${JAR_FILENAME}" "${TEMPLOC}/${ARCHIVE_FILENAME}" "$SWITCHTEMP" || exit 18
+    # SIGNING_USER is a top level user, so it has its own group, right?
+    chgrp "${SIGNING_USER}" "$SWITCHTEMP" || exit 19
+    chmod g+rwx "${SWITCHTEMP}" || exit 20
+    chmod g+r "${SWITCHTEMP}"/* || exit 21
+    su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${SWITCHTEMP}/${JAR_FILENAME}.sig\" \"${SWITCHTEMP}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${SWITCHTEMP}/${ARCHIVE_FILENAME}.sig\" \"${SWITCHTEMP}/${ARCHIVE_FILENAME}\"" || exit 22
+    cp "${SWITCHTEMP}/${JAR_FILENAME}.sig" "${SWITCHTEMP}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}" || exit 23
+    rm -Rf $SWITCHTEMP
 else
     gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}" || exit 17
     gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}" || exit 17
