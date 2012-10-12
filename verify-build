@@ -180,6 +180,7 @@ while read x; do
 done < unpacked-official.list
 
 summary() {
+    echo "Tag ${TAG} / build ${BUILD}"
     echo "Official jar SHA512: $(sha512sum freenet.jar)"
     echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
     echo "Git repository is at object $(cat "$REPO/.git/HEAD")"
