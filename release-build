@@ -41,7 +41,7 @@ if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
 	ssh-add
 fi
 
-rsync --delete -rz javadoc/* osprey.vm.bytemark.co.uk:/var/www/freenet-website/javadocs
+rsync --delete -rz javadoc/* osprey.vm.bytemark.co.uk:/var/www/freenet-javadoc
 # Jars
 mv dist/freenet.jar freenet-${GITVERSION}.jar || exit
 sha1sum freenet-${GITVERSION}.jar > freenet-${GITVERSION}.jar.sha1
