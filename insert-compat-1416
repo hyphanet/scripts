@@ -1,0 +1,37 @@
+#!/bin/bash
+# Insert a single file as a CHK on the global queue with 1416 compatibility mode.
+# This will be used by the new auto-update system.
+# Uses no sensitive keys, so it's a standard insert.
+FILENAME=$1
+if [[ ! -e "$FILENAME" ]]; then
+	echo "Usage: insert-compat-1416 <filename>"
+fi
+SHORTNAME=$(basename "$FILENAME")
+PORT=9481
+TEMPFILE=`mktemp /tmp/insert.temp.XXXXXXXXXX`
+echo Tempfile is $TEMPFILE
+echo ClientHello > $TEMPFILE
+echo "Name=Toad-update-$VERSION" >> $TEMPFILE
+echo ExpectedVersion=2 >> $TEMPFILE
+echo End >> $TEMPFILE
+echo >> $TEMPFILE
+echo ClientPut >> $TEMPFILE
+echo "DontCompress=true" >> $TEMPFILE
+echo "CompatibilityMode=COMPAT_1416" >> $TEMPFILE
+echo "URI=CHK@" >> $TEMPFILE
+echo "Identifier=Insert-$SHORTNAME" >> $TEMPFILE
+echo Verbosity=1023 >> $TEMPFILE
+echo MaxRetries=-1 >> $TEMPFILE
+echo UploadFrom=direct >> $TEMPFILE
+echo DataLength=`ls -l "$FILENAME" | cut -d " " -f 5` >> $TEMPFILE
+echo Persistence=forever >> $TEMPFILE
+echo PriorityClass=1 >> $TEMPFILE
+echo Global=true >> $TEMPFILE
+echo "TargetFilename=$SHORTNAME" >> $TEMPFILE
+echo End >> $TEMPFILE
+cat "$FILENAME" >> $TEMPFILE
+
+cat $TEMPFILE | nc 127.0.0.1 $PORT
+
+rm -Rf $KEYS
+rm -Rf $TEMPFILE1
