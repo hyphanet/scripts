@@ -87,7 +87,7 @@ if [[ $WHAT == "wininstaller" ]]; then
 fi
 if [[ $WHAT == "binary" ]]; then
   INSERTFILE=$FILENAME
-  URI=${URI}/update-$VERSION
+  URI=${URI}/jar-$VERSION
   PCLASS=$((PCLASS))
 fi
 if [[ $WHAT == "seednodes" ]]; then
