@@ -214,8 +214,8 @@ echo "Performing release."
 
 # create and update pointer files
 echo "https://downloads.freenetproject.org/alpha/${JAR_FILENAME}" > freenet-testing-latest.jar.url
-wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry"
-sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar ${JAR_FILENAME}/" .registry
+wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry" || exit 28
+sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar ${JAR_FILENAME}/" .registry || exit 29
 
 # start ssh agent and collect password
 if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
