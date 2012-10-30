@@ -182,7 +182,7 @@ if [[ "$TARGET" = "build" ]]; then
     done
     diff -u0 "$OLDVER" "$NEWVER" > "${OLDVER}-${NEWVER}.diff.txt"
     less "${OLDVER}-${NEWVER}.diff.txt"
-    mv -t "${RELEASE_DIRECTORY}" "${OLDVER}-${NEWVER}.diff.txt"
+    cp "${OLDVER}-${NEWVER}.diff.txt" "${RELEASE_DIRECTORY}"
 fi
 
 clean_up() {
