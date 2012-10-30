@@ -22,7 +22,7 @@ mkdir ~freenet-buildwin/tmp/app-wininstaller/lib
 
 ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/freenet.jar || exit
 ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/freenet-ext.jar || exit
-ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/bcprov.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/bcprov.jar || exit
+ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/dependencies/bcprov-jdk15on-147.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/bcprov.jar || exit
 cp ~toad/seednodes.fref ~freenet-buildwin/tmp/app-wininstaller/res/install_node/seednodes.fref || exit
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   ln -s /usr/src/cvs/eclipse-workspace/FreenetReleased/${x}.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/plugins/${x}.jar || exit
