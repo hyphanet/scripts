@@ -1,6 +1,10 @@
 #!/bin/bash
 MAINVER=0.7.5
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+TEST=
+#TEST=TEST
+#DEBUGWINE="WINEDEBUG=warn+all"
+DEBUGWINE=
 echo Clearing ~freenet-buildwin
 rm -Rf ~freenet-buildwin/*
 rm -Rf ~freenet-buildwin/.[a-zA-Z0-9]*
@@ -8,7 +12,9 @@ mkdir ~freenet-buildwin/.ssh
 cat ~/.ssh/id_rsa.pub > ~freenet-buildwin/.ssh/authorized_keys
 chmod 700 ~freenet-buildwin/.ssh
 mkdir ~freenet-buildwin/bin
-(echo "cd tmp" ; echo "cd app-wininstaller" ; echo "wine cmd /c build.cmd") > ~freenet-buildwin/bin/build-alpha
+echo "cd tmp" > ~freenet-buildwin/bin/build-alpha
+echo "cd app-wininstaller" >> ~freenet-buildwin/bin/build-alpha
+echo "$DEBUGWINE wine cmd /c build.cmd" >> ~freenet-buildwin/bin/build-alpha
 mkdir ~freenet-buildwin/tmp
 cp -a /usr/src/cvs/eclipse-workspace/app-wininstaller ~freenet-buildwin/tmp
 (cd ~freenet-buildwin/tmp/app-wininstaller; git checkout master)
@@ -54,9 +60,10 @@ sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
 cd ~/tmp-wi
 
-#Uncomment if just want it for testing.
-#echo Built it, file is in `pwd`
-#exit
+if [[ $TEST == "TEST" ]]; then
+	echo echo Built it, file is in `pwd`
+	exit
+fi
 
 rsync ~freenet-buildwin/tmp/app-wininstaller/res/install_node/updater/update*cmd* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/update/
 
