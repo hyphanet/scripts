@@ -167,6 +167,8 @@ fi
 mkdir -p "${RELEASE_DIRECTORY}"
 # copy files to local release directory
 cp "freenet-${GITVERSION}"* "${RELEASE_DIRECTORY}"
+rm "${RELEASE_DIRECTORY}/freenet.jar"
+ln -s "${RELEASE_DIRECTORY}/freenet-${GITVERSION}.jar" "${RELEASE_DIRECTORY}/freenet.jar"
 
 # Localization comparison for build.
 if [[ "$TARGET" = "build" ]]; then
