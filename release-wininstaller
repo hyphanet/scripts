@@ -21,12 +21,12 @@ mkdir ~freenet-buildwin/tmp/app-wininstaller/lib
 
 # Copy files
 
-ln -s ${RELEASE_DIRECTORY}/freenet.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/freenet.jar || exit
-ln -s ${RELEASE_DIRECTORY}/freenet-ext.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/freenet-ext.jar || exit
-ln -s ${RELEASE_DIRECTORY}/dependencies/bcprov-jdk15on-147.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/bcprov.jar || exit
+cp ${RELEASE_DIRECTORY}/freenet.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/freenet.jar || exit
+cp ${RELEASE_DIRECTORY}/freenet-ext.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/freenet-ext.jar || exit
+cp ${RELEASE_DIRECTORY}/dependencies/bcprov-jdk15on-147.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/bcprov.jar || exit
 cp ~toad/seednodes.fref ~freenet-buildwin/tmp/app-wininstaller/res/install_node/seednodes.fref || exit
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
-  ln -s ${RELEASE_DIRECTORY}/${x}.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/plugins/${x}.jar || exit
+  cp ${RELEASE_DIRECTORY}/${x}.jar ~freenet-buildwin/tmp/app-wininstaller/res/install_node/plugins/${x}.jar || exit
 done
 cp ~freenet-buildwin/tmp/app-wininstaller/bin/Ahk2Exe.exe ~freenet-buildwin/tmp/app-wininstaller/bin/AutoHotkeySC.bin ~freenet-buildwin/tmp/app-wininstaller/res/tool_ahk/
 echo Copied dependancies.
