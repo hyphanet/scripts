@@ -109,13 +109,6 @@ if [[ -z $BUILD ]]; then
 	exit 3
 fi
 
-REQUIRED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
-RECOMMENDED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
-if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 7; fi
-if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 8; fi
-echo "contrib.version.min=$REQUIRED_EXT" >> override.properties
-echo "contrib.version.rec=$RECOMMENDED_EXT" >> override.properties
-
 echo Build number $BUILD
 if ! cp "$FREENET_EXT_JAR" lib/freenet/freenet-ext.jar; then
 	echo Unable to copy freenet-ext.jar from "$FREENET_EXT_JAR"
