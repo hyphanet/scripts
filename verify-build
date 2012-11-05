@@ -4,6 +4,7 @@
 # For builds by toad, this is Sun 1.6.0_26 (sun-java6-jdk; 6.26-0squeeze1) on Debian Squeeze.
 : ${TEMPBASE:=~/}
 : ${FREENET_EXT_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar}
+: ${BOUNCY_CASTLE_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/bcprov.jar}
 : ${GIT_URL:=git://github.com/freenet/fred-official.git}
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
@@ -13,11 +14,17 @@
 ## TODO: Verify freenet-ext.jar itself.
 ## TODO: Hard-code the certificate for SSL see the code in update.sh in app-new_installer
 ## TODO: Detect who released it and complain if not the same compiler? Or even install several copies?
+## TODO: Load configuration values from a file instead of environment variables.
 
 # Exit with an error if freenet-ext does not exist.
 if [[ ! -e "$FREENET_EXT_JAR" ]]; then
     echo "The path \"$FREENET_EXT_JAR\" does not exist."
     echo "Please set the FREENET_EXT_JAR environment variable to a path to freenet-ext.jar"
+    exit 10
+fi
+if [[ ! -e "$BOUNCY_CASTLE_JAR" ]]; then
+    echo "The path \"$BOUNCY_CASTLE_JAR\" does not exist."
+    echo "Please set the BOUNCY_CASTLE_JAR environment variable to a path to bcprov.jar from www.bouncycastle.org"
     exit 10
 fi
 
@@ -109,16 +116,13 @@ if [[ -z $BUILD ]]; then
 	exit 3
 fi
 
-REQUIRED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
-RECOMMENDED_EXT=$(cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p")
-if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 7; fi
-if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 8; fi
-echo "contrib.version.min=$REQUIRED_EXT" >> override.properties
-echo "contrib.version.rec=$RECOMMENDED_EXT" >> override.properties
-
 echo Build number $BUILD
 if ! cp "$FREENET_EXT_JAR" lib/freenet/freenet-ext.jar; then
 	echo Unable to copy freenet-ext.jar from "$FREENET_EXT_JAR"
+	exit 12
+fi
+if ! cp "$BOUNCY_CASTLE_JAR" lib/bcprov.jar; then
+	echo Unable to copy bcprov.jar from "$BOUNCY_CASTLE_JAR"
 	exit 12
 fi
 if ! (ant clean && ant package-only); then
@@ -180,6 +184,7 @@ while read x; do
 done < unpacked-official.list
 
 summary() {
+    echo "Tag ${TAG} / build ${BUILD}"
     echo "Official jar SHA512: $(sha512sum freenet.jar)"
     echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
     echo "Git repository is at object $(cat "$REPO/.git/HEAD")"
