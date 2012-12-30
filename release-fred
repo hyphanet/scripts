@@ -8,7 +8,7 @@
 CONFIG="${HOME}/.freenetrc"
 # What to build / release. Possible values: "build", "snapshot"
 TARGET=""
-# Whether to exit before deploying.
+# Whether to exit before releasing.
 DRY_RUN="false"
 
 # Path to Fred repository.
