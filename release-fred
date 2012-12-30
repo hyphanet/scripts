@@ -169,7 +169,7 @@ mkdir -p "${RELEASE_DIRECTORY}"
 cp "${JAR_FILENAME}"* "${RELEASE_DIRECTORY}"
 cp "${ARCHIVE_FILENAME}"* "${RELEASE_DIRECTORY}"
 rm "${RELEASE_DIRECTORY}/freenet.jar"
-ln -s "${RELEASE_DIRECTORY}/freenet-${GITVERSION}.jar" "${RELEASE_DIRECTORY}/freenet.jar"
+ln -s "${RELEASE_DIRECTORY}/${JAR_FILENAME}" "${RELEASE_DIRECTORY}/freenet.jar"
 
 # Localization comparison for build.
 if [[ "$TARGET" = "build" ]]; then
