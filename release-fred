@@ -165,8 +165,9 @@ fi
 
 # make sure release directory exists
 mkdir -p "${RELEASE_DIRECTORY}"
-# copy files to local release directory
-cp "freenet-${GITVERSION}"* "${RELEASE_DIRECTORY}"
+# copy files and signatures to local release directory
+cp "${JAR_FILENAME}"* "${RELEASE_DIRECTORY}"
+cp "${ARCHIVE_FILENAME}"* "${RELEASE_DIRECTORY}"
 rm "${RELEASE_DIRECTORY}/freenet.jar"
 ln -s "${RELEASE_DIRECTORY}/freenet-${GITVERSION}.jar" "${RELEASE_DIRECTORY}/freenet.jar"
 
