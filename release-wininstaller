@@ -1,8 +1,5 @@
 #!/bin/bash
-MAINVER=0.7.5
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
-TEST=
-#TEST=TEST
 #DEBUGWINE="WINEDEBUG=warn+all"
 DEBUGWINE=
 echo Clearing ~freenet-buildwin
@@ -60,10 +57,6 @@ sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
 cd ~/tmp-wi
 
-if [[ $TEST == "TEST" ]]; then
-	echo echo Built it, file is in `pwd`
-	exit
-fi
 
 rsync ~freenet-buildwin/tmp/app-wininstaller/res/install_node/updater/update*cmd* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/update/
 
