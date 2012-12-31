@@ -65,9 +65,6 @@ cp FreenetInstaller-${VERSION}.exe ~toad/
 echo Signing
 su - toad -c "gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
 cp ~toad/FreenetInstaller-${VERSION}.exe.sig .
-echo Uploading to Google Code
-cp FreenetInstaller-${VERSION}.exe ~browser/
-chmod a+r ~browser/FreenetInstaller-${VERSION}.exe
 echo Uploading to emu
 rsync -v FreenetInstaller-${VERSION}.exe* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/installer/
 cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
