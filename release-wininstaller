@@ -1,4 +1,26 @@
 #!/bin/bash
+
+# This script uses Wine to build the Windows installer executables under a
+# restricted user account. It builds the user's home directory from scratch
+# each run for a clean build, and kills processes from the restricted user
+# after compilation is complete. The executables can then be signed and
+# uploaded.
+#
+# It is assumed that this script is run as root, as it uses chown and kills
+# the restricted user's processes after the build completes.
+#
+# Requirements:
+#   Build:
+#       sha1sum
+#       localhost SSH server on port 22
+#       xvfb
+#       wine 1.4
+#   Sign:
+#       gpg
+#   Release:
+#       rsync
+#       ssh-agent
+
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 #DEBUGWINE="WINEDEBUG=warn+all"
 DEBUGWINE=
