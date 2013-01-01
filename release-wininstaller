@@ -21,6 +21,9 @@
 #       rsync
 #       ssh-agent
 
+# Whether to exit before releasing.
+DRY_RUN="false"
+
 # Defaults:
 # Target directory for generated files.
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
@@ -49,12 +52,17 @@ Prompts for confirmation before releasing.
 Configuration file is at ${CONFIG} by default.
 
 --config CONFIG   Path to freenetrc
+--dry-run         Do not release. Build and sign the installer, then exit.
 EOF
             exit 0
             ;;
         --config)
             CONFIG="$2"
             shift 2
+            ;;
+        --dry-run)
+            DRY_RUN="true"
+            shift
             ;;
         --) # End of all options
             shift
@@ -149,14 +157,26 @@ sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
 cd ~/tmp-wi
 
+echo Signing
+su - ${SIGNING_USER} -c "gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
+cp ${SIGNING_HOME}/FreenetInstaller-${VERSION}.exe.sig .
+
+if [[ "$DRY_RUN" = "true" ]]; then
+    echo "Dry run - exiting without performing release."
+    exit 0
+fi
+
+echo -n "Perform release [y/N]?"
+read response
+if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+    echo "Aborting release."
+    exit 0
+fi
 
 rsync ${WINE_HOME}/tmp/app-wininstaller/res/install_node/updater/update*cmd* ${TARGET_HOST}:/var/www/downloads/alpha/update/
 
 echo Uploading
 cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
-echo Signing
-su - ${SIGNING_USER} -c "gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
-cp ${SIGNING_HOME}/FreenetInstaller-${VERSION}.exe.sig .
 echo Uploading to emu
 rsync -v FreenetInstaller-${VERSION}.exe* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
 cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
