@@ -1,0 +1,18 @@
+#!/bin/bash
+TEMPLOC=`mktemp -d`
+cp -a /usr/src/cvs/eclipse-workspace/Contrib $TEMPLOC
+echo Copied data
+cd $TEMPLOC/Contrib
+git reset --hard
+export JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+export PATH=${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:$PATH
+GITVERSION=`git describe`
+ant -Dbits=64 -Dgit.revision="$GITVERSION" -f freenet_ext/build.xml clean
+ant -Dbits=64 -Dgit.revision="$GITVERSION" -f freenet_ext/build.xml
+cp freenet_ext/freenet-ext.jar /root/freenet-ext.${GITVERSION}.jar
+gpg --sign --detach /root/freenet-ext.${GITVERSION}.jar
+cd /root
+sha1sum /root/freenet-ext.${GITVERSION}.jar > /root/freenet-ext.${GITVERSION}.jar.sha1
+sha256sum /root/freenet-ext.${GITVERSION}.jar > /root/freenet-ext.${GITVERSION}.jar.sha256
+rsync -v /root/freenet-ext.${GITVERSION}.jar* emu.freenetproject.org:/var/www/downloads/alpha/
+
