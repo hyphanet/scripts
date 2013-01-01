@@ -4,7 +4,7 @@ Release process
 tag-build [build number]
 # tags a build, asks for a changelog
 release-fred
-# builds the Fred jar, source archive, signs them, creates l10n diffs, and uploads to osprey. Inserts Fred jar into Freenet.
+# builds the Fred jar, source archive, signs them, creates l10n diffs, and uploads to osprey. Inserts Fred jar into Freenet, for snapshots. DOES NOT insert fred jars for full builds.
 release-installer
 # builds the linux/mac installer and uploads it to osprey
 release-wininstaller
