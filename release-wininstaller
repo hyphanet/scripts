@@ -21,7 +21,77 @@
 #       rsync
 #       ssh-agent
 
+# Defaults:
+# Target directory for generated files.
 RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+# Windows installer source location.
+WININSTALLER_PATH="/usr/src/cvs/eclipse-workspace/app-wininstaller"
+# User to switch to when signing the release.
+SIGNING_USER="toad"
+# Freenet seednode file location.
+SEEDNODE_PATH="/home/${SIGNING_USER}/seednodes.fref"
+# User to run Wine under.
+WINE_USER="freenet-buildwin"
+# Path to configuration file.
+CONFIG="${HOME}/.freenetrc"
+# Hostname to send updates to.
+TARGET_HOST="osprey.vm.bytemark.co.uk"
+# Path to freenet-ext.
+FREENET_EXT_JAR="${RELEASE_DIRECTORY}/freenet-ext.jar"
+
+while :
+do
+    case $1 in
+        --help | - | -\?)
+            cat <<EOF
+Builds and releases the Windows installers.
+Prompts for confirmation before releasing.
+Configuration file is at ${CONFIG} by default.
+
+--config CONFIG   Path to freenetrc
+EOF
+            exit 0
+            ;;
+        --config)
+            CONFIG="$2"
+            shift 2
+            ;;
+        --) # End of all options
+            shift
+            break
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        *)  # No more options; stop parsing.
+            break
+            ;;
+    esac
+done
+
+# override these variables, if necessary
+if [ -f "${CONFIG}" ]; then
+    . "${CONFIG}"
+fi
+
+# Home directory is 6th field; line is delimited by colons.
+# ~${VARIABLE} does not expand to a home directory in Bash
+# because ~-expansion is done before variable expansion.
+function getHome() {
+    echo $(getent passwd "$1" | cut -d: -f6)
+}
+WINE_HOME=$(getHome "${WINE_USER}")
+SIGNING_HOME=$(getHome "${SIGNING_USER}")
+
+if [[ -z "$WINE_HOME" ]]; then
+    echo "Cannot find home directory for Wine user \"${WINE_USER}\"."
+    exit 1
+fi
+if [[ -z "$SIGNING_HOME" ]]; then
+    echo "Cannot find home directory for signing user \"${SIGNING_HOME}\"."
+    exit 1
+fi
 #DEBUGWINE="WINEDEBUG=warn+all"
 DEBUGWINE=
 echo Clearing ~freenet-buildwin
