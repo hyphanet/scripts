@@ -58,6 +58,12 @@ TARGET_HOST="osprey.vm.bytemark.co.uk"
 # Path to freenet-ext.
 FREENET_EXT_JAR="${RELEASE_DIRECTORY}/freenet-ext.jar"
 
+if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
+then
+    echo "Do not run this script as root."
+    exit 1
+fi
+
 while :
 do
     case $1 in
