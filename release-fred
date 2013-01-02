@@ -241,8 +241,9 @@ fi
 # Return to starting directory and remove temporary.
 clean_up
 
-# upload binary and signature to freenet
+# upload snapshot binary and signature to freenet
 if [[ "$TARGET" = "snapshot" ]]; then
+    echo "Inserting snapshot into Freenet."
     (
     echo ClientHello;
     echo Name=Toad-update-${GITVERSION};
@@ -275,6 +276,8 @@ if [[ "$TARGET" = "snapshot" ]]; then
     echo Global=true;
     echo End
     ) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
+else
+    echo "Not inserting build into Freenet."
 fi
 
 echo "Release complete."
