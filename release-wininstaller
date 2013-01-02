@@ -138,7 +138,7 @@ echo Copied dependancies.
 VERSION=`cat ${RELEASE_DIRECTORY}/freenet.build`
 echo VERSION is $VERSION
 echo Updating build
-(cd ${WINE_HOME}/tmp/app-wininstaller; cat src/freenetinstaller/FreenetInstaller_Include_Info.inc | sed "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" > 1; cat 1 > src/freenetinstaller/FreenetInstaller_Include_Info.inc; cat 1)
+sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
 chown -R ${WINE_USER}.${WINE_USER} ${WINE_HOME}
 chmod +x ${WINE_HOME}/bin/build-alpha
 echo Running the build
@@ -181,7 +181,7 @@ cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
 echo Uploading to emu
 rsync -v FreenetInstaller-${VERSION}.exe* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
 cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
-ssh ${TARGET_HOST} -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-${VERSION}.exe/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+ssh ${TARGET_HOST} -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-${VERSION}.exe/\" /var/www/downloads/alpha/.registry"
 
 cp ${WINE_HOME}/tmp/app-wininstaller/res/install_node/wrapper/freenetwrapper.exe ${WINE_HOME}/tmp/app-wininstaller/bin/wrapper-windows-x86-32.exe || exit
 
@@ -200,7 +200,7 @@ mv $name ${name}.${GITVERSION}
 sha1sum ${name}.${GITVERSION} > ${name}.${GITVERSION}.sha1
 rsync -v ${name}.${GITVERSION}* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
 
-ssh ${TARGET_HOST} -- "cat /var/www/downloads/alpha/.registry | sed \"s/$name .*$/${name} installer\/${name}.${GITVERSION}/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+ssh ${TARGET_HOST} -- "sed -i \"s/$name .*$/${name} installer\/${name}.${GITVERSION}/\" /var/www/downloads/alpha/.registry"
 
 done
 
