@@ -177,6 +177,7 @@ ssh-add
 
 function stopAgent() {
     ssh-agent -k
+    rmTemp
 }
 
 trap stopAgent EXIT
