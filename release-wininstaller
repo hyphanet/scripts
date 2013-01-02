@@ -1,13 +1,31 @@
 #!/bin/bash
 
 # This script uses Wine to build the Windows installer executables under a
-# restricted user account. It builds the user's home directory from scratch
-# each run for a clean build, and kills processes from the restricted user
-# after compilation is complete. The executables can then be signed and
-# uploaded.
+# restricted user account. A temporary directory contains both a clone of
+# the installer repos and the Wine prefix used to build. It is removed after
+# the build to make it difficult for state to persist between builds.
 #
-# It is assumed that this script is run as root, as it uses chown and kills
-# the restricted user's processes after the build completes.
+# Commands are executed as the Wine user via SSH, so passwordless SSH login with
+# authorized_keys may be helpful. Wine GUI elements are surpressed with xvfb.
+#
+# After the build the executables are signed, and then there is a confirmation
+# prompt for release.
+#
+# The following files should be in the RELEASE_DIRECTORY:
+#
+# * dependencies/bcprov-jdk15on-147.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-147.jar
+# * dependencies/Ahk2Exe.exe
+# * dependencies/AutoHotkeySC.bin
+# * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
+# * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/JSTUN-v3.jar
+# * KeyUtils.jar                        -   https://downloads.freenetproject.org/alpha/plugins/KeyUtils/KeyUtils-v5018.jar
+# * Library.jar                         -   https://downloads.freenetproject.org/alpha/plugins/Library/Library-v26.jar
+# * seednodes.fref                      -   https://downloads.freenetproject.org/alpha/opennet/seednodes.fref
+# * ThawIndexBrowser.jar                -   https://downloads.freenetproject.org/alpha/plugins/ThawIndexBrowser/ThawIndexBrowser-v5.jar
+# * UPnP.jar                            -   https://downloads.freenetproject.org/alpha/plugins/UPnP/UPnP-r26690.jar
+#
+# Though URLs are provided for convenience, building them or acquiring them over
+# Freenet is of course also possible.
 #
 # Requirements:
 #   Build:
@@ -83,66 +101,64 @@ if [ -f "${CONFIG}" ]; then
     . "${CONFIG}"
 fi
 
-# Home directory is 6th field; line is delimited by colons.
-# ~${VARIABLE} does not expand to a home directory in Bash
-# because ~-expansion is done before variable expansion.
-function getHome() {
-    echo $(getent passwd "$1" | cut -d: -f6)
-}
-WINE_HOME=$(getHome "${WINE_USER}")
-SIGNING_HOME=$(getHome "${SIGNING_USER}")
+# Make temporary build directory to hold installer source, dependencies,
+# and Wine prefix. This will be wiped on exit.
+BUILD_DIR=$(mktemp -d) || exit
 
-if [[ -z "$WINE_HOME" ]]; then
-    echo "Cannot find home directory for Wine user \"${WINE_USER}\"."
+pushd "$BUILD_DIR" || exit
+
+function rmTemp {
+    popd
+    echo "Removing temporary build directory."
+    rm -rf "${BUILD_DIR}"
+    echo "Done."
+}
+
+trap rmTemp EXIT
+
+# The Wine user will need access too, and non-root users cannot chown.
+# This assumes the Wine user is in a group of the same name along with
+# the current user.
+#
+# If this is not the case, either the Wine user cannot access the build
+# directory or the current user cannot chown to a group it is not in.
+if [[ -z "$(groups $USER | grep -F ${WINE_USER})" ]]; then
+    cat <<EOF
+The current user $USER is not a member of the group $WINE_USER and will not be
+able to chgrp the build directory to give $WINE_USER access. You may have to
+execute a new login shell (su $USER) to have the group change take full effect.
+EOF
     exit 1
 fi
-if [[ -z "$SIGNING_HOME" ]]; then
-    echo "Cannot find home directory for signing user \"${SIGNING_HOME}\"."
-    exit 1
-fi
-#DEBUGWINE="WINEDEBUG=warn+all"
-DEBUGWINE=
-echo Clearing ${WINE_HOME}
-rm -Rf ${WINE_HOME}/*
-rm -Rf ${WINE_HOME}/.[a-zA-Z0-9]*
-mkdir ${WINE_HOME}/.ssh
-cat ~/.ssh/id_rsa.pub > ${WINE_HOME}/.ssh/authorized_keys
-chmod 700 ${WINE_HOME}/.ssh
-mkdir ${WINE_HOME}/bin
-echo "cd tmp" > ${WINE_HOME}/bin/build-alpha
-echo "cd app-wininstaller" >> ${WINE_HOME}/bin/build-alpha
-echo "$DEBUGWINE wine cmd /c build.cmd" >> ${WINE_HOME}/bin/build-alpha
-mkdir ${WINE_HOME}/tmp
-cp -a ${WININSTALLER_PATH} ${WINE_HOME}/tmp
-(cd ${WINE_HOME}/tmp/app-wininstaller; git checkout master)
-echo Copied
-GITVERSION=`cd ${WINE_HOME}/tmp/app-wininstaller && git describe --always --abbrev=40`
+chmod 770 .
+chgrp "${WINE_USER}" . || exit
+
+git clone "${WININSTALLER_PATH}" .
+git checkout master
+GITVERSION=$(git describe --always --abbrev=40)
 if [[ -z $GITVERSION ]]; then echo Could not get git version; exit 1; fi
 echo Git version is $GITVERSION
-rm -Rf ${WINE_HOME}/tmp/app-wininstaller/.git
-mkdir ${WINE_HOME}/tmp/app-wininstaller/lib
 
 # Copy files
 
-cp ${RELEASE_DIRECTORY}/freenet.jar ${WINE_HOME}/tmp/app-wininstaller/res/install_node/freenet.jar || exit
-cp ${RELEASE_DIRECTORY}/freenet-ext.jar ${WINE_HOME}/tmp/app-wininstaller/res/install_node/freenet-ext.jar || exit
-cp ${RELEASE_DIRECTORY}/dependencies/bcprov-jdk15on-147.jar ${WINE_HOME}/tmp/app-wininstaller/res/install_node/bcprov-jdk15on-147.jar || exit
-cp ${SIGNING_HOME}/seednodes.fref ${WINE_HOME}/tmp/app-wininstaller/res/install_node/seednodes.fref || exit
+cp "${RELEASE_DIRECTORY}/freenet.jar"                         "res/install_node/"                || exit
+cp "${FREENET_EXT_JAR}"                                       "res/install_node/freenet-ext.jar" || exit
+cp "${RELEASE_DIRECTORY}/dependencies/bcprov-jdk15on-147.jar" "res/install_node/"                || exit
+cp "${RELEASE_DIRECTORY}/seednodes.fref"                      "res/install_node/"                || exit
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
-  cp ${RELEASE_DIRECTORY}/${x}.jar ${WINE_HOME}/tmp/app-wininstaller/res/install_node/plugins/${x}.jar || exit
+  cp "${RELEASE_DIRECTORY}/${x}.jar"                          "res/install_node/plugins/"        || exit
 done
 cp "${RELEASE_DIRECTORY}/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
 cp "${RELEASE_DIRECTORY}/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
 echo Copied dependancies.
 
+# Update the installer's listing of Fred version with the current version.
 VERSION=`cat ${RELEASE_DIRECTORY}/freenet.build`
 echo VERSION is $VERSION
 echo Updating build
 sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
-chown -R ${WINE_USER}.${WINE_USER} ${WINE_HOME}
-chmod +x ${WINE_HOME}/bin/build-alpha
+
 echo Running the build
-rm ${WINE_HOME}/tmp/app-wininstaller/bin/*
 eval `ssh-agent -s`
 ssh-add
 
@@ -152,24 +168,20 @@ function stopAgent() {
 
 trap stopAgent EXIT
 
+# The Wine user must create the prefix directory. If the directory is missing
+# Wine will refuse to create it if the directory that would contain it is not
+# owned by the user.
+ssh -n ${WINE_USER}@localhost "cd ${BUILD_DIR}; mkdir .wine; WINEDEBUG=${WINEDEBUG} WINEPREFIX=${BUILD_DIR}/.wine xvfb-run wine cmd /c build.cmd; killall -s9 -u ${WINE_USER}"
 
-ssh -n ${WINE_USER}@localhost xvfb-run ${WINE_HOME}/bin/build-alpha
-kill -9 `pgrep -u ${WINE_USER}`
-cd
-mkdir -p tmp-wi
-cd tmp-wi || exit
-rm *
-cp ${WINE_HOME}/tmp/app-wininstaller/bin/FreenetInstaller.exe FreenetInstaller-${VERSION}.exe || exit
-cd ${WINE_HOME}/tmp/app-wininstaller/res/install_node/updater/ || exit
+cp bin/FreenetInstaller.exe FreenetInstaller-${VERSION}.exe || exit
+pushd res/install_node/updater/ || exit
 cp update.cmd update-new.cmd || exit
 sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
-cd ~/tmp-wi
+popd
 
 echo Signing
-cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
-su - ${SIGNING_USER} -c "gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
-cp ${SIGNING_HOME}/FreenetInstaller-${VERSION}.exe.sig .
+su - ${SIGNING_USER} -c "cd ${BUILD_DIR}; gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
 
 if [[ "$DRY_RUN" = "true" ]]; then
     echo "Dry run - exiting without performing release."
@@ -183,7 +195,7 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
     exit 0
 fi
 
-rsync ${WINE_HOME}/tmp/app-wininstaller/res/install_node/updater/update*cmd* ${TARGET_HOST}:/var/www/downloads/alpha/update/
+rsync res/install_node/updater/update*cmd* "${TARGET_HOST}:/var/www/downloads/alpha/update/"
 
 echo Uploading
 echo Uploading to emu
@@ -191,16 +203,15 @@ rsync -v FreenetInstaller-${VERSION}.exe* ${TARGET_HOST}:/var/www/downloads/alph
 cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
 ssh ${TARGET_HOST} -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-${VERSION}.exe/\" /var/www/downloads/alpha/.registry"
 
-cp ${WINE_HOME}/tmp/app-wininstaller/res/install_node/wrapper/freenetwrapper.exe ${WINE_HOME}/tmp/app-wininstaller/bin/wrapper-windows-x86-32.exe || exit
+pushd bin
 
-cp ${WINE_HOME}/tmp/app-wininstaller/res/install_node/wrapper/wrapper-windows-x86-32.dll ${WINE_HOME}/tmp/app-wininstaller/bin/ || exit
+cp "${BUILD_DIR}/res/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
 
-cd ${WINE_HOME}/tmp/app-wininstaller/bin/
+cp "${BUILD_DIR}/res/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
+
 mv freenetlauncher.exe freenetlauncher-new.exe
 
 for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
-
-cd ${WINE_HOME}/tmp/app-wininstaller/bin/
 
 echo Uploading ${name} version ${GITVERSION}
 
@@ -212,6 +223,7 @@ ssh ${TARGET_HOST} -- "sed -i \"s/$name .*$/${name} installer\/${name}.${GITVERS
 
 done
 
+popd
 
 # Doesn't work, why?
 #echo "http://downloads.freenetproject.org/alpha/installer/FreenetInstaller-${VERSION}.exe" > FreenetInstaller.exe.url
