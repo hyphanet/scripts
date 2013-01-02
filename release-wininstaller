@@ -49,8 +49,6 @@ RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 WININSTALLER_PATH="/usr/src/cvs/eclipse-workspace/app-wininstaller"
 # User to switch to when signing the release.
 SIGNING_USER="toad"
-# Freenet seednode file location.
-SEEDNODE_PATH="/home/${SIGNING_USER}/seednodes.fref"
 # User to run Wine under.
 WINE_USER="freenet-buildwin"
 # Path to configuration file.
