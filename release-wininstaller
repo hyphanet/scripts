@@ -131,7 +131,8 @@ cp ${SIGNING_HOME}/seednodes.fref ${WINE_HOME}/tmp/app-wininstaller/res/install_
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp ${RELEASE_DIRECTORY}/${x}.jar ${WINE_HOME}/tmp/app-wininstaller/res/install_node/plugins/${x}.jar || exit
 done
-cp ${WINE_HOME}/tmp/app-wininstaller/bin/Ahk2Exe.exe ${WINE_HOME}/tmp/app-wininstaller/bin/AutoHotkeySC.bin ${WINE_HOME}/tmp/app-wininstaller/res/tool_ahk/ || exit
+cp "${RELEASE_DIRECTORY}/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
+cp "${RELEASE_DIRECTORY}/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
 echo Copied dependancies.
 
 VERSION=`cat ${RELEASE_DIRECTORY}/freenet.build`
