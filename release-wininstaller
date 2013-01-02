@@ -41,6 +41,10 @@
 
 # Whether to exit before releasing.
 DRY_RUN="false"
+# Value of WINEDEBUG to run Wine with.
+# Ex: "warn+all"
+# See http://wiki.winehq.org/DebugChannels
+WINEDEBUG=""
 
 # Defaults:
 # Target directory for generated files.
@@ -75,6 +79,7 @@ Configuration file is at ${CONFIG} by default.
 
 --config CONFIG   Path to freenetrc
 --dry-run         Do not release. Build and sign the installer, then exit.
+--wine-debug      Run Wine with the given WINEDEBUG environment variable value.
 EOF
             exit 0
             ;;
@@ -85,6 +90,10 @@ EOF
         --dry-run)
             DRY_RUN="true"
             shift
+            ;;
+        --wine-debug)
+            WINEDEBUG="$2"
+            shift 2
             ;;
         --) # End of all options
             shift
