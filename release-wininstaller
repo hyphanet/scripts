@@ -196,8 +196,15 @@ sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
 popd
 
-echo Signing
-su - ${SIGNING_USER} -c "cd ${BUILD_DIR}; gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
+signingCommand="cd ${BUILD_DIR}; gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
+if [[ -z "${SIGNING_USER}" ]]
+then
+    echo Signing
+    eval "$signingCommand" || exit
+else
+    echo Signing as ${SIGNING_USER}
+    su - ${SIGNING_USER} -c "$signingCommand" || exit
+fi
 
 if [[ "$DRY_RUN" = "true" ]]; then
     echo "Dry run - exiting without performing release."
