@@ -143,8 +143,6 @@ execute a new login shell (su $USER) to have the group change take full effect.
 EOF
     exit 1
 fi
-chmod 770 .
-chgrp "${WINE_USER}" . || exit
 
 git clone "${WININSTALLER_PATH}" .
 git checkout master
@@ -170,6 +168,10 @@ VERSION=`cat ${RELEASE_DIRECTORY}/freenet.build`
 echo VERSION is $VERSION
 echo Updating build
 sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
+
+echo "Setting permissions."
+chmod -R 770 . || exit
+chgrp -R "${WINE_USER}" . || exit
 
 echo Running the build
 eval `ssh-agent -s`
