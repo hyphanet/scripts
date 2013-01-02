@@ -145,6 +145,14 @@ echo Running the build
 rm ${WINE_HOME}/tmp/app-wininstaller/bin/*
 eval `ssh-agent -s`
 ssh-add
+
+function stopAgent() {
+    ssh-agent -k
+}
+
+trap stopAgent EXIT
+
+
 ssh -n ${WINE_USER}@localhost xvfb-run ${WINE_HOME}/bin/build-alpha
 kill -9 `pgrep -u ${WINE_USER}`
 cd
@@ -204,7 +212,6 @@ ssh ${TARGET_HOST} -- "sed -i \"s/$name .*$/${name} installer\/${name}.${GITVERS
 
 done
 
-ssh-agent -k
 
 # Doesn't work, why?
 #echo "http://downloads.freenetproject.org/alpha/installer/FreenetInstaller-${VERSION}.exe" > FreenetInstaller.exe.url
