@@ -167,6 +167,7 @@ sha1sum update.cmd > update.cmd.sha1 || exit
 cd ~/tmp-wi
 
 echo Signing
+cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
 su - ${SIGNING_USER} -c "gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
 cp ${SIGNING_HOME}/FreenetInstaller-${VERSION}.exe.sig .
 
@@ -185,7 +186,6 @@ fi
 rsync ${WINE_HOME}/tmp/app-wininstaller/res/install_node/updater/update*cmd* ${TARGET_HOST}:/var/www/downloads/alpha/update/
 
 echo Uploading
-cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
 echo Uploading to emu
 rsync -v FreenetInstaller-${VERSION}.exe* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
 cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
