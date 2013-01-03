@@ -1,0 +1,11 @@
+#!/bin/bash
+cd ~toad
+(cd seedrefs; ls | (while read x; do cat "$x"; echo; done)) > seednodes.fref
+#cat seedrefs/* > seednodes.fref # above is more robust
+if (grep -i "priv" seednodes.fref); then echo Corrupt file; exit; fi
+if (egrep "^End" seednodes.fref | egrep -v "^End$"); then echo Corrupt file; exit; fi
+sha1sum seednodes.fref > seednodes.fref.sha1
+rm ~toad/seednodes.fref.gpg
+su - toad -c "gpg --sign ~toad/seednodes.fref"
+rsync -v seednodes.fref seednodes.fref.sha1 seednodes.fref.gpg osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/opennet/
+cp ~toad/seednodes.fref ~toad/seednodes.fref.gpg /usr/src/cvs/eclipse-workspace/FreenetReleased
