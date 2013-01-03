@@ -218,8 +218,7 @@ fi
 
 rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/"
 
-echo Uploading
-echo Uploading to emu
+echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/"
 cp FreenetInstaller-$buildNumber.exe* $releaseDir
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry"
