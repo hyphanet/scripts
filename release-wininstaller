@@ -40,26 +40,25 @@
 #       ssh-agent
 
 # Whether to exit before releasing.
-DRY_RUN="false"
+dryRun="false"
 # Value of WINEDEBUG to run Wine with.
-# Ex: "warn+all"
-WINEDEBUG=""
+wineDebug=""
 
 # Defaults:
 # Target directory for generated files.
-RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
+releaseDir="/usr/src/cvs/eclipse-workspace/FreenetReleased"
 # Windows installer source location.
-WININSTALLER_PATH="/usr/src/cvs/eclipse-workspace/app-wininstaller"
-# User to switch to when signing the release.
-SIGNING_USER="toad"
-# User to run Wine under.
-WINE_USER="freenet-buildwin"
+wininstallerDir="/usr/src/cvs/eclipse-workspace/app-wininstaller"
 # Path to configuration file.
-CONFIG="${HOME}/.freenetrc"
+configPath="$HOME/.freenetrc"
+# Path to freenet-ext.jar.
+freenetExtPath="$releaseDir/freenet-ext.jar"
 # Hostname to send updates to.
-TARGET_HOST="osprey.vm.bytemark.co.uk"
-# Path to freenet-ext.
-FREENET_EXT_JAR="${RELEASE_DIRECTORY}/freenet-ext.jar"
+targetHost="osprey.vm.bytemark.co.uk"
+# User to switch to when signing the release.
+signingUser="toad"
+# User to run Wine under.
+wineUser="freenet-buildwin"
 
 if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
 then
@@ -74,7 +73,7 @@ do
             cat <<EOF
 Builds and releases the Windows installers.
 Prompts for confirmation before releasing.
-Configuration file is at ${CONFIG} by default.
+Configuration file is at $configPath by default.
 
 --config CONFIG   Path to freenetrc
 --dry-run         Do not release. Build and sign the installer, then exit.
@@ -84,15 +83,15 @@ EOF
             exit 0
             ;;
         --config)
-            CONFIG="$2"
+            configPath="$2"
             shift 2
             ;;
         --dry-run)
-            DRY_RUN="true"
+            dryRun="true"
             shift
             ;;
         --wine-debug)
-            WINEDEBUG="$2"
+            wineDebug="$2"
             shift 2
             ;;
         --) # End of all options
@@ -110,20 +109,20 @@ EOF
 done
 
 # override these variables, if necessary
-if [ -f "${CONFIG}" ]; then
-    . "${CONFIG}"
+if [ -f "$configPath" ]; then
+    . "$configPath"
 fi
 
 # Make temporary build directory to hold installer source, dependencies,
 # and Wine prefix. This will be wiped on exit.
-BUILD_DIR=$(mktemp -d) || exit
+buildDir=$(mktemp -d) || exit
 
-pushd "$BUILD_DIR" || exit
+pushd "$buildDir" || exit
 
 function rmTemp {
     popd
     echo "Removing temporary build directory."
-    rm -rf "${BUILD_DIR}"
+    rm -rf "$buildDir"
     echo "Done."
 }
 
@@ -135,43 +134,42 @@ trap rmTemp EXIT
 #
 # If this is not the case, either the Wine user cannot access the build
 # directory or the current user cannot chown to a group it is not in.
-if [[ -z "$(groups $USER | grep -F ${WINE_USER})" ]]; then
+if [[ -z "$(groups $USER | grep -F "$wineUser")" ]]; then
     cat <<EOF
-The current user $USER is not a member of the group $WINE_USER and will not be
-able to chgrp the build directory to give $WINE_USER access. You may have to
+The current user $USER is not a member of the group $wineUser and will not be
+able to chgrp the build directory to give $wineUser access. You may have to
 execute a new login shell (su $USER) to have the group change take full effect.
 EOF
     exit 1
 fi
 
-git clone "${WININSTALLER_PATH}" .
+git clone "$wininstallerDir" .
 git checkout master
-GITVERSION=$(git describe --always --abbrev=40)
-if [[ -z $GITVERSION ]]; then echo Could not get git version; exit 1; fi
-echo Git version is $GITVERSION
+gitVersion=$(git describe --always --abbrev=40)
+if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
+echo "Git version is $gitVersion."
 
 # Copy files
 
-cp "${RELEASE_DIRECTORY}/freenet.jar"                         "res/install_node/"                || exit
-cp "${FREENET_EXT_JAR}"                                       "res/install_node/freenet-ext.jar" || exit
-cp "${RELEASE_DIRECTORY}/dependencies/bcprov-jdk15on-147.jar" "res/install_node/"                || exit
-cp "${RELEASE_DIRECTORY}/seednodes.fref"                      "res/install_node/"                || exit
+cp "$releaseDir/freenet.jar"                         "res/install_node/"                || exit
+cp "$freenetExtPath"                                 "res/install_node/freenet-ext.jar" || exit
+cp "$releaseDir/dependencies/bcprov-jdk15on-147.jar" "res/install_node/"                || exit
+cp "$releaseDir/seednodes.fref"                      "res/install_node/"                || exit
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
-  cp "${RELEASE_DIRECTORY}/${x}.jar"                          "res/install_node/plugins/"        || exit
+  cp "$releaseDir/${x}.jar"                          "res/install_node/plugins/"        || exit
 done
-cp "${RELEASE_DIRECTORY}/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
-cp "${RELEASE_DIRECTORY}/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
-echo Copied dependancies.
+cp "$releaseDir/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
+cp "$releaseDir/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
+echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
-VERSION=`cat ${RELEASE_DIRECTORY}/freenet.build`
-echo VERSION is $VERSION
-echo Updating build
-sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
+buildNumber=`cat $releaseDir/freenet.build`
+echo Fred build is \#$buildNumber. Updating build.
+sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$buildNumber/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
 
 echo "Setting permissions."
 chmod -R 770 . || exit
-chgrp -R "${WINE_USER}" . || exit
+chgrp -R "$wineUser" . || exit
 
 echo Running the build
 eval `ssh-agent -s`
@@ -187,26 +185,26 @@ trap stopAgent EXIT
 # The Wine user must create the prefix directory. If the directory is missing
 # Wine will refuse to create it if the directory that would contain it is not
 # owned by the user.
-ssh -n ${WINE_USER}@localhost "cd ${BUILD_DIR}; mkdir .wine; WINEDEBUG=${WINEDEBUG} WINEPREFIX=${BUILD_DIR}/.wine xvfb-run wine cmd /c build.cmd; killall -s9 -u ${WINE_USER}"
+ssh -n $wineUser@localhost "cd $buildDir; mkdir .wine; WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine xvfb-run wine cmd /c build.cmd; killall -s9 -u $wineUser"
 
-cp bin/FreenetInstaller.exe FreenetInstaller-${VERSION}.exe || exit
+cp bin/FreenetInstaller.exe FreenetInstaller-$buildNumber.exe || exit
 pushd res/install_node/updater/ || exit
 cp update.cmd update-new.cmd || exit
 sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
 popd
 
-signingCommand="cd ${BUILD_DIR}; gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
-if [[ -z "${SIGNING_USER}" ]]
+signingCommand="cd $buildDir; gpg --sign --detach-sign FreenetInstaller-$buildNumber.exe"
+if [[ -z "$signingUser" ]]
 then
     echo Signing
     eval "$signingCommand" || exit
 else
-    echo Signing as ${SIGNING_USER}
-    su - ${SIGNING_USER} -c "$signingCommand" || exit
+    echo Signing as $signingUser
+    su - $signingUser -c "$signingCommand" || exit
 fi
 
-if [[ "$DRY_RUN" = "true" ]]; then
+if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     exit 0
 fi
@@ -218,31 +216,31 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
     exit 0
 fi
 
-rsync res/install_node/updater/update*cmd* "${TARGET_HOST}:/var/www/downloads/alpha/update/"
+rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/"
 
 echo Uploading
 echo Uploading to emu
-rsync -v FreenetInstaller-${VERSION}.exe* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
-cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
-ssh ${TARGET_HOST} -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-${VERSION}.exe/\" /var/www/downloads/alpha/.registry"
+rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/"
+cp FreenetInstaller-$buildNumber.exe* $releaseDir
+ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry"
 
 pushd bin
 
-cp "${BUILD_DIR}/res/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
+cp "$buildDir/res/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
 
-cp "${BUILD_DIR}/res/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
+cp "$buildDir/res/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
 
 mv freenetlauncher.exe freenetlauncher-new.exe
 
 for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
 
-echo Uploading ${name} version ${GITVERSION}
+echo Uploading $name version $gitVersion
 
-mv $name ${name}.${GITVERSION}
-sha1sum ${name}.${GITVERSION} > ${name}.${GITVERSION}.sha1
-rsync -v ${name}.${GITVERSION}* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
+mv $name $name.$gitVersion
+sha1sum $name.$gitVersion > $name.$gitVersion.sha1
+rsync -v $name.$gitVersion* $targetHost:/var/www/downloads/alpha/installer/
 
-ssh ${TARGET_HOST} -- "sed -i \"s/$name .*$/${name} installer\/${name}.${GITVERSION}/\" /var/www/downloads/alpha/.registry"
+ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry"
 
 done
 

@@ -3,20 +3,20 @@
 # Scripts will use the default if a variable is not specified here.
 
 # Path to Fred repository
-WORKSPACE_FRED="/path/to/fred-staging"
+fredDir="/path/to/fred-staging"
 
 # Build target directory
-RELEASE_DIRECTORY="/path/to/FreenetReleased"
+releaseDir="/path/to/FreenetReleased"
 
 # Path to freenet-ext.
-FREENET_EXT_JAR="/path/to/freenet-ext.jar"
+freenetExtPath="/path/to/freenet-ext.jar"
 
 # Path to the Windows installer repository.
-WININSTALLER_PATH="/path/to/wininstaller-staging"
+wininstallerDir="/path/to/wininstaller-staging"
 
 # User to switch to when signing. Does not switch if empty.
-SIGNING_USER=""
+signingUser=""
 
 # User to build Windows executables as.
-WINE_USER="freenet-buildwin"
+wineUser="freenet-buildwin"
 
