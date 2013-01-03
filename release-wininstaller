@@ -131,19 +131,28 @@ cp ${SIGNING_HOME}/seednodes.fref ${WINE_HOME}/tmp/app-wininstaller/res/install_
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp ${RELEASE_DIRECTORY}/${x}.jar ${WINE_HOME}/tmp/app-wininstaller/res/install_node/plugins/${x}.jar || exit
 done
-cp ${WINE_HOME}/tmp/app-wininstaller/bin/Ahk2Exe.exe ${WINE_HOME}/tmp/app-wininstaller/bin/AutoHotkeySC.bin ${WINE_HOME}/tmp/app-wininstaller/res/tool_ahk/ || exit
+cp "${RELEASE_DIRECTORY}/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
+cp "${RELEASE_DIRECTORY}/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
 echo Copied dependancies.
 
 VERSION=`cat ${RELEASE_DIRECTORY}/freenet.build`
 echo VERSION is $VERSION
 echo Updating build
-(cd ${WINE_HOME}/tmp/app-wininstaller; cat src/freenetinstaller/FreenetInstaller_Include_Info.inc | sed "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" > 1; cat 1 > src/freenetinstaller/FreenetInstaller_Include_Info.inc; cat 1)
+sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$VERSION/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
 chown -R ${WINE_USER}.${WINE_USER} ${WINE_HOME}
 chmod +x ${WINE_HOME}/bin/build-alpha
 echo Running the build
 rm ${WINE_HOME}/tmp/app-wininstaller/bin/*
 eval `ssh-agent -s`
 ssh-add
+
+function stopAgent() {
+    ssh-agent -k
+}
+
+trap stopAgent EXIT
+
+
 ssh -n ${WINE_USER}@localhost xvfb-run ${WINE_HOME}/bin/build-alpha
 kill -9 `pgrep -u ${WINE_USER}`
 cd
@@ -158,6 +167,7 @@ sha1sum update.cmd > update.cmd.sha1 || exit
 cd ~/tmp-wi
 
 echo Signing
+cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
 su - ${SIGNING_USER} -c "gpg --sign --detach-sign FreenetInstaller-${VERSION}.exe"
 cp ${SIGNING_HOME}/FreenetInstaller-${VERSION}.exe.sig .
 
@@ -176,11 +186,10 @@ fi
 rsync ${WINE_HOME}/tmp/app-wininstaller/res/install_node/updater/update*cmd* ${TARGET_HOST}:/var/www/downloads/alpha/update/
 
 echo Uploading
-cp FreenetInstaller-${VERSION}.exe ${SIGNING_HOME}/
 echo Uploading to emu
 rsync -v FreenetInstaller-${VERSION}.exe* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
 cp FreenetInstaller-${VERSION}.exe* ${RELEASE_DIRECTORY}
-ssh ${TARGET_HOST} -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-${VERSION}.exe/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+ssh ${TARGET_HOST} -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-${VERSION}.exe/\" /var/www/downloads/alpha/.registry"
 
 cp ${WINE_HOME}/tmp/app-wininstaller/res/install_node/wrapper/freenetwrapper.exe ${WINE_HOME}/tmp/app-wininstaller/bin/wrapper-windows-x86-32.exe || exit
 
@@ -199,11 +208,10 @@ mv $name ${name}.${GITVERSION}
 sha1sum ${name}.${GITVERSION} > ${name}.${GITVERSION}.sha1
 rsync -v ${name}.${GITVERSION}* ${TARGET_HOST}:/var/www/downloads/alpha/installer/
 
-ssh ${TARGET_HOST} -- "cat /var/www/downloads/alpha/.registry | sed \"s/$name .*$/${name} installer\/${name}.${GITVERSION}/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+ssh ${TARGET_HOST} -- "sed -i \"s/$name .*$/${name} installer\/${name}.${GITVERSION}/\" /var/www/downloads/alpha/.registry"
 
 done
 
-ssh-agent -k
 
 # Doesn't work, why?
 #echo "http://downloads.freenetproject.org/alpha/installer/FreenetInstaller-${VERSION}.exe" > FreenetInstaller.exe.url
