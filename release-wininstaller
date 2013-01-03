@@ -246,7 +246,3 @@ done
 
 popd
 
-# Doesn't work, why?
-#echo "http://downloads.freenetproject.org/alpha/installer/FreenetInstaller-${VERSION}.exe" > FreenetInstaller.exe.url
-#rsync -vz FreenetInstaller.exe.url ${TARGET_HOST}:/var/www/downloads/alpha/installer/FreenetInstaller.exe.url
-echo Now upload ~browser/FreenetInstaller-${VERSION}.exe to Google Code!
