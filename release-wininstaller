@@ -117,8 +117,6 @@ fi
 # and Wine prefix. This will be wiped on exit.
 buildDir=$(mktemp -d) || exit
 
-pushd "$buildDir" || exit
-
 function rmTemp {
     popd
     echo "Removing temporary build directory."
@@ -143,7 +141,8 @@ EOF
     exit 1
 fi
 
-git clone "$wininstallerDir" .
+git clone "$wininstallerDir" "$buildDir"
+pushd "$buildDir" || exit
 git checkout master
 gitVersion=$(git describe --always --abbrev=40)
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
