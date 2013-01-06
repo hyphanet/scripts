@@ -32,18 +32,20 @@ while :
 do
     case $1 in
         --help | - | -\?)
-            echo "Builds and releases a version of Fred."
-            echo "Prompts for confirmation before releasing."
-            echo "Configuration file is at $configPath by default."
-            echo "Requires --snapshot or --build."
-            echo
-            echo "--config CONFIG   Path to freenetrc"
-            echo "--dry-run         If present, builds packages and skips releasing."
-            echo "--build           If present packages the highest-numbered build tag."
-            echo "                  Builds documentation."
-            echo "--snapshot        If present packages the current HEAD."
-            echo "                  Outputs into a pre/ subdirectory of the release directory."
-            echo "                  Skips building documentation."
+            cat <<EOF
+Builds and releases a version of Fred.
+Prompts for confirmation before releasing.
+Configuration file is at $configPath by default.
+Requires --snapshot or --build.
+
+--config CONFIG   Path to freenetrc
+--dry-run         If present, builds packages and skips releasing.
+--build           If present packages the highest-numbered build tag.
+                  Builds documentation.
+--snapshot        If present packages the current HEAD.
+                  Outputs into a pre/ subdirectory of the release directory.
+                  Skips building documentation.
+EOF
             exit 0
             ;;
         --config)

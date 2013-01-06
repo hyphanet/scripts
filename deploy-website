@@ -18,31 +18,35 @@ websiteDir=""
 fredDir=""
 
 show_help() {
-    echo "Usage: $0 [-u|--update]"
-    echo
-    echo "Generates and prompts for confirmation to deploy the website"
-    echo "for the latest version of Fred in the repository."
-    echo
-    echo "OPTIONS"
-    echo "     -u, --update   Update the website and fred repos before deploying."
-    echo "                    This removes any local modifications and updates to the"
-    echo "                    remote master branch."
-    echo "      -d, --dry-run Generate the website, but pause to allow inspection of the"
-    echo "                    output instead of deploying or updating the money totals."
-    echo "      -t, --testing Deploy the staging repository to the testing subdomain, and"
-    echo "                    do not update the money totals."
-    echo
-    echo "The fred-offical repo is used to determine the version and build tag"
-    echo "for substitution. The version is regex'd from Version.java, and the"
-    echo "build tag is last git tag listed matching '^build[0-9]{5}'."
-    echo
-    echo "The following values are substituted:"
-    echo "FREENETVERSION with the build number. Ex: 1405"
-    echo "FREENETTAG with the build tag. Ex: build014105"
-    echo
-    echo "Pages containing MONEYBALANCE or MONEYDAYS are copied to"
-    echo "\"$moneyBalanceDir\""
-    echo "so the values can be periodically updated automatically."
+    cat <<EOF
+Usage: $0 [-u|--update]"
+
+Generates and prompts for confirmation to deploy the website
+for the latest version of Fred in the repository.
+
+OPTIONS
+    -u, --update    Update the website and fred repos before deploying.
+                    This removes any local modifications and updates to the
+                    remote master branch.
+
+    -d, --dry-run   Generate the website, but pause to allow inspection of the
+                    output instead of deploying or updating the money totals.
+
+    -t, --testing   Deploy the staging repository to the testing subdomain, and
+                    do not update the money totals."
+
+The fred-offical repo is used to determine the version and build tag
+for substitution. The version is regex'd from Version.java, and the
+build tag is last git tag listed matching '^build[0-9]{5}'.
+
+The following values are substituted:
+FREENETVERSION with the build number. Ex: 1405
+FREENETTAG with the build tag. Ex: build014105
+
+Pages containing MONEYBALANCE or MONEYDAYS are copied to
+\"$moneyBalanceDir\"
+so the values can be periodically updated automatically.
+EOF
 }
 
 while :
