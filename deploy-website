@@ -103,13 +103,8 @@ websiteOutputDir="$websiteDir/output"
 git_update() {
     #To update tags and branches.
     git remote update
-    echo "Discarding any local changes."
     git clean -dfx
     git reset --hard origin/master
-    echo "Checking out latest master branch."
-    git checkout -q origin/master
-    git branch -f master origin/master
-    git checkout master
 }
 
 #If requested, perform update before gathering information from repos.
