@@ -128,7 +128,7 @@ fi
 git clone "$wininstallerDir" "$buildDir"
 pushd "$buildDir" || exit
 git checkout master
-gitVersion=$(git describe --always --abbrev=40)
+getBuildNumber
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 echo "Git version is $gitVersion."
 
@@ -146,7 +146,6 @@ cp "$releaseDir/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"            
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
-buildNumber=`cat $releaseDir/freenet.build`
 echo Fred build is \#$buildNumber. Updating build.
 sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$buildNumber/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
 

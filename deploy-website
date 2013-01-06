@@ -113,9 +113,7 @@ if $update; then
 fi
 
 #Determine version information.
-cd "$fredDir"
 getBuildInfo
-cd "$startingDir"
 
 #Generate website.
 cd "$websiteDir"
