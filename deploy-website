@@ -1,13 +1,8 @@
 #!/bin/bash
 set -o errexit
 
-moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in/"
-websiteDeployLiveDir="/var/www/freenet-website/"
-websiteDeployTestingDir="/var/www/freenet-website-testing/"
-
-defaultWebsiteOfficialDir="../website-official"
-defaultWebsiteStagingDir="../website-staging"
-defaultFredDir="../fred-official"
+# Shared default configuration and utility functions.
+source common || exit
 
 cd $(dirname $0)
 startingDir=$(pwd)
@@ -86,10 +81,7 @@ do
     esac
 done
 
-# override these variables, if necessary
-if [ -f "$configPath" ]; then
-    . "$configPath"
-fi
+readConfig
 
 if $testing; then
     websiteDir="$websiteStagingDir"
@@ -122,8 +114,7 @@ fi
 
 #Determine version information.
 cd "$fredDir"
-buildVersion=$(perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java")
-buildTag=$(git tag -l | grep '^build[0-9]\{5\}' | tail -n 1)
+getBuildInfo
 cd "$startingDir"
 
 #Generate website.
@@ -134,11 +125,11 @@ cd "$websiteDir"
 presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
 cd "$startingDir"
 
-echo "Using FREENETVERSION \"$buildVersion\""
-echo "Using FREENETTAG \"$buildTag\""
+echo "Using FREENETVERSION \"$buildNumber\""
+echo "Using FREENETTAG \"$gitVersion\""
 echo "Website contains languages: $presentLangs"
 echo "Using website repo in: \"$websiteDir\""
-for value in "$buildVersion" "$buildTag" "$presentLangs"
+for value in "$buildNumber" "$gitVersion" "$presentLangs"
 do
     if [[ ! "$value" ]]
     then
@@ -153,7 +144,7 @@ else
     if $testing; then
         echo -n "Deploy to testing site [y/N]?"
     else
-echo -n "Deploy to live site [y/N]? "
+        echo -n "Deploy to live site [y/N]? "
     fi
 fi
 read response
@@ -185,7 +176,7 @@ for file in $(find "$tempSub" -type f)
 do
     if grep -Fq -e FREENET "$file"
     then
-       sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g' "$file"
+       sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
     if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
     then

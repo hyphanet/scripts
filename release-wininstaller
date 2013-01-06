@@ -39,26 +39,13 @@
 #       rsync
 #       ssh-agent
 
+# Shared default configuration and utility functions.
+source common || exit
+
 # Whether to exit before releasing.
 dryRun="false"
 # Value of WINEDEBUG to run Wine with.
 wineDebug=""
-
-# Defaults:
-# Target directory for generated files.
-releaseDir="/usr/src/cvs/eclipse-workspace/FreenetReleased"
-# Windows installer source location.
-wininstallerDir="/usr/src/cvs/eclipse-workspace/app-wininstaller"
-# Path to configuration file.
-configPath="$HOME/.freenetrc"
-# Path to freenet-ext.jar.
-freenetExtPath="$releaseDir/freenet-ext.jar"
-# Hostname to send updates to.
-targetHost="osprey.vm.bytemark.co.uk"
-# User to switch to when signing the release.
-signingUser="toad"
-# User to run Wine under.
-wineUser="freenet-buildwin"
 
 if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
 then
@@ -108,10 +95,7 @@ EOF
     esac
 done
 
-# override these variables, if necessary
-if [ -f "$configPath" ]; then
-    . "$configPath"
-fi
+readConfig
 
 # Make temporary build directory to hold installer source, dependencies,
 # and Wine prefix. This will be wiped on exit.
