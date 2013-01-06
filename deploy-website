@@ -18,27 +18,19 @@ websiteDir=""
 fredDir=""
 
 show_help() {
-    echo "Usage: $0 [-u|--update] [[-w|--website] path to website repo]"
-    echo "[[-f|--fred] path to fred-offical repo]"
+    echo "Usage: $0 [-u|--update]"
     echo
-    echo "Generates and prompts for confirmation to deploy the version of the"
-    echo "website at [path to website repo] for the latest version of Fred"
-    echo "in the git repo at [path to fred-offical repo]."
-    echo
-    echo "If these arguments are not supplied, \"$defaultFredDir\" is used for Fred;"
-    echo "\"$defaultWebsiteStagingDir\" and \"$defaultWebsiteOfficialDir\" are used for"
-    echo "the website when --testing is present and not present, respectively."
+    echo "Generates and prompts for confirmation to deploy the website"
+    echo "for the latest version of Fred in the repository."
     echo
     echo "OPTIONS"
     echo "     -u, --update   Update the website and fred repos before deploying."
     echo "                    This removes any local modifications and updates to the"
     echo "                    remote master branch."
-    echo "      -w, --website Path to a clone of the website -official or -staging repo."
-    echo "      -f, --fred    Path to a clone of the fred-official repo."
     echo "      -d, --dry-run Generate the website, but pause to allow inspection of the"
     echo "                    output instead of deploying or updating the money totals."
-    echo "      -t, --testing Deploy to the testing subdomain, and do not update the"
-    echo "                    money totals."
+    echo "      -t, --testing Deploy the staging repository to the testing subdomain, and"
+    echo "                    do not update the money totals."
     echo
     echo "The fred-offical repo is used to determine the version and build tag"
     echo "for substitution. The version is regex'd from Version.java, and the"
@@ -60,25 +52,12 @@ do
             show_help
             exit 0
             ;;
+        -c | --config)
+            configPath="$1"
+            shift
+            ;;
         -u | --update)
             update=true
-            shift
-            ;;
-        -w | --website)
-            websiteDir="$2"
-            shift 2
-            ;;
-        -w=* | --website=*)
-            # Delete everything up until "=" from the path.
-            websiteDir=${1#*=}
-            shift
-            ;;
-        -f | --fred)
-            fredDir="$2"
-            shift 2
-            ;;
-        -f=* | --fred=*)
-            fredDir=${1#*=}
             shift
             ;;
         -d | --dry-run)
@@ -103,21 +82,17 @@ do
     esac
 done
 
-#Attempt defaults if unspecified.
-if [[ ! "$websiteDir" ]]
-then
-    if $testing; then
-        websiteDir="$defaultWebsiteStagingDir"
-    else
-    websiteDir="$defaultWebsiteOfficialDir"
-    fi
+# override these variables, if necessary
+if [ -f "$configPath" ]; then
+    . "$configPath"
+fi
+
+if $testing; then
+    websiteDir="$websiteStagingDir"
+else
+    websiteDir="$websiteOfficialDir"
 fi
 websiteOutputDir="$websiteDir/output"
-
-if [[ ! "$fredDir" ]]
-then
-    fredDir="$defaultFredDir"
-fi
 
 # Discard any local changes, update remote branches and tags, and
 # check out to the latest master branch.
