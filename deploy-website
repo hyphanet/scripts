@@ -123,10 +123,12 @@ cd "$websiteDir"
 presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
 cd "$startingDir"
 
-echo "Using FREENETVERSION \"$buildNumber\""
-echo "Using FREENETTAG \"$gitVersion\""
-echo "Website contains languages: $presentLangs"
-echo "Using website repo in: \"$websiteDir\""
+cat <<EOF
+Using FREENETVERSION "$buildNumber"
+Using FREENETTAG "$gitVersion"
+Website contains languages: $presentLangs
+Using website repo in: "$websiteDir"
+EOF
 for value in "$buildNumber" "$gitVersion" "$presentLangs"
 do
     if [[ ! "$value" ]]
