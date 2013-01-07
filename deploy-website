@@ -216,9 +216,9 @@ elif $testing; then
     echo "Testing mode: not updating money totals."
     sudo rsync -ar --owner --group --delete "$tempSub"/ "$websiteDeployTestingDir"
 else
-echo "Copying to live target from temporary directories."
-sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
-sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
+    echo "Copying to live target from temporary directories."
+    sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
+    sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
 fi
 
 echo "Removing temporary directories."
@@ -230,9 +230,9 @@ if $dryRun; then
 elif $testing; then
     echo "Deploy to testing site complete."
 else
-echo "Updating money totals."
-sudo /root/bin/fix-money-totals
-echo "Deploy to live site complete."
+    echo "Updating money totals."
+    sudo /root/bin/fix-money-totals
+    echo "Deploy to live site complete."
 fi
 
 exit 0

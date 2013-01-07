@@ -187,7 +187,7 @@ wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry" || ex
 sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar $jarName/" .registry || exit 29
 
 if [[ "$target" = "build" ]]; then
-	sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
+    sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
 fi
 
 # start ssh agent and collect password

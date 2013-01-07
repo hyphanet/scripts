@@ -154,15 +154,15 @@ chgrp -R "$wineUser" . || exit
 
 echo Running the build
 if [ "$useSshAgent" == "1" ]; then
-eval $(ssh-agent -s)
-ssh-add
+    eval $(ssh-agent -s)
+    ssh-add
 
-function stopAgent() {
-    ssh-agent -k
-    rmTemp
-}
+    function stopAgent() {
+        ssh-agent -k
+        rmTemp
+    }
 
-trap stopAgent EXIT
+    trap stopAgent EXIT
 fi
 
 # The Wine user must create the prefix directory. If the directory is missing
@@ -218,13 +218,13 @@ mv freenetlauncher.exe freenetlauncher-new.exe
 
 for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
 
-echo Uploading $name version $gitVersion
+    echo Uploading $name version $gitVersion
 
-mv $name $name.$gitVersion
-sha1sum $name.$gitVersion > $name.$gitVersion.sha1
-rsync -v $name.$gitVersion* $targetHost:/var/www/downloads/alpha/installer/
+    mv $name $name.$gitVersion
+    sha1sum $name.$gitVersion > $name.$gitVersion.sha1
+    rsync -v $name.$gitVersion* $targetHost:/var/www/downloads/alpha/installer/
 
-ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry"
+    ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry"
 
 done
 
