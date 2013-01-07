@@ -154,7 +154,7 @@ chgrp -R "$wineUser" . || exit
 
 echo Running the build
 if [ "$useSshAgent" == "1" ]; then
-eval `ssh-agent -s`
+eval $(ssh-agent -s)
 ssh-add
 
 function stopAgent() {
