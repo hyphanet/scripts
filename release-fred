@@ -80,11 +80,14 @@ echo "Created temporary directory $buildDir."
 git clone "$fredDir" "$buildDir" || exit 2
 pushd "$buildDir"
 
+# Function in common - sets $gitVersion, $buildNumber, and $commitID.
+getBuildInfo
 # If releasing a stable build checkout the latest build tag.
 if [[ "$target" = "build" ]]; then
-    # Function in common - sets $gitVersion and $buildNumber.
-    getBuildInfo
     git checkout "$gitVersion" || exit 12
+    # commitID may have changed after checkout. The $gitVersion is the highest-
+    # numbered build tag, not necessarily the previous location of the repo.
+    getBuildInfo
 elif [[ "$target" = "snapshot" ]]; then
     gitVersion=$(git describe --always --abbrev=40)
 else
@@ -162,6 +165,7 @@ clean_up() {
 }
 
 echo "Built $gitVersion as a $target release."
+echo "Commit ID is $commitID"
 if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     clean_up

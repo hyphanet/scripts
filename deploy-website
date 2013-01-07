@@ -129,6 +129,10 @@ Using FREENETTAG "$gitVersion"
 Website contains languages: $presentLangs
 Using website repo in: "$websiteDir"
 EOF
+cd "$websiteDir"
+echo "Website commit ID is $(git rev-parse --verify HEAD)"
+cd "$startingDir"
+echo "Fred commit ID is $commitID"
 for value in "$buildNumber" "$gitVersion" "$presentLangs"
 do
     if [[ ! "$value" ]]
