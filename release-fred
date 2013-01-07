@@ -85,9 +85,6 @@ getBuildInfo
 # If releasing a stable build checkout the latest build tag.
 if [[ "$target" = "build" ]]; then
     git checkout "$gitVersion" || exit 12
-    # commitID may have changed after checkout. The $gitVersion is the highest-
-    # numbered build tag, not necessarily the previous location of the repo.
-    getBuildInfo
 elif [[ "$target" = "snapshot" ]]; then
     gitVersion=$(git describe --always --abbrev=40)
 else

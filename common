@@ -73,6 +73,7 @@ function compareL10n {
 }
 
 # Sets $gitVersion, $buildNumber, and $commitID.
+# All of these are set from the highest-number tag starting with "build".
 # Assumes the working directory holds a Fred repository.
 function getBuildInfo {
     pushd "$fredDir" || exit
@@ -82,7 +83,7 @@ function getBuildInfo {
     buildNumber=${gitVersion:5}
     # Strip possible leading zeros.
     buildNumber=${buildNumber#0}
-    commitID=$(git rev-parse --verify HEAD)
+    commitID=$(git rev-parse --verify $gitVersion)
     popd
 }
 
