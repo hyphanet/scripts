@@ -73,14 +73,16 @@ function compareL10n {
 }
 
 # Sets $gitVersion, $buildNumber, and $commitID.
-# All of these are set from the highest-number tag starting with "build".
+# All of these are set for the highest build number.
 # Assumes the working directory holds a Fred repository.
 function getBuildInfo {
     pushd "$fredDir" || exit
-    # Get highest-numbered build tag.
-    gitVersion=$(git tag | grep '^build' | sort | tail -n1)
-    # Strip "build" from the front.
-    buildNumber=${gitVersion:5}
+    # Get highest build number, sorted numerically.
+    # Git tag includes only those tags starting with "build", and the awk
+    # substring excludes the first 5 characters, which are "build".
+    buildNumber=$(git tag -l 'build*' | awk '{print substr($0, 6)}' | sort --numeric-sort | tail -n1)
+    # Get tag with highest build number.
+    gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
     # Strip possible leading zeros.
     buildNumber=${buildNumber#0}
     commitID=$(git rev-parse --verify $gitVersion)
