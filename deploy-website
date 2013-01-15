@@ -2,7 +2,7 @@
 set -o errexit
 
 # Shared default configuration and utility functions.
-source common || exit
+source freenet-scripts-common || exit
 
 cd $(dirname $0)
 startingDir=$(pwd)

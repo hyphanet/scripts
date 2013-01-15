@@ -40,7 +40,7 @@
 #       ssh-agent
 
 # Shared default configuration and utility functions.
-source common || exit
+source freenet-scripts-common || exit
 
 # Whether to exit before releasing.
 dryRun="false"
