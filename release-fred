@@ -4,46 +4,32 @@
 # these variables are probably different for everybody
 # so create $HOME/.freenetrc and override those with your desired values.
 
-# Default path to configuration file.
-CONFIG="${HOME}/.freenetrc"
-# What to build / release. Possible values: "build", "snapshot"
-TARGET=""
-# Whether to exit before releasing.
-DRY_RUN="false"
+# Shared default configuration and utility functions.
+source common || exit
 
-# Path to Fred repository.
-WORKSPACE_FRED="/usr/src/cvs/eclipse-workspace/fred/"
-# Target directory for generated files.
-RELEASE_DIRECTORY="/usr/src/cvs/eclipse-workspace/FreenetReleased"
-# Path to freenet-ext.
-FREENET_EXT_JAR="/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar"
-# If set, su to a user to sign the output. Leave empty to sign as the current user.
-SIGNING_USER="toad"
-# If "1" starts ssh agent before sending the update to the target host and stops it afterward.
-START_STOP_SSH_AGENT="1"
-# Hostname to send updates to.
-TARGET_HOST="osprey.vm.bytemark.co.uk"
-# FCP host hostname / IP.
-NODE_FCP_HOST="127.0.0.1"
-# FCP host port.
-NODE_FCP_PORT="9481"
+# What to build / release. Possible values: "build", "snapshot"
+target=""
+# Whether to exit before releasing.
+dryRun="false"
 
 while :
 do
     case $1 in
         --help | - | -\?)
-            echo "Builds and releases a version of Fred."
-            echo "Prompts for confirmation before releasing."
-            echo "Configuration file is at ${HOME}/.freenetrc by default."
-            echo "Requires --snapshot or --build."
-            echo
-            echo "--config CONFIG   Path to freenetrc"
-            echo "--dry-run         If present, builds packages and skips releasing."
-            echo "--build           If present packages the highest-numbered build tag."
-            echo "                  Builds documentation."
-            echo "--snapshot        If present packages the current HEAD."
-            echo "                  Outputs into a pre/ subdirectory of the release directory."
-            echo "                  Skips building documentation."
+            cat <<EOF
+Builds and releases a version of Fred.
+Prompts for confirmation before releasing.
+Configuration file is at $configPath by default.
+Requires --snapshot or --build.
+
+--config CONFIG   Path to freenetrc
+--dry-run         If present, builds packages and skips releasing.
+--build           If present packages the highest-numbered build tag.
+                  Builds documentation.
+--snapshot        If present packages the current HEAD.
+                  Outputs into a pre/ subdirectory of the release directory.
+                  Skips building documentation.
+EOF
             exit 0
             ;;
         --config)
@@ -51,15 +37,15 @@ do
             shift 2
             ;;
         --dry-run)
-            DRY_RUN="true"
+            dryRun="true"
             shift
             ;;
         --snapshot)
-            TARGET="snapshot"
+            target="snapshot"
             shift
             ;;
         --build)
-            TARGET="build"
+            target="build"
             shift
             ;;
         --) # End of all options
@@ -76,124 +62,108 @@ do
     esac
 done
 
-# override these variables, if necessary
-if [ -f "${CONFIG}" ]; then
-    . "${CONFIG}"
-fi
+readConfig
 
 # Target should be set.
-if [[ -z "$TARGET" ]]; then
+if [[ -z "$target" ]]; then
     echo "Target not set. Please specify --build or --snapshot."
     exit 13
 fi
 
 # If releasing a snapshot it goes into the pre/ subdirectory.
-if [[ "$TARGET" = "snapshot" ]]; then
-    RELEASE_DIRECTORY="${RELEASE_DIRECTORY}/pre"
+if [[ "$target" = "snapshot" ]]; then
+    releaseDir="$releaseDir/pre"
 fi
 
-TEMPLOC=$(mktemp -d)
-echo "Created temporary directory ${TEMPLOC}."
-git clone "${WORKSPACE_FRED}" "${TEMPLOC}" || exit 2
-pushd "${TEMPLOC}"
+buildDir=$(mktemp -d)
+echo "Created temporary directory $buildDir."
+git clone "$fredDir" "$buildDir" || exit 2
+pushd "$buildDir"
 
+# Function in common - sets $gitVersion, $buildNumber, and $commitID.
+getBuildInfo
 # If releasing a stable build checkout the latest build tag.
-if [[ "$TARGET" = "build" ]]; then
-    # Get highest-numbered build tag.
-    GITVERSION=$(git tag | grep '^build' | sort | tail -n1)
-    # Strip "build" from the front.
-    VERSION=${GITVERSION:5}
-    # Strip possible leading zeros.
-    VERSION=${VERSION#0}
-    git checkout "$GITVERSION" || exit 12
-elif [[ "$TARGET" = "snapshot" ]]; then
-    GITVERSION=$(git describe --always --abbrev=40)
+if [[ "$target" = "build" ]]; then
+    git checkout "$gitVersion" || exit 12
+elif [[ "$target" = "snapshot" ]]; then
+    gitVersion=$(git describe --always --abbrev=40)
 else
-    echo "Unrecognized internal TARGET of \"$TARGET\"."
+    echo "Unrecognized internal target of \"$target\"."
     exit 14
 fi
 
 # copy freenet-ext.jar
 mkdir -p lib 2>/dev/null
-cp "${FREENET_EXT_JAR}" lib/freenet-ext.jar || exit 3
+cp "$freenetExtPath" lib/freenet-ext.jar || exit 3
 mkdir -p lib/freenet
 cp lib/freenet-ext.jar lib/freenet/ || exit 4
-cp "${WORKSPACE_FRED}/lib/bcprov.jar" lib/ || exit 30
+cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
 
 # clean
 ant clean || exit 5
 git reset --hard || exit 6
 
-if [[ "$TARGET" = "build" ]]; then
+if [[ "$target" = "build" ]]; then
     ant -f build-clean.xml || exit 16
-    JAR_FILENAME="freenet-${GITVERSION}.jar"
-elif [[ "$TARGET" = "snapshot" ]]; then
+    jarName="freenet-$gitVersion.jar"
+elif [[ "$target" = "snapshot" ]]; then
 # now build it (without api doc)
 ant -f build-clean.xml -Ddoc.skip=true || exit 9
-    JAR_FILENAME="freenet-${GITVERSION}-snapshot.jar"
+    jarName="freenet-$gitVersion-snapshot.jar"
 else
-    echo "Unrecognized internal TARGET of \"$TARGET\"."
+    echo "Unrecognized internal target of \"$target\"."
     exit 15
 fi
 
-ARCHIVE_FILENAME="freenet-${GITVERSION}-source.tar.bz2"
+archiveName="freenet-$gitVersion-source.tar.bz2"
 
 # move file in position
-mv dist/freenet.jar "${JAR_FILENAME}" || exit 10
+mv dist/freenet.jar "$jarName" || exit 10
 
 # create source archive
-git archive --format=tar HEAD | bzip2 -v9 > "${ARCHIVE_FILENAME}" || exit 11
+git archive --format=tar HEAD | bzip2 -v9 > "$archiveName" || exit 11
 
 # Generate checksums and signatures for the jar and source archive.
-sha1sum "${JAR_FILENAME}" > "${JAR_FILENAME}.sha1"
-sha1sum "${ARCHIVE_FILENAME}" > "${ARCHIVE_FILENAME}.sha1"
-if [ -n "${SIGNING_USER}" ]; then
-    echo "Switching to signing user \"${SIGNING_USER}\""
-    SWITCHTEMP=$(mktemp -d)
-    cp "${TEMPLOC}/${JAR_FILENAME}" "${TEMPLOC}/${ARCHIVE_FILENAME}" "$SWITCHTEMP" || exit 18
-    # SIGNING_USER is a top level user, so it has its own group, right?
-    chgrp "${SIGNING_USER}" "$SWITCHTEMP" || exit 19
-    chmod g+rwx "${SWITCHTEMP}" || exit 20
-    chmod g+r "${SWITCHTEMP}"/* || exit 21
-    su - "${SIGNING_USER}" -c "gpg --sign --detach-sign -o \"${SWITCHTEMP}/${JAR_FILENAME}.sig\" \"${SWITCHTEMP}/${JAR_FILENAME}\"; gpg --sign --detach-sign -o \"${SWITCHTEMP}/${ARCHIVE_FILENAME}.sig\" \"${SWITCHTEMP}/${ARCHIVE_FILENAME}\"" || exit 22
-    cp "${SWITCHTEMP}/${JAR_FILENAME}.sig" "${SWITCHTEMP}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}" || exit 23
-    rm -Rf $SWITCHTEMP
+sha1sum "$jarName" > "$jarName.sha1"
+sha1sum "$archiveName" > "$archiveName.sha1"
+if [ -n "$signingUser" ]; then
+    echo "Switching to signing user \"$signingUser\""
+    signDir=$(mktemp -d)
+    cp "$buildDir/$jarName" "$buildDir/$archiveName" "$signDir" || exit 18
+    # signingUser is a top level user, so it has its own group, right?
+    chgrp "$signingUser" "$signDir" || exit 19
+    chmod g+rwx "$signDir" || exit 20
+    chmod g+r "$signDir"/* || exit 21
+    su - "$signingUser" -c "gpg --sign --detach-sign -o \"$signDir/$jarName.sig\" \"$signDir/$jarName\"; gpg --sign --detach-sign -o \"$signDir/$archiveName.sig\" \"$signDir/$archiveName\"" || exit 22
+    cp "$signDir/$jarName.sig" "$signDir/$archiveName.sig" "$buildDir" || exit 23
+    rm -Rf "$signDir"
 else
-    gpg --sign --detach-sign -o "${TEMPLOC}/${JAR_FILENAME}.sig" "${TEMPLOC}/${JAR_FILENAME}" || exit 17
-    gpg --sign --detach-sign -o "${TEMPLOC}/${ARCHIVE_FILENAME}.sig" "${TEMPLOC}/${ARCHIVE_FILENAME}" || exit 17
+    gpg --sign --detach-sign -o "$buildDir/$jarName.sig" "$buildDir/$jarName" || exit 17
+    gpg --sign --detach-sign -o "$buildDir/$archiveName.sig" "$buildDir/$archiveName" || exit 17
 fi
 
 # make sure release directory exists
-mkdir -p "${RELEASE_DIRECTORY}"
+mkdir -p "$releaseDir"
 # copy files and signatures to local release directory
-cp "${JAR_FILENAME}"* "${RELEASE_DIRECTORY}"
-cp "${ARCHIVE_FILENAME}"* "${RELEASE_DIRECTORY}"
-rm "${RELEASE_DIRECTORY}/freenet.jar"
-ln -s "${RELEASE_DIRECTORY}/${JAR_FILENAME}" "${RELEASE_DIRECTORY}/freenet.jar"
+cp "$jarName"* "$releaseDir"
+cp "$archiveName"* "$releaseDir"
+rm "$releaseDir/freenet.jar"
+ln -s "$releaseDir/$jarName" "$releaseDir/freenet.jar"
 
 # Localization comparison for build.
-if [[ "$TARGET" = "build" ]]; then
-    NEWVER="$VERSION"
-    OLDVER=$((NEWVER - 1))
-    echo Comparing $NEWVER to $OLDVER
-    for VER in "$OLDVER" "$NEWVER"
-    do
-        git checkout $(printf 'build%05d' "$VER")
-        cp "src/freenet/l10n/freenet.l10n.en.properties" "$VER"
-    done
-    diff -u0 "$OLDVER" "$NEWVER" > "${OLDVER}-${NEWVER}.diff.txt"
-    less "${OLDVER}-${NEWVER}.diff.txt"
-    cp "${OLDVER}-${NEWVER}.diff.txt" "${RELEASE_DIRECTORY}"
+if [[ "$target" = "build" ]]; then
+    compareL10n $buildNumber
 fi
 
 clean_up() {
     # Return to starting directory and remove temporary.
     popd
-    rm -Rf $TEMPLOC
+    rm -Rf $buildDir
 }
 
-echo "Built $GITVERSION as a $TARGET release."
-if [[ "$DRY_RUN" = "true" ]]; then
+echo "Built $gitVersion as a $target release."
+echo "Commit ID is $commitID"
+if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     clean_up
     exit 0
@@ -209,32 +179,32 @@ fi
 echo "Performing release."
 
 # create and update pointer files
-echo "https://downloads.freenetproject.org/alpha/${JAR_FILENAME}" > freenet-testing-latest.jar.url
+echo "https://downloads.freenetproject.org/alpha/$jarName" > freenet-testing-latest.jar.url
 wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry" || exit 28
-sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar ${JAR_FILENAME}/" .registry || exit 29
+sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar $jarName/" .registry || exit 29
 
-if [[ "$TARGET" = "build" ]]; then
-	sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar ${JAR_FILENAME}/" .registry || exit 31
+if [[ "$target" = "build" ]]; then
+    sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
 fi
 
 # start ssh agent and collect password
-if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
+if [ "$useSshAgent" == "1" ]; then
     eval $(ssh-agent -s)
     ssh-add
 fi
 
 # upload all files
-rsync -vvzP "${JAR_FILENAME}"* freenet-testing-latest.jar.url .registry "${ARCHIVE_FILENAME}"* "${TARGET_HOST}:/var/www/downloads/alpha/" || exit 24
+rsync -vvzP "$jarName"* freenet-testing-latest.jar.url .registry "$archiveName"* "$targetHost:/var/www/downloads/alpha/" || exit 24
 
 # Unlike a snapshot, a new build updates the localization diff and the stable-latest.url.
-if [[ "$TARGET" = "build" ]]; then
-    rsync -vz "${OLDVER}-${NEWVER}.diff.txt" "${TARGET_HOST}:/var/www/emu/l10n/" || exit 25
-    rsync -vvzP freenet-testing-latest.jar.url "${TARGET_HOST}:/var/www/downloads/alpha/freenet-stable-latest.jar.url" || exit 26
-    rsync --delete -rz javadoc/* "${TARGET_HOST}:/var/www/freenet-javadoc" || exit 27
+if [[ "$target" = "build" ]]; then
+    rsync -vz "$diffName" "$targetHost:/var/www/emu/l10n/" || exit 25
+    rsync -vvzP freenet-testing-latest.jar.url "$targetHost:/var/www/downloads/alpha/freenet-stable-latest.jar.url" || exit 26
+    rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
 fi
 
 # shut down the ssh agent
-if [ "${START_STOP_SSH_AGENT}" == "1" ]; then
+if [ "$useSshAgent" == "1" ]; then
     ssh-agent -k
 fi
 
@@ -242,22 +212,22 @@ fi
 clean_up
 
 # upload snapshot binary and signature to freenet
-if [[ "$TARGET" = "snapshot" ]]; then
+if [[ "$target" = "snapshot" ]]; then
     echo "Inserting snapshot into Freenet."
     (
     echo ClientHello;
-    echo Name=Toad-update-${GITVERSION};
+    echo Name=Toad-update-$gitVersion;
     echo ExpectedVersion=2;
     echo End;
 
     echo ClientPut;
     echo "URI=CHK@";
-    echo "Identifier=${JAR_FILENAME}";
+    echo "Identifier=$jarName";
     echo Verbosity=1023;
     echo MaxRetries=-1;
     echo UploadFrom=disk;
-    echo "Filename=${RELEASE_DIRECTORY}/${JAR_FILENAME}";
-    echo "TargetFilename=${JAR_FILENAME}";
+    echo "Filename=$releaseDir/$jarName";
+    echo "TargetFilename=$jarName";
     echo Persistence=forever;
     echo PriorityClass=1;
     echo Global=true;
@@ -265,17 +235,17 @@ if [[ "$TARGET" = "snapshot" ]]; then
 
     echo ClientPut;
     echo "URI=CHK@";
-    echo "Identifier=${JAR_FILENAME}.sig";
+    echo "Identifier=$jarName.sig";
     echo Verbosity=1023;
     echo MaxRetries=-1;
     echo UploadFrom=disk;
-    echo "Filename=${RELEASE_DIRECTORY}/${JAR_FILENAME}.sig";
-    echo "TargetFilename=${JAR_FILENAME}.sig";
+    echo "Filename=$releaseDir/$jarName.sig";
+    echo "TargetFilename=$jarName.sig";
     echo Persistence=forever;
     echo PriorityClass=1;
     echo Global=true;
     echo End
-    ) | nc "${NODE_FCP_HOST}" "${NODE_FCP_PORT}"
+    ) | nc "$fcpHost" "$fcpPort"
 else
     echo "Not inserting build into Freenet."
 fi

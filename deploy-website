@@ -1,13 +1,8 @@
 #!/bin/bash
 set -o errexit
 
-moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in/"
-websiteDeployLiveDir="/var/www/freenet-website/"
-websiteDeployTestingDir="/var/www/freenet-website-testing/"
-
-defaultWebsiteOfficialDir="../website-official"
-defaultWebsiteStagingDir="../website-staging"
-defaultFredDir="../fred-official"
+# Shared default configuration and utility functions.
+source common || exit
 
 cd $(dirname $0)
 startingDir=$(pwd)
@@ -18,39 +13,35 @@ websiteDir=""
 fredDir=""
 
 show_help() {
-    echo "Usage: $0 [-u|--update] [[-w|--website] path to website repo]"
-    echo "[[-f|--fred] path to fred-offical repo]"
-    echo
-    echo "Generates and prompts for confirmation to deploy the version of the"
-    echo "website at [path to website repo] for the latest version of Fred"
-    echo "in the git repo at [path to fred-offical repo]."
-    echo
-    echo "If these arguments are not supplied, \"$defaultFredDir\" is used for Fred;"
-    echo "\"$defaultWebsiteStagingDir\" and \"$defaultWebsiteOfficialDir\" are used for"
-    echo "the website when --testing is present and not present, respectively."
-    echo
-    echo "OPTIONS"
-    echo "     -u, --update   Update the website and fred repos before deploying."
-    echo "                    This removes any local modifications and updates to the"
-    echo "                    remote master branch."
-    echo "      -w, --website Path to a clone of the website -official or -staging repo."
-    echo "      -f, --fred    Path to a clone of the fred-official repo."
-    echo "      -d, --dry-run Generate the website, but pause to allow inspection of the"
-    echo "                    output instead of deploying or updating the money totals."
-    echo "      -t, --testing Deploy to the testing subdomain, and do not update the"
-    echo "                    money totals."
-    echo
-    echo "The fred-offical repo is used to determine the version and build tag"
-    echo "for substitution. The version is regex'd from Version.java, and the"
-    echo "build tag is last git tag listed matching '^build[0-9]{5}'."
-    echo
-    echo "The following values are substituted:"
-    echo "FREENETVERSION with the build number. Ex: 1405"
-    echo "FREENETTAG with the build tag. Ex: build014105"
-    echo
-    echo "Pages containing MONEYBALANCE or MONEYDAYS are copied to"
-    echo "\"$moneyBalanceDir\""
-    echo "so the values can be periodically updated automatically."
+    cat <<EOF
+Usage: $0 [-u|--update]"
+
+Generates and prompts for confirmation to deploy the website
+for the latest version of Fred in the repository.
+
+OPTIONS
+    -u, --update    Update the website and fred repos before deploying.
+                    This removes any local modifications and updates to the
+                    remote master branch.
+
+    -d, --dry-run   Generate the website, but pause to allow inspection of the
+                    output instead of deploying or updating the money totals.
+
+    -t, --testing   Deploy the staging repository to the testing subdomain, and
+                    do not update the money totals."
+
+The fred-offical repo is used to determine the version and build tag
+for substitution. The version is regex'd from Version.java, and the
+build tag is last git tag listed matching '^build[0-9]{5}'.
+
+The following values are substituted:
+FREENETVERSION with the build number. Ex: 1405
+FREENETTAG with the build tag. Ex: build014105
+
+Pages containing MONEYBALANCE or MONEYDAYS are copied to
+\"$moneyBalanceDir\"
+so the values can be periodically updated automatically.
+EOF
 }
 
 while :
@@ -60,25 +51,12 @@ do
             show_help
             exit 0
             ;;
+        -c | --config)
+            configPath="$1"
+            shift
+            ;;
         -u | --update)
             update=true
-            shift
-            ;;
-        -w | --website)
-            websiteDir="$2"
-            shift 2
-            ;;
-        -w=* | --website=*)
-            # Delete everything up until "=" from the path.
-            websiteDir=${1#*=}
-            shift
-            ;;
-        -f | --fred)
-            fredDir="$2"
-            shift 2
-            ;;
-        -f=* | --fred=*)
-            fredDir=${1#*=}
             shift
             ;;
         -d | --dry-run)
@@ -103,34 +81,22 @@ do
     esac
 done
 
-#Attempt defaults if unspecified.
-if [[ ! "$websiteDir" ]]
-then
-    if $testing; then
-        websiteDir="$defaultWebsiteStagingDir"
-    else
-    websiteDir="$defaultWebsiteOfficialDir"
-    fi
+readConfig
+
+if $testing; then
+    websiteDir="$websiteStagingDir"
+else
+    websiteDir="$websiteOfficialDir"
 fi
 websiteOutputDir="$websiteDir/output"
-
-if [[ ! "$fredDir" ]]
-then
-    fredDir="$defaultFredDir"
-fi
 
 # Discard any local changes, update remote branches and tags, and
 # check out to the latest master branch.
 git_update() {
     #To update tags and branches.
     git remote update
-    echo "Discarding any local changes."
     git clean -dfx
     git reset --hard origin/master
-    echo "Checking out latest master branch."
-    git checkout -q origin/master
-    git branch -f master origin/master
-    git checkout master
 }
 
 #If requested, perform update before gathering information from repos.
@@ -147,10 +113,7 @@ if $update; then
 fi
 
 #Determine version information.
-cd "$fredDir"
-buildVersion=$(perl -wlne 'print $1 if /private static final int buildNumber = ([\d]+);/' < "src/freenet/node/Version.java")
-buildTag=$(git tag -l | grep '^build[0-9]\{5\}' | tail -n 1)
-cd "$startingDir"
+getBuildInfo
 
 #Generate website.
 cd "$websiteDir"
@@ -160,11 +123,17 @@ cd "$websiteDir"
 presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
 cd "$startingDir"
 
-echo "Using FREENETVERSION \"$buildVersion\""
-echo "Using FREENETTAG \"$buildTag\""
-echo "Website contains languages: $presentLangs"
-echo "Using website repo in: \"$websiteDir\""
-for value in "$buildVersion" "$buildTag" "$presentLangs"
+cat <<EOF
+Using FREENETVERSION "$buildNumber"
+Using FREENETTAG "$gitVersion"
+Website contains languages: $presentLangs
+Using website repo in: "$websiteDir"
+EOF
+cd "$websiteDir"
+echo "Website commit ID is $(git rev-parse --verify HEAD)"
+cd "$startingDir"
+echo "Fred commit ID is $commitID"
+for value in "$buildNumber" "$gitVersion" "$presentLangs"
 do
     if [[ ! "$value" ]]
     then
@@ -179,7 +148,7 @@ else
     if $testing; then
         echo -n "Deploy to testing site [y/N]?"
     else
-echo -n "Deploy to live site [y/N]? "
+        echo -n "Deploy to live site [y/N]? "
     fi
 fi
 read response
@@ -211,7 +180,7 @@ for file in $(find "$tempSub" -type f)
 do
     if grep -Fq -e FREENET "$file"
     then
-       sed -i 's/FREENETVERSION/'"$buildVersion"'/g;s/FREENETTAG/'"$buildTag"'/g' "$file"
+       sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
     if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
     then
@@ -247,9 +216,9 @@ elif $testing; then
     echo "Testing mode: not updating money totals."
     sudo rsync -ar --owner --group --delete "$tempSub"/ "$websiteDeployTestingDir"
 else
-echo "Copying to live target from temporary directories."
-sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
-sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
+    echo "Copying to live target from temporary directories."
+    sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
+    sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
 fi
 
 echo "Removing temporary directories."
@@ -261,9 +230,9 @@ if $dryRun; then
 elif $testing; then
     echo "Deploy to testing site complete."
 else
-echo "Updating money totals."
-sudo /root/bin/fix-money-totals
-echo "Deploy to live site complete."
+    echo "Updating money totals."
+    sudo /root/bin/fix-money-totals
+    echo "Deploy to live site complete."
 fi
 
 exit 0

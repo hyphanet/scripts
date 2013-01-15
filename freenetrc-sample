@@ -2,21 +2,27 @@
 # Should be saved to ~/.freenetrc
 # Scripts will use the default if a variable is not specified here.
 
-# Path to Fred repository
-WORKSPACE_FRED="/path/to/fred-staging"
+# Build target directory.
+releaseDir="/path/to/FreenetReleased"
 
-# Build target directory
-RELEASE_DIRECTORY="/path/to/FreenetReleased"
+# Path to Fred repository.
+fredDir="/path/to/fred-staging"
 
-# Path to freenet-ext.
-FREENET_EXT_JAR="/path/to/freenet-ext.jar"
+# Path to the website-official repository. Used when deploying to the live website.
+websiteOfficialDir="/path/to/website-official"
+
+# Path to the website-staging repository. Used when deploying to the testing website.
+webiteStagingDir="/path/to/website-staging"
 
 # Path to the Windows installer repository.
-WININSTALLER_PATH="/path/to/wininstaller-staging"
+wininstallerDir="/path/to/wininstaller-staging"
+
+# Path to freenet-ext.
+freenetExtPath="/path/to/freenet-ext.jar"
 
 # User to switch to when signing. Does not switch if empty.
-SIGNING_USER=""
+signingUser=""
 
 # User to build Windows executables as.
-WINE_USER="freenet-buildwin"
+wineUser="freenet-buildwin"
 
