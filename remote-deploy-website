@@ -1,0 +1,10 @@
+#!/bin/bash
+source freenet-scripts-common
+remoteDeployPrefixCommand=
+remoteDeployPrefix=
+readConfig
+getBuildInfo
+websiteID=$(cd $websiteDir; git rev-parse --verify master)
+echo Fred ID "$gitVersion"
+echo Website ID "$websiteID"
+ssh $targetHost -- "$remoteDeployPrefixCommand ${remoteDeployPrefix}deploy-website -u --force-website-id $websiteID --force-fred-id $gitVersion"
