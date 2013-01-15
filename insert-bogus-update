@@ -21,10 +21,6 @@ cd $TEMPLOC
 git reset --hard
 git checkout $TAG
 cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar || exit
-REQUIRED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*REQUIRED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
-RECOMMENDED_EXT=`cat src/freenet/node/NodeStarter.java | sed -n "s/^.*RECOMMENDED_EXT_BUILD_NUMBER = \([0-9]*\).*$/\1/p"`
-if [[ -n $REQUIRED_EXT ]]; then echo Required ext: $REQUIRED_EXT; else echo Required ext version not found; exit 3; fi
-if [[ -n $RECOMMENDED_EXT ]]; then echo Recommended ext: $RECOMMENDED_EXT; else echo Recommended ext version not found; exit 3; fi
 ant clean
 cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar lib/freenet-cvs-snapshot.jar
 # Not inserting the jar.
