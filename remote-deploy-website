@@ -1,10 +1,13 @@
 #!/bin/bash
+# FIXME clean up, give --help etc.
 source freenet-scripts-common
 remoteDeployPrefixCommand=
 remoteDeployPrefix=
 readConfig
 getBuildInfo
 websiteID=$(cd $websiteDir; git rev-parse --verify master)
+# FIXME ideally we'd like to verify the ID of fred as well as the tag.
+# Both git describe and git rev-parse --verify will give a tag if it exists.
 echo Fred ID "$gitVersion"
 echo Website ID "$websiteID"
 ssh $targetHost -- "$remoteDeployPrefixCommand ${remoteDeployPrefix}deploy-website -u --force-website-id $websiteID --force-fred-id $gitVersion"
