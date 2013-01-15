@@ -10,6 +10,8 @@ update=false
 dryRun=false
 testing=false
 websiteDir=""
+forceWebsiteID=""
+forceFredID=""
 
 show_help() {
     cat <<EOF
@@ -28,6 +30,12 @@ OPTIONS
 
     -t, --testing   Deploy the staging repository to the testing subdomain, and
                     do not update the money totals."
+
+    --force-website-id Checkout and verify the given git ID for the website. 
+                       Only if -u.
+
+    --force-fred-id    Checkout and verify the given git ID for fred.
+                       Only if -u.
 
 The fred-offical repo is used to determine the version and build tag
 for substitution. The version is regex'd from Version.java, and the
@@ -66,6 +74,14 @@ do
             testing=true
             shift
             ;;
+        --force-website-id)
+            forceWebsiteID="$2"
+            shift
+            ;;
+        --force-fred-id)
+            forceFredID="$2"
+            shift
+            ;;
         --) # End of all options
             shift
             break
@@ -98,16 +114,44 @@ git_update() {
     git reset --hard origin/master
 }
 
+function checkGitID {
+    checkID=$1
+    echo Checking git ID is "$checkID"
+    if ! git checkout "$checkID"
+    then
+        echo Failed to checkout "$checkID"
+        exit 4
+    fi
+    if ! actualID=$(git rev-parse --verify HEAD)
+    then
+        echo Failed to verify "$checkID"
+        git checkout master
+        exit 5
+    fi
+    if ! [[ "$actualID" = "$checkID" ]]
+    then
+        echo Git verification failed, something very bad is happening
+        exit 6
+    fi
+    echo Git ID verified: "$checkID"
+}
+
 #If requested, perform update before gathering information from repos.
 if $update; then
     echo "Updating fred-official."
     cd "$fredDir"
     git_update
-
+    if ! [[ "$forceFredID" = "" ]]
+    then
+        checkGitID "$forceFredID"
+    fi
     echo "Updating website repo."
     cd "$websiteDir"
     git_update
-
+    if ! [[ "$forceWebsiteID" = "" ]]
+    then
+        checkGitID "$forceWebsiteID"
+    fi
     cd "$startingDir"
 fi
 
