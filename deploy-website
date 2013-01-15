@@ -10,7 +10,6 @@ update=false
 dryRun=false
 testing=false
 websiteDir=""
-fredDir=""
 
 show_help() {
     cat <<EOF
