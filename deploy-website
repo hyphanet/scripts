@@ -128,6 +128,13 @@ Using FREENETTAG "$gitVersion"
 Website contains languages: $presentLangs
 Using website repo in: "$websiteDir"
 EOF
+cd "$fredDir"
+if ! git tag -v "$gitVersion"
+then
+	echo Verification of tag "$gitVersion" for fred repository failed
+	echo Please ensure you have all relevant gpg keys, and check the fingerprints.
+	exit 3
+fi
 cd "$websiteDir"
 echo "Website commit ID is $(git rev-parse --verify HEAD)"
 cd "$startingDir"
