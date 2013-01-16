@@ -29,7 +29,8 @@ wininstallerDir="../wininstaller-staging"
 fredDir="../fred-official"
 
 # Path to configuration file.
-configPath="$HOME/.freenetrc"
+defaultConfigPath="$HOME/.freenetrc"
+configPath="$defaultConfigPath"
 
 # Path to freenet-ext.jar.
 freenetExtPath="$releaseDir/freenet-ext.jar"
@@ -94,6 +95,9 @@ function readConfig {
     if [ -f "$configPath" ]; then
         echo "Reading configuration at \"$configPath\"."
         source "$configPath" || exit
+    elif [ ! "$configPath" = "$defaultConfigPath" ]; then
+        echo Custom config file does not exist: "$configPath"
+        exit
     fi
 }
 
