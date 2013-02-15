@@ -121,7 +121,7 @@ archiveName="freenet-$gitVersion-source.tar.bz2"
 mv dist/freenet.jar "$jarName" || exit 10
 
 # create source archive
-git archive --format=tar HEAD | bzip2 -v9 > "$archiveName" || exit 11
+git archive --format=tar HEAD --prefix="freenet-$gitVersion/" | bzip2 -v9 > "$archiveName" || exit 11
 
 # Generate checksums and signatures for the jar and source archive.
 sha1sum "$jarName" > "$jarName.sha1"
