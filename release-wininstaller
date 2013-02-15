@@ -14,8 +14,8 @@
 # The following files should be in the RELEASE_DIRECTORY:
 #
 # * dependencies/bcprov-jdk15on-147.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-147.jar
-# * dependencies/Ahk2Exe.exe
-# * dependencies/AutoHotkeySC.bin
+# * dependencies/Ahk2Exe.exe            -   http://l.autohotkey.net/Ahk2Exe_L.zip
+# * dependencies/Unicode 32-bit.bin
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/JSTUN-v3.jar
 # * KeyUtils.jar                        -   https://downloads.freenetproject.org/alpha/plugins/KeyUtils/KeyUtils-v5018.jar
@@ -141,7 +141,7 @@ for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "res/install_node/plugins/"        || exit
 done
 cp "$releaseDir/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
-cp "$releaseDir/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
+cp "$releaseDir/dependencies/Unicode 32-bit.bin"     "res/tool_ahk/"                    || exit
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
