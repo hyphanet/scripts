@@ -46,6 +46,8 @@ source freenet-scripts-common || exit
 dryRun="false"
 # Value of WINEDEBUG to run Wine with.
 wineDebug=""
+# Wininstaller branch to checkout.
+branch="master"
 
 if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
 then
@@ -81,6 +83,10 @@ EOF
             wineDebug="$2"
             shift 2
             ;;
+	--branch)
+	    branch="$2"
+	    shift 2
+	    ;;
         --) # End of all options
             shift
             break
@@ -127,7 +133,7 @@ fi
 
 git clone "$wininstallerDir" "$buildDir"
 pushd "$buildDir" || exit
-git checkout master
+git checkout "$branch"
 getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
