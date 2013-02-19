@@ -1,0 +1,88 @@
+#!/bin/bash
+
+#
+# Contains default configuration values and shared utility functions.
+#
+
+# Target directory for generated files.
+releaseDir="../FreenetReleased"
+
+# Windows installer source location.
+wininstallerDir="../wininstaller-staging"
+
+# Path to Fred repository.
+fredDir="../testnet-official"
+
+# Path to configuration file.
+defaultConfigPath="$HOME/.testnetrc"
+configPath="$defaultConfigPath"
+
+# Path to freenet-ext.jar.
+freenetExtPath="$releaseDir/freenet-ext.jar"
+
+# If "1" starts ssh agent before sending the update to the target host and stops it afterward.
+useSshAgent="1"
+
+# Hostname to send updates to.
+targetHost="osprey.vm.bytemark.co.uk"
+
+# FCP host hostname / IP.
+fcpHost="127.0.0.1"
+
+# FCP host port.
+fcpPort="9481"
+
+# User to switch to when signing the release.
+signingUser="toad"
+
+# User to run Wine under.
+wineUser="freenet-buildwin"
+
+# Takes a build number as an argument
+# Saves a comparsion between the localization of that build and the previous
+# as "$oldBuild-$newBuild.diff.txt" in the release directory.
+function compareL10n {
+    pushd "$fredDir"
+    newBuild="$1"
+    oldBuild=$((newBuild - 1))
+    echo Comparing $newBuild to $oldBuild
+    for build in "$oldBuild" "$newBuld"
+    do
+        git checkout $(printf 'build%05d' "$build")
+        cp "src/freenet/l10n/freenet.l10n.en.properties" "$build"
+    done
+    diffName="$oldBuild-$newBuild.diff.txt"
+    diff -u0 "$oldBuild" "$newBuild" > "$diffName"
+    less "$diffName"
+    cp "$diffName" "$releaseDir"
+    popd
+}
+
+# Sets $gitVersion, $buildNumber, and $commitID.
+# All of these are set for the highest build number.
+# Assumes the working directory holds a Fred repository.
+function getBuildInfo {
+    pushd "$fredDir" || exit
+    # Get highest build number, sorted numerically.
+    # Git tag includes only those tags starting with "build", and the awk
+    # substring excludes the first 5 characters, which are "build".
+    buildNumber=$(git tag -l 'build*' | awk '{print substr($0, 6)}' | sort --numeric-sort | tail -n1)
+    # Get tag with highest build number.
+    gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
+    # Strip possible leading zeros.
+    buildNumber=${buildNumber#0}
+    commitID=$(git log $gitVersion | head -n1 | cut -d " " -f 2)
+    popd
+}
+
+# Read configuration file if it exists.
+function readConfig {
+    if [ -f "$configPath" ]; then
+        echo "Reading configuration at \"$configPath\"."
+        source "$configPath" || exit
+    elif [ ! "$configPath" = "$defaultConfigPath" ]; then
+        echo Custom config file does not exist: "$configPath"
+        exit
+    fi
+}
+
