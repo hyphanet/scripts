@@ -237,6 +237,9 @@ rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alph
 cp FreenetInstaller-$buildNumber.exe* $releaseDir
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry"
 
+# We need access both to delete it on a clean exit and to copy wrapper files.
+$ssh -n $wineUser@localhost "chmod -R 770 $buildDir"
+
 pushd bin
 
 cp "$buildDir/res/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
