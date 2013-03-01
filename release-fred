@@ -105,6 +105,7 @@ git reset --hard || exit 6
 
 if [[ "$target" = "build" ]]; then
     ant -f build-clean.xml || exit 16
+    ant javadoc || exit 32
     jarName="freenet-$gitVersion.jar"
 elif [[ "$target" = "snapshot" ]]; then
 # now build it (without api doc)
