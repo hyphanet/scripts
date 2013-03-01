@@ -28,6 +28,7 @@ git push --tags origin
 git push stable $TAG
 git push origin
 git push stable
+git push --tags stable
 echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit
 echo $BUILD > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build
 BRANCH=`git branch | grep "^*" | cut -b 3-`
@@ -44,5 +45,11 @@ if test $BRANCH != "master"; then
 	else
 		git checkout $BRANCH
 	fi
+	git checkout next
+	git merge master
+	git push origin next
 	git push origin master
+	git push stable master
+	git push stable next
+	git checkout next
 fi
