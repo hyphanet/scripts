@@ -46,6 +46,10 @@ source freenet-scripts-common || exit
 dryRun="true"
 # Value of WINEDEBUG to run Wine with.
 wineDebug=""
+# Wininstaller branch to checkout.
+branch="ahk_l32"
+# Whether to use Xnest rather than Xvfb. Useful for debugging.
+xnest="false"
 
 if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
 then
@@ -66,6 +70,9 @@ Configuration file is at $configPath by default.
 --dry-run         Do not release. Build and sign the installer, then exit.
 --wine-debug      Run Wine with the given WINEDEBUG environment variable value.
                   See http://wiki.winehq.org/DebugChannels
+--xnest		  Run Wine in an Xnest window (so you can see the graphical output).
+		  Useful for debugging your wine setup.
+
 EOF
             exit 0
             ;;
@@ -77,10 +84,18 @@ EOF
             dryRun="true"
             shift
             ;;
+	--xnest)
+	    xnest="true"
+	    shift
+	    ;;
         --wine-debug)
             wineDebug="$2"
             shift 2
             ;;
+	--branch)
+	    branch="$2"
+	    shift 2
+	    ;;
         --) # End of all options
             shift
             break
@@ -127,7 +142,7 @@ fi
 
 git clone "$wininstallerDir" "$buildDir"
 pushd "$buildDir" || exit
-git checkout ahk_l32
+git checkout "$branch"
 getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
@@ -168,8 +183,22 @@ fi
 # The Wine user must create the prefix directory. If the directory is missing
 # Wine will refuse to create it if the directory that would contain it is not
 # owned by the user.
-ssh -n $wineUser@localhost "cd $buildDir; mkdir .wine; WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine xvfb-run wine cmd /c build.cmd; killall -s9 -u $wineUser"
+xvfbrun="xvfb-run"
+ssh="ssh -n "
+if [ "$xnest" == "true" ]; then
+	xvfbrun=""
+	Xnest :10 -ac &
+	OLDDISPLAY="$DISPLAY"
+	DISPLAY=:10.0
+	export DISPLAY
+	ssh="$ssh -X"
+fi
+$ssh -n $wineUser@localhost "cd $buildDir; mkdir .wine; WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine $xvfbrun wine cmd /c build.cmd; killall -s9 -u $wineUser"
 
+if [ "$xnest" == "true" ]; then
+	killall Xnest
+	DISPLAY="$OLDDISPLAY"
+fi
 cp bin/FreenetInstaller.exe FreenetInstaller-$buildNumber.exe || exit
 pushd res/install_node/updater/ || exit
 cp update.cmd update-new.cmd || exit
@@ -207,6 +236,9 @@ echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/"
 cp FreenetInstaller-$buildNumber.exe* $releaseDir
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry"
+
+# We need access both to delete it on a clean exit and to copy wrapper files.
+$ssh -n $wineUser@localhost "chmod -R 770 $buildDir"
 
 pushd bin
 
