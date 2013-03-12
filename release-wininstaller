@@ -43,7 +43,7 @@
 source freenet-scripts-common || exit
 
 # Whether to exit before releasing.
-dryRun="false"
+dryRun="true"
 # Value of WINEDEBUG to run Wine with.
 wineDebug=""
 
