@@ -47,7 +47,7 @@ dryRun="true"
 # Value of WINEDEBUG to run Wine with.
 wineDebug=""
 # Wininstaller branch to checkout.
-branch="ahk_l32"
+branch="ahk_l32-clean"
 # Whether to use Xnest rather than Xvfb. Useful for debugging.
 xnest="false"
 
