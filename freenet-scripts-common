@@ -61,7 +61,7 @@ function compareL10n {
     newBuild="$1"
     oldBuild=$((newBuild - 1))
     echo Comparing $newBuild to $oldBuild
-    for build in "$oldBuild" "$newBuld"
+    for build in "$oldBuild" "$newBuild"
     do
         git checkout $(printf 'build%05d' "$build")
         cp "src/freenet/l10n/freenet.l10n.en.properties" "$build"
