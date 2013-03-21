@@ -61,15 +61,15 @@ function compareL10n {
     newBuild="$1"
     oldBuild=$((newBuild - 1))
     echo Comparing $newBuild to $oldBuild
-    for build in "$oldBuild" "$newBuld"
+    for build in "$oldBuild" "$newBuild"
     do
-        git checkout $(printf 'build%05d' "$build")
+        git checkout $(printf 'build%05d' "$build") || exit 1003
         cp "src/freenet/l10n/freenet.l10n.en.properties" "$build"
     done
     diffName="$oldBuild-$newBuild.diff.txt"
     diff -u0 "$oldBuild" "$newBuild" > "$diffName"
     less "$diffName"
-    cp "$diffName" "$releaseDir"
+    cp "$diffName" "$releaseDir" || exit 1002
     popd
 }
 
