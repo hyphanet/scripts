@@ -32,7 +32,7 @@ git push --tags stable
 echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit
 echo $BUILD > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build
 BRANCH=`git branch | grep "^*" | cut -b 3-`
-if test $BRANCH != "master"; then
+if test $BRANCH != "master" && test $BRANCH != "next"; then
 	echo Merging back into master
 	git checkout master
 	git merge $TAG || exit
