@@ -12,18 +12,31 @@ if [[ -z $BUILD ]]; then exit; fi
 if ! grep "buildNumber = $BUILD" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit; fi
 TAG=build0$BUILD
 echo Releasing build $TAG
-echo Please enter changelog:
+echo Please enter developer changelog:
 cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
-git tag -s $TAG -F /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
-echo CHANGELOG:
-cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+echo Please enter end-user-friendly changelog:
+cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.user.${TAG}.txt
+TEMP=`mktemp`
+cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.user.${TAG}.txt > $TEMP
+echo >> $TEMP
+echo "Developer changelog:" >> $TEMP
+echo >> $TEMP
+cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt >> $TEMP
+echo
+echo
+echo Combined changelog as will be tagged:
+echo
+cat $TEMP
+echo
 echo Confirm release of $TAG? y/n
 read x
 if [[ $x != "y" ]]; then
+	rm $TEMP
 	git tag -d $TAG
 	echo FAILED
 	exit
 fi
+git tag -s $TAG -F $TEMP
 git push --tags origin
 git push stable $TAG
 git push origin
@@ -53,3 +66,4 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	git push stable next
 	git checkout next
 fi
+rm $TEMP
