@@ -57,7 +57,7 @@ else
   fi
 fi
 
-for WHAT in binary source installer wininstaller seednodes fullchangelog iptocountryv4; do
+for WHAT in binary source installer wininstaller seednodes changelog fullchangelog iptocountryv4; do
 
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
 PCLASS=0
@@ -90,6 +90,11 @@ if [[ $WHAT == "seednodes" ]]; then
   INSERTFILE=$SEEDNODESFILE
   URI=${URI}/seednodes-$VERSION
   IDENT=${IDENT}-seednodes
+fi
+if [[ $WHAT == "changelog" ]]; then
+  INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt
+  URI=${URI}/changelog-$VERSION
+  IDENT=${IDENT}-changelog
 fi
 if [[ $WHAT == "fullchangelog" ]]; then
   INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
