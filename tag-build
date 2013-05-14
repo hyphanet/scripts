@@ -15,9 +15,9 @@ echo Releasing build $TAG
 echo Please enter developer changelog:
 cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
 echo Please enter end-user-friendly changelog:
-cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.user.${TAG}.txt
+cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt
 TEMP=`mktemp`
-cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.user.${TAG}.txt > $TEMP
+cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt > $TEMP
 echo >> $TEMP
 echo "Developer changelog:" >> $TEMP
 echo >> $TEMP
