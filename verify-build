@@ -2,13 +2,14 @@
 # Attempts to verify that the latest build corresponds to the bytecode.
 # Main requirement is to run the script on a system using the same Java compiler as the system that released it.
 # For builds by toad, this is Sun 1.6.0_26 (sun-java6-jdk; 6.26-0squeeze1) on Debian Squeeze.
+# Uses lib-pyFreenet to fetch the in-Freenet JAR over FCP,
+# and so requires Python and lib-pyFreenet. (fcpget)
 : ${TEMPBASE:=~/}
 : ${FREENET_EXT_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar}
 : ${BOUNCY_CASTLE_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/bcprov.jar}
 : ${GIT_URL:=git://github.com/freenet/fred-official.git}
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
-## TODO MAJOR: Fetch the freenet jar from multiple sources e.g. Freenet over FCP.
 ## TODO: Automatically download freenet-ext.jar if not present, in a secure fashion.
 ## TODO: Deal with freenet-ext.jar updating automatically.
 ## TODO: Verify freenet-ext.jar itself.
@@ -149,6 +150,20 @@ if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
 	echo "Unable to verify signature on jar"
 	exit 6;
 fi
+
+# Check that the website and hosted versions are identical.
+# TODO: Detect update USK from node config; configurable node host/port.
+fcpget 'USK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar/1442' inserted-freenet.jar
+if ! cmp freenet.jar inserted-freenet.jar; then
+    echo FAILED TO VERIFY: The freenet.jar from the website and the
+    echo freenet.jar fetched from Freenet are different.
+    echo "Website jar SHA512: $(sha512sum freenet.jar)"
+    echo "Inserted jar SHA512: $(sha512sum inserted-freenet.jar)"
+    exit 11
+else
+    echo freenet.jar from the website and fetched from Freenet are the same.
+fi
+
 mkdir unpacked-official
 if ! unzip freenet.jar -d unpacked-official > /dev/null; then
 	echo Failed to unpack official released jar
