@@ -218,6 +218,7 @@ fi
 
 echo "Fred git version is $gitVersion"
 echo "Fred commit ID is $commitID"
+cp FreenetInstaller-$buildNumber.exe* $releaseDir
 if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     exit 0
@@ -234,7 +235,6 @@ rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha
 
 echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/"
-cp FreenetInstaller-$buildNumber.exe* $releaseDir
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry"
 
 # We need access both to delete it on a clean exit and to copy wrapper files.
