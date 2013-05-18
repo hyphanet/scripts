@@ -60,7 +60,7 @@ function compareL10n {
     pushd "$fredDir"
     newBuild="$1"
     oldBuild=$((newBuild - 1))
-    echo Comparing $newBuild to $oldBuild
+    echo Checking for English localization changes between $newBuild and $oldBuild
     for build in "$oldBuild" "$newBuild"
     do
         git checkout $(printf 'build%05d' "$build") || exit 1003
