@@ -16,6 +16,8 @@
 ## TODO: Hard-code the certificate for SSL see the code in update.sh in app-new_installer
 ## TODO: Detect who released it and complain if not the same compiler? Or even install several copies?
 ## TODO: Load configuration values from a file instead of environment variables.
+## TODO: Allow choosing Freenet jar sources: at least one of website, freenet.
+## TODO: Also verify consistency of source archives.
 
 # Exit with an error if freenet-ext does not exist.
 if [[ ! -e "$FREENET_EXT_JAR" ]]; then
@@ -153,7 +155,7 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config; configurable node host/port.
-fcpget 'USK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar/1442' inserted-freenet.jar
+fcpget "USK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar/${BUILD}" inserted-freenet.jar
 if ! cmp freenet.jar inserted-freenet.jar; then
     echo FAILED TO VERIFY: The freenet.jar from the website and the
     echo freenet.jar fetched from Freenet are different.
