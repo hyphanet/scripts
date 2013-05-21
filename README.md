@@ -14,6 +14,14 @@ Note that some of these scripts are supposed to run as different users:
 
 You will also need ssh access to osprey.
 
+## Merging localization files
+
+The `MergeSFS` utility is in the Fred source tree: `src/freenet/tools/MergeSFS.java`.
+
+    java -cp freenet.jar freenet.tools.MergeSFS src/freenet/node/l10n/freenet.l10n.ja.properties freenet.l10n.ja.override.properties
+
+This will write the changes in the override file to the source file. To write the merged values to standard output instead, use `--stdout` as the third argument.
+
 ## Releasing Freenet
 
 1. `tag-build [build number]` tags a build and prompts for a changelog.
