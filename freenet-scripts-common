@@ -4,8 +4,6 @@
 # Contains shared utility functions.
 #
 
-defaultConfigPath="$HOME/.freenetrc"
-
 # Takes a build number as an argument
 # Saves a comparsion between the localization of that build and the previous
 # as "$oldBuild-$newBuild.diff.txt" in the release directory.
@@ -48,8 +46,8 @@ function readConfig {
     if [ -f "$configPath" ]; then
         echo "Reading configuration at \"$configPath\"."
         source "$configPath" || exit
-    elif [ ! "$configPath" = "$defaultConfigPath" ]; then
-        echo Custom config file does not exist: "$configPath"
+    else
+        echo Config file does not exist: "$configPath"
         exit
     fi
 }
