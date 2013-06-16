@@ -1,57 +1,10 @@
 #!/bin/bash
 
 #
-# Contains default configuration values and shared utility functions.
+# Contains shared utility functions.
 #
 
-# Webserver directory for updating project money balance.
-moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
-
-# Webserver directory for the live website.
-websiteDeployLiveDir="/var/www/freenet-website"
-
-# Webserver directory for the testing website.
-websiteDeployTestingDir="/var/www/freenet-website-testing"
-
-# Target directory for generated files.
-releaseDir="../FreenetReleased"
-
-# Path to the website-official repository. Used when deploying to the live website.
-websiteOfficialDir="../website-official"
-
-# Path to the website-staging repository. Used when deploying to the testing website.
-websiteStagingDir="../website-staging"
-
-# Windows installer source location.
-wininstallerDir="../wininstaller-staging"
-
-# Path to Fred repository.
-fredDir="../fred-official"
-
-# Path to configuration file.
 defaultConfigPath="$HOME/.freenetrc"
-configPath="$defaultConfigPath"
-
-# Path to freenet-ext.jar.
-freenetExtPath="$releaseDir/freenet-ext.jar"
-
-# If "1" starts ssh agent before sending the update to the target host and stops it afterward.
-useSshAgent="1"
-
-# Hostname to send updates to.
-targetHost="osprey.vm.bytemark.co.uk"
-
-# FCP host hostname / IP.
-fcpHost="127.0.0.1"
-
-# FCP host port.
-fcpPort="9481"
-
-# User to switch to when signing the release.
-signingUser="toad"
-
-# User to run Wine under.
-wineUser="freenet-buildwin"
 
 # Takes a build number as an argument
 # Saves a comparsion between the localization of that build and the previous
