@@ -33,6 +33,10 @@ if [[ ! -e "$BOUNCY_CASTLE_JAR" ]]; then
     echo "The path \"$BOUNCY_CASTLE_JAR\" does not exist."
     exit 10
 fi
+if ! fcpget --version; then
+    echo "fcpget - part of lib-pyFreenet - is not installed."
+    exit 10
+fi
 
 while :
 do
