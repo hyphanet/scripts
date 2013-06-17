@@ -26,9 +26,6 @@ wininstallerDir="../wininstaller-staging"
 # Path to Fred repository.
 fredDir="../fred-official"
 
-# Path to configuration file.
-configPath="$HOME/.freenetrc"
-
 # Path to freenet-ext.jar.
 freenetExtPath="$releaseDir/freenet-ext.jar"
 

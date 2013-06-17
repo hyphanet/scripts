@@ -4,6 +4,9 @@
 # Contains shared utility functions.
 #
 
+# Path to configuration file.
+configPath="$HOME/.freenetrc"
+
 # Takes a build number as an argument
 # Saves a comparsion between the localization of that build and the previous
 # as "$oldBuild-$newBuild.diff.txt" in the release directory.
