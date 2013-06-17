@@ -14,6 +14,30 @@ Note that some of these scripts are supposed to run as different users:
 
 You will also need ssh access to osprey.
 
+## Verifying Fred builds
+
+Currently the official builds are made using Debian Squeeze, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
+
+Enable non-free repositories so that Oracle's Java package is available. Add `non-free` to the end of the main repository line. (Ex. `deb http://ftp.us.debian.org/debian squeeze main`.) Then `apt-get update` to apply those changes. Of course the following is just one way to do things.
+
+    # apt-get install git-core python sun-java6-jdk ant unzip
+    $ git clone git://github.com/freenet/scripts.git
+    $ git clone git://github.com/freenet/fred-official.git
+    $ git clone git://github.com/freenet/lib-pyFreenet-staging.git
+    $ cp scripts/freenetrc-sample ~/.freenetrc
+    $ mkdir FreenetReleased
+    $ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleased/freenet-ext.jar
+    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-147.jar -O FreenetReleased/bcprov.jar
+    $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
+    $ gpg --import toad.gpg
+    $ cd lib-pyFreenet-staging
+    # python setup.py install
+
+Now everything should be installed and minimally configured. Make sure a Freenet node is accessible by FCP. If need be, change configuration in ~/.freenetrc.
+
+    $ cd ../scripts
+    $ ./verify-build
+
 ## Merging localization files
 
 The `MergeSFS` utility is in the Fred source tree: `src/freenet/tools/MergeSFS.java`.
