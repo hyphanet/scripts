@@ -4,10 +4,16 @@
 # For builds by toad, this is Sun 1.6.0_26 (sun-java6-jdk; 6.26-0squeeze1) on Debian Squeeze.
 # Uses lib-pyFreenet to fetch the in-Freenet JAR over FCP,
 # and so requires Python and lib-pyFreenet. (fcpget)
+
+# Shared default configuration and utility functions.
+source freenet-scripts-common || exit
+readConfig
+
 : ${TEMPBASE:=~/}
-: ${FREENET_EXT_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar}
-: ${BOUNCY_CASTLE_JAR:=/usr/src/cvs/eclipse-workspace/FreenetReleased/bcprov.jar}
+: ${FREENET_EXT_JAR:=$freenetExtPath}
+: ${BOUNCY_CASTLE_JAR:=$releaseDir/bcprov.jar}
 : ${GIT_URL:=git://github.com/freenet/fred-official.git}
+
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
 ## TODO: Automatically download freenet-ext.jar if not present, in a secure fashion.
@@ -15,7 +21,6 @@
 ## TODO: Verify freenet-ext.jar itself.
 ## TODO: Hard-code the certificate for SSL see the code in update.sh in app-new_installer
 ## TODO: Detect who released it and complain if not the same compiler? Or even install several copies?
-## TODO: Load configuration values from a file instead of environment variables.
 ## TODO: Allow choosing Freenet jar sources: at least one of website, freenet.
 ## TODO: Also verify consistency of source archives.
 
@@ -72,8 +77,10 @@ if [[ -z "$TAG" ]]; then
     TAG=$(git ls-remote --tags "$GIT_URL" build0\* | awk '{print $2}' | sed 's|refs/tags/||g;s|\^{}||g' | sort | tail -n1)
 fi
 echo Using build "$TAG"
+REPO="$fredDir"
 # No path to an existing repo was specified so clone a fresh one.
 if [[ -z "$REPO" ]]; then
+    # TODO: With REPO set to fredDir this fetching is now dead code.
     REPO="$TMPDIR/fred"
     echo "Cloning new fred-official repository into \"$REPO\"."
     if ! git clone "$GIT_URL" "$REPO" --branch="$TAG" --depth=1; then
