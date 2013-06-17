@@ -27,12 +27,10 @@ readConfig
 # Exit with an error if freenet-ext does not exist.
 if [[ ! -e "$FREENET_EXT_JAR" ]]; then
     echo "The path \"$FREENET_EXT_JAR\" does not exist."
-    echo "Please set the FREENET_EXT_JAR environment variable to a path to freenet-ext.jar"
     exit 10
 fi
 if [[ ! -e "$BOUNCY_CASTLE_JAR" ]]; then
     echo "The path \"$BOUNCY_CASTLE_JAR\" does not exist."
-    echo "Please set the BOUNCY_CASTLE_JAR environment variable to a path to bcprov.jar from www.bouncycastle.org"
     exit 10
 fi
 
