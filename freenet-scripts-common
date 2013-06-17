@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#
+# Contains shared utility functions.
+#
+
+# Path to configuration file.
+configPath="$HOME/.freenetrc"
+
+# Takes a build number as an argument
+# Saves a comparsion between the localization of that build and the previous
+# as "$oldBuild-$newBuild.diff.txt" in the release directory.
+function compareL10n {
+    pushd "$fredDir"
+    newBuild="$1"
+    oldBuild=$((newBuild - 1))
+    echo Checking for English localization changes between $newBuild and $oldBuild
+    for build in "$oldBuild" "$newBuild"
+    do
+        git checkout $(printf 'build%05d' "$build") || exit 1003
+        cp "src/freenet/l10n/freenet.l10n.en.properties" "$build"
+    done
+    diffName="$oldBuild-$newBuild.diff.txt"
+    diff -u0 "$oldBuild" "$newBuild" > "$diffName"
+    less "$diffName"
+    cp "$diffName" "$releaseDir" || exit 1002
+    popd
+}
+
+# Sets $gitVersion, $buildNumber, and $commitID.
+# All of these are set for the highest build number.
+# Assumes the working directory holds a Fred repository.
+function getBuildInfo {
+    pushd "$fredDir" || exit
+    # Get highest build number, sorted numerically.
+    # Git tag includes only those tags starting with "build", and the awk
+    # substring excludes the first 5 characters, which are "build".
+    buildNumber=$(git tag -l 'build*' | awk '{print substr($0, 6)}' | sort --numeric-sort | tail -n1)
+    # Get tag with highest build number.
+    gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
+    # Strip possible leading zeros.
+    buildNumber=${buildNumber#0}
+    commitID=$(git log $gitVersion | head -n1 | cut -d " " -f 2)
+    popd
+}
+
+# Read configuration file if it exists.
+function readConfig {
+    if [ -f "$configPath" ]; then
+        echo "Reading configuration at \"$configPath\"."
+        source "$configPath" || exit
+    else
+        echo Config file does not exist: "$configPath"
+        exit
+    fi
+}
+
