@@ -29,7 +29,6 @@ function compareL10n {
 
 # Sets $gitVersion, $buildNumber, and $commitID.
 # All of these are set for the highest build number.
-# Assumes the working directory holds a Fred repository.
 function getBuildInfo {
     pushd "$fredDir" || exit
     # Get highest build number, sorted numerically.
