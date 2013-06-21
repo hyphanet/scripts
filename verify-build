@@ -139,8 +139,8 @@ if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
 fi
 
 # Check that the website and hosted versions are identical.
-# TODO: Detect update USK from node config; configurable node host/port.
-fcpget "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-${BUILD}" inserted-freenet.jar
+# TODO: Detect update USK from node config
+fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-${BUILD}" inserted-freenet.jar
 if [ ! -e "inserted-freenet.jar" ]; then
     echo "Unable to fetch freenet.jar from Freenet."
     exit 12
