@@ -1,6 +1,6 @@
 # Sample script configuration file
 # Should be saved to ~/.freenetrc
-# Scripts will use the default if a variable is not specified here.
+# Paths should be absolute.
 
 # Webserver directory for updating project money balance.
 moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"

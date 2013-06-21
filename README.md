@@ -33,7 +33,8 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ cd lib-pyFreenet-staging
     # python setup.py install
 
-Now everything should be installed and minimally configured. Make sure a Freenet node is accessible by FCP. If need be, change configuration in ~/.freenetrc.
+Now everything should be installed. Change ~/.freenetrc to have absolute paths. (At least for `releaseDir`, `fredDir`, and `freenetExtPath`.)  Make sure a Freenet node is accessible by FCP.
+
 
     $ cd ../scripts
     $ ./verify-build
