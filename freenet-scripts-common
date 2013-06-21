@@ -39,7 +39,8 @@ function getBuildInfo {
     gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
     # Strip possible leading zeros.
     buildNumber=${buildNumber#0}
-    commitID=$(git log $gitVersion | head -n1 | cut -d " " -f 2)
+    # Resolve tag to commit hash.
+    commitID=$(git ref-parse $gitVersion^{})
     popd
 }
 
