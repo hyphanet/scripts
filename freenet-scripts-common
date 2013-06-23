@@ -40,7 +40,7 @@ function getBuildInfo {
     # Strip possible leading zeros.
     buildNumber=${buildNumber#0}
     # Resolve tag to commit hash.
-    commitID=$(git ref-parse $gitVersion^{})
+    commitID=$(git rev-parse $gitVersion^{})
     popd
 }
 
