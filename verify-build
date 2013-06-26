@@ -42,17 +42,10 @@ do
     case $1 in
         --help | -h | -\?)
             echo "--tag TAG specifies build tag to checkout."
-            echo "--repo PATH specifies path to a fred-official repository."
-            echo "            If this is not specified, the script will make a fresh clone to its"
-            echo "            temporary directory."
             exit 0
             ;;
         --tag)
             TAG="$2"
-            shift 2
-            ;;
-        --repo)
-            REPO=$(readlink -f "$2")
             shift 2
             ;;
         --) # End of all options
