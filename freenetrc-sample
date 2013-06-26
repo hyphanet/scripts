@@ -29,6 +29,9 @@ fredDir="../fred-official"
 # Path to freenet-ext.jar.
 freenetExtPath="$releaseDir/freenet-ext.jar"
 
+# Path to bcprov.jar.
+bcprovPath="$releaseDir/bcprov.jar"
+
 # If "1" starts ssh agent before sending the update to the target host and stops it afterward.
 useSshAgent="1"
 

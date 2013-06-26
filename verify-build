@@ -9,10 +9,6 @@
 source freenet-scripts-common || exit
 readConfig
 
-: ${TEMPBASE:=~/}
-: ${FREENET_EXT_JAR:=$freenetExtPath}
-: ${BOUNCY_CASTLE_JAR:=$releaseDir/bcprov.jar}
-
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
 ## TODO: Automatically download freenet-ext.jar if not present, in a secure fashion.
@@ -24,12 +20,12 @@ readConfig
 ## TODO: Also verify consistency of source archives.
 
 # Exit with an error if freenet-ext does not exist.
-if [[ ! -e "$FREENET_EXT_JAR" ]]; then
-    echo "The path \"$FREENET_EXT_JAR\" does not exist."
+if [[ ! -e "$freenetExtPath" ]]; then
+    echo "The path \"$freenetExtPath\" does not exist."
     exit 10
 fi
-if [[ ! -e "$BOUNCY_CASTLE_JAR" ]]; then
-    echo "The path \"$BOUNCY_CASTLE_JAR\" does not exist."
+if [[ ! -e "$bcprovPath" ]]; then
+    echo "The path \"$bcprovPath\" does not exist."
     exit 10
 fi
 if ! fcpget --version; then
@@ -41,11 +37,18 @@ while :
 do
     case $1 in
         --help | -h | -\?)
-            echo "--tag TAG specifies build tag to checkout."
+            cat <<EOF
+    --tag TAG      specifies build tag to checkout.
+    --tmpbase PATH specifies temporary directory. Default /tmp/
+EOF
             exit 0
             ;;
         --tag)
-            TAG="$2"
+            gitVersion="$2"
+            shift 2
+            ;;
+        --tmpbase)
+            tmpBase="$2"
             shift 2
             ;;
         --) # End of all options
@@ -62,51 +65,53 @@ do
     esac
 done
 
-TMPDIR=$(mktemp -d --tmpdir=$TEMPBASE)
-echo Using "$TMPDIR"
+if [[ -z "$tmpBase" ]]; then
+    tmpBase="/tmp/"
+fi
 
-REPO="$fredDir"
-    cd "$REPO"
+tmpDir=$(mktemp -d --tmpdir=$tmpBase)
+echo Using "$tmpDir"
+
+    cd "$fredDir"
     if ! git remote update; then
         echo Unable to update git repository.
         exit 13
     fi
+
 # The tag was not specified so autodetect.
-if [[ -z "$TAG" ]]; then
+if [[ -z "$gitVersion" ]]; then
     getBuildInfo
-    TAG=$gitVersion
 else
-    getTagInfo $TAG
+    getTagInfo $gitVersion
 fi
-echo Using build "$TAG"
-cd "$TMPDIR"
-if ! git clone "$REPO" fred; then
+echo Using build "$gitVersion"
+cd "$tmpDir"
+if ! git clone "$fredDir" fred; then
     echo Unable to clone repo.
     exit 14
 fi
 cd fred
-    if ! git checkout "$TAG"; then
+    if ! git checkout "$gitVersion"; then
         echo Unable to checkout build tag.
         exit 14
     fi
 
-if ! git tag -v "$TAG"; then
-    echo Failed to verify tag "$TAG"
+if ! git tag -v "$gitVersion"; then
+    echo Failed to verify tag "$gitVersion"
     exit 11
 fi
-BUILD=$buildNumber
-if [[ -z $BUILD ]]; then
+if [[ -z $buildNumber ]]; then
 	echo Unable to determine build number.
 	exit 3
 fi
 
-echo Build number $BUILD
-if ! cp "$FREENET_EXT_JAR" lib/freenet/freenet-ext.jar; then
-	echo Unable to copy freenet-ext.jar from "$FREENET_EXT_JAR"
+echo Build number $buildNumber
+if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
+	echo Unable to copy freenet-ext.jar from "$freenetExtPath"
 	exit 12
 fi
-if ! cp "$BOUNCY_CASTLE_JAR" lib/bcprov.jar; then
-	echo Unable to copy bcprov.jar from "$BOUNCY_CASTLE_JAR"
+if ! cp "$bcprovPath" lib/bcprov.jar; then
+	echo Unable to copy bcprov.jar from "$bcprovPath"
 	exit 12
 fi
 if ! (ant clean && ant package-only); then
@@ -120,12 +125,12 @@ if ! unzip "fred/dist/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
-if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" -O freenet.jar.sig; then
-	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar.sig" from the official Freenet website.
+if ! wget "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" -O freenet.jar.sig; then
+	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" from the official Freenet website.
 	exit 4
 fi
-if ! wget "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" -O freenet.jar; then
-	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${TAG}.jar" from the official Freenet website.
+if ! wget "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" -O freenet.jar; then
+	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" from the official Freenet website.
 	exit 5;
 fi
 if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
@@ -135,7 +140,7 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config
-fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-${BUILD}" inserted-freenet.jar
+fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-${buildNumber}" inserted-freenet.jar
 if [ ! -e "inserted-freenet.jar" ]; then
     echo "Unable to fetch freenet.jar from Freenet."
     exit 12
@@ -167,10 +172,6 @@ if ! cmp unpacked-official.list unpacked-built.list; then
     exit 9
 fi
 
-DIFFS="differences"
-if [[ -e "$DIFFS" ]]; then
-    rm "$DIFFS"
-fi
 while read x; do
     if ! cmp "unpacked-official/$x" "unpacked-built/$x"; then
         if [[ "$x" = "./META-INF/MANIFEST.MF" ]]; then
@@ -179,13 +180,13 @@ while read x; do
             diff "unpacked-official/$x" "unpacked-built/$x"
         else
             echo "File is different: $x"
-            echo "$x" >> "$DIFFS"
+            echo "$x" >> "differences"
         fi
     fi
 done < unpacked-official.list
 
 summary() {
-    echo "Tag ${TAG} / build ${BUILD}"
+    echo "Tag ${gitVersion} / build ${buildNumber}"
     echo "Official jar SHA512: $(sha512sum freenet.jar)"
     echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
     echo "Git repository is at object ${commitID}"
@@ -193,11 +194,11 @@ summary() {
 
 if [[ -s "differences" ]]; then
     echo VERIFY FAILED: FILES ARE DIFFERENT:
-    cat $DIFFS
+    cat differences
     summary
     exit 10
 fi
 echo "Verification successful."
 summary
 cd ..
-rm -Rf $TMPDIR
+rm -Rf "$tmpDir"
