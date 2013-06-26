@@ -123,7 +123,7 @@ fi
 
 cd ..
 mkdir unpacked-built
-if ! unzip "$REPO/dist/freenet.jar" -d unpacked-built > /dev/null; then
+if ! unzip "fred/dist/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
@@ -195,7 +195,7 @@ summary() {
     echo "Tag ${TAG} / build ${BUILD}"
     echo "Official jar SHA512: $(sha512sum freenet.jar)"
     echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
-    echo "Git repository is at object $(cat "$REPO/.git/HEAD")"
+    echo "Git repository is at object ${commitID}"
 }
 
 if [[ -s "differences" ]]; then
