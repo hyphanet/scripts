@@ -123,12 +123,12 @@ if ! unzip "fred/dist/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
-if ! wget "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" -O freenet.jar.sig; then
-    echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" from the official Freenet website.
+if ! wget "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar.sig" -O freenet.jar.sig; then
+    echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar.sig" from the official Freenet website.
     exit 4
 fi
-if ! wget "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" -O freenet.jar; then
-    echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" from the official Freenet website.
+if ! wget "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar" -O freenet.jar; then
+    echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar" from the official Freenet website.
     exit 5;
 fi
 if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
@@ -138,7 +138,7 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config
-fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-${buildNumber}" inserted-freenet.jar
+fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber" inserted-freenet.jar
 if [ ! -e "inserted-freenet.jar" ]; then
     echo "Unable to fetch freenet.jar from Freenet."
     exit 12
@@ -184,10 +184,10 @@ while read x; do
 done < unpacked-official.list
 
 summary() {
-    echo "Tag ${gitVersion} / build ${buildNumber}"
+    echo "Tag $gitVersion / build $buildNumber"
     echo "Official jar SHA512: $(sha512sum freenet.jar)"
     echo "Official jar signature SHA512: $(sha512sum freenet.jar.sig)"
-    echo "Git repository is at object ${commitID}"
+    echo "Git repository is at object $commitID"
 }
 
 if [[ -s "differences" ]]; then
