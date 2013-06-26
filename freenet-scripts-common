@@ -37,6 +37,19 @@ function getBuildInfo {
     buildNumber=$(git tag -l 'build*' | awk '{print substr($0, 6)}' | sort --numeric-sort | tail -n1)
     # Get tag with highest build number.
     gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
+    getTagInfo $gitVersion
+    popd
+}
+
+# Sets $gitVersion, $buildNumber, and $commitID.
+# All these are set for the tag given as an argument.
+# This tag must be of the form "build<BUILDNUM>" where <BUILDNUM> is the build
+# number, possibly with leading zeros.
+function getTagInfo {
+    pushd "$fredDir" || exit
+    gitVersion=$1
+    # Exclude first 5 characters - required to be "build"
+    buildNumber=${1:5}
     # Strip possible leading zeros.
     buildNumber=${buildNumber#0}
     # Resolve tag to commit hash.

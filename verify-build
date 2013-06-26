@@ -82,6 +82,8 @@ REPO="$fredDir"
 if [[ -z "$TAG" ]]; then
     getBuildInfo
     TAG=$gitVersion
+else
+    getTagInfo $TAG
 fi
 echo Using build "$TAG"
 cd "$TMPDIR"
