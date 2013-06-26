@@ -103,11 +103,6 @@ if ! git tag -v "$gitVersion"; then
     echo Failed to verify tag "$gitVersion"
     exit 11
 fi
-if [[ -z $buildNumber ]]; then
-	echo Unable to determine build number.
-	exit 3
-fi
-
 echo Build number $buildNumber
 if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
     echo Unable to copy freenet-ext.jar from "$freenetExtPath"
