@@ -72,11 +72,11 @@ fi
 tmpDir=$(mktemp -d --tmpdir=$tmpBase)
 echo Using "$tmpDir"
 
-    cd "$fredDir"
-    if ! git remote update; then
-        echo Unable to update git repository.
-        exit 13
-    fi
+cd "$fredDir"
+if ! git remote update; then
+    echo Unable to update git repository.
+    exit 13
+fi
 
 # The tag was not specified so autodetect.
 if [[ -z "$gitVersion" ]]; then
@@ -84,17 +84,20 @@ if [[ -z "$gitVersion" ]]; then
 else
     getTagInfo $gitVersion
 fi
+
 echo Using build "$gitVersion"
+
 cd "$tmpDir"
+
 if ! git clone "$fredDir" fred; then
     echo Unable to clone repo.
     exit 14
 fi
 cd fred
-    if ! git checkout "$gitVersion"; then
-        echo Unable to checkout build tag.
-        exit 14
-    fi
+if ! git checkout "$gitVersion"; then
+    echo Unable to checkout build tag.
+    exit 14
+fi
 
 if ! git tag -v "$gitVersion"; then
     echo Failed to verify tag "$gitVersion"
@@ -107,35 +110,35 @@ fi
 
 echo Build number $buildNumber
 if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
-	echo Unable to copy freenet-ext.jar from "$freenetExtPath"
-	exit 12
+    echo Unable to copy freenet-ext.jar from "$freenetExtPath"
+    exit 12
 fi
 if ! cp "$bcprovPath" lib/bcprov.jar; then
-	echo Unable to copy bcprov.jar from "$bcprovPath"
-	exit 12
+    echo Unable to copy bcprov.jar from "$bcprovPath"
+    exit 12
 fi
 if ! (ant clean && ant package-only); then
-	echo Unable to build from repository.
-	exit 8
+    echo Unable to build from repository.
+    exit 8
 fi
-
 cd ..
+
 mkdir unpacked-built
 if ! unzip "fred/dist/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
 if ! wget "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" -O freenet.jar.sig; then
-	echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" from the official Freenet website.
-	exit 4
+    echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar.sig" from the official Freenet website.
+    exit 4
 fi
 if ! wget "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" -O freenet.jar; then
-	echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" from the official Freenet website.
-	exit 5;
+    echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-${gitVersion}.jar" from the official Freenet website.
+    exit 5;
 fi
 if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
-	echo "Unable to verify signature on jar"
-	exit 6;
+    echo "Unable to verify signature on jar"
+    exit 6;
 fi
 
 # Check that the website and hosted versions are identical.
@@ -157,8 +160,8 @@ fi
 
 mkdir unpacked-official
 if ! unzip freenet.jar -d unpacked-official > /dev/null; then
-	echo Failed to unpack official released jar
-	exit 7;
+    echo Failed to unpack official released jar
+    exit 7;
 fi
 
 # Ready to do the comparison
