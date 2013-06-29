@@ -23,6 +23,9 @@ websiteStagingDir="../website-staging"
 # Windows installer source location.
 wininstallerDir="../wininstaller-staging"
 
+# Java (Mac, Linux) installer source location
+installerDir="../app-new_installer
+
 # Path to Fred repository.
 fredDir="../fred-official"
 
@@ -50,3 +53,9 @@ signingUser=""
 # User to build Windows executables as.
 wineUser="freenet-buildwin"
 
+# Jar signer for installer generator. These need to be signed for JWS IIRC, but it can be a bogus (self signed) cert.
+# Jar signer keystore password
+jarsignerStorePassword="password"
+
+# Jar signer keystore alias
+jarsignerAlias="alias"
