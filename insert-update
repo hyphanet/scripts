@@ -1,33 +1,34 @@
 #!/bin/bash
 # Put the real keys in ~/bin/insert-update-keys
-SEEDNODESFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/seednodes.fref
-TAG=`cat /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag`
+# Shared default configuration and utility functions.
+source freenet-scripts-common || exit
+readConfig
+
+SEEDNODESFILE=$releaseDir/seednodes.fref
+
+getBuildInfo
+if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
+
+echo Build number $buildNumber git tag $gitVersion
+
 KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
-# Get it from http://software77.net/faq.html#automated
-COUNTRYDATA=/usr/src/cvs/eclipse-workspace/IpToCountry/IpToCountry.dat
-if [ ! -f "$COUNTRYDATA" ]; then echo WARNING: Inserting without country data; fi
-gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg
+if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
+gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg || exit
 source $KEYS/keys || exit
-echo Deleting old temporary files
-rm -R /usr/src/cvs/freenet-temp*
-TEMPLOC=/usr/src/cvs/freenet-temp-$RANDOM
+TEMPLOC=`mktemp -d`
 echo Temporary file location: $TEMPLOC
-cp -a /usr/src/cvs/eclipse-workspace/fred/ $TEMPLOC
+git clone $fredDir $TEMPLOC || exit
 cd $TEMPLOC
 git reset --hard
-git checkout $TAG
-cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-ext.jar lib/freenet-ext.jar || exit
+git checkout $gitVersion || exit
+cp $freenetExtPath lib/freenet-ext.jar || exit
 ant clean
-cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar lib/freenet-cvs-snapshot.jar
-VERSION=`getversion $TEMPLOC`
-#VERSION=1231
-FILENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}.jar
-SOURCENAME=/var/lib/freenet-experimental/freenet-cvs-r${VERSION}-src.tar.bz2
-if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar ]]; then cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}.jar $FILENAME; else echo NOT FOUND JAR; exit; fi
-chown freenete.toad $FILENAME
-if [[ -e /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 ]]; then cp /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet-${TAG}-source.tar.bz2 $SOURCENAME; else echo NOT FOUND SOURCE; exit; fi
-chown freenete.toad $SOURCENAME
-echo Inserting update for build number $VERSION
+cp $releaseDir/freenet-$gitVersion.jar lib/freenet-cvs-snapshot.jar
+FILENAME=$releaseDir/freenet-$gitVersion.jar
+SOURCENAME=$releaseDir/freenet-$gitVersion-source.tar.bz2
+if [[ ! -e $FILENAME ]]; then echo Jar not found; exit; fi
+if [[ ! -e $SOURCENAME ]]; then echo Source not found; exit; fi
+echo Inserting update for build number $buildNumber
 set -m
 
 # SECURITY: Insert via secondary testing node, NOT VIA MAIN NODE
@@ -37,13 +38,13 @@ for PORT in 9482; do
 TEMPFILE1=`mktemp /tmp/insert.temp.XXXXXXXXXX`
 echo Temp file $TEMPFILE1
 echo ClientHello > $TEMPFILE1
-echo "Name=Toad-update-$VERSION" >> $TEMPFILE1
+echo "Name=Toad-update-$buildNumber" >> $TEMPFILE1
 echo ExpectedVersion=2 >> $TEMPFILE1
 echo End >> $TEMPFILE1
 echo >> $TEMPFILE1
 
-INSTALLERFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/new_installer_offline_${VERSION}.jar
-WININSTALLERFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/FreenetInstaller-${VERSION}.exe
+INSTALLERFILE=$releaseDir/new_installer_offline_$buildNumber.jar
+WININSTALLERFILE=$releaseDir/FreenetInstaller-$buildNumber.exe
 
 if [[ ! -f $INSTALLERFILE ]]
 then
@@ -62,48 +63,48 @@ for WHAT in binary source installer wininstaller seednodes changelog fullchangel
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
 PCLASS=0
 URI=NEWKEY
-IDENT=update-new-$VERSION
+IDENT=update-new-$buildNumber
 if [[ $WHAT == "source" ]]; then
   INSERTFILE=$SOURCENAME
   PCLASS=$((PCLASS+3))
-  URI=${URI}/update-source-$VERSION
+  URI=${URI}/update-source-$buildNumber
   IDENT=${IDENT}-source
 fi
 if [[ $WHAT == "installer" ]]; then
   INSERTFILE=$INSTALLERFILE
-  URI=${URI}/installer-${VERSION}
+  URI=${URI}/installer-$buildNumber
   IDENT=${IDENT}-installer
   PCLASS=$((PCLASS+2))
 fi
 if [[ $WHAT == "wininstaller" ]]; then
   INSERTFILE=$WININSTALLERFILE
-  URI=${URI}/wininstaller-${VERSION}
+  URI=${URI}/wininstaller-${buildNumber}
   IDENT=${IDENT}-wininstaller
   PCLASS=$((PCLASS+2))
 fi
 if [[ $WHAT == "binary" ]]; then
   INSERTFILE=$FILENAME
-  URI=${URI}/jar-$VERSION
+  URI=${URI}/jar-$buildNumber
   PCLASS=$((PCLASS))
 fi
 if [[ $WHAT == "seednodes" ]]; then
   INSERTFILE=$SEEDNODESFILE
-  URI=${URI}/seednodes-$VERSION
+  URI=${URI}/seednodes-$buildNumber
   IDENT=${IDENT}-seednodes
 fi
 if [[ $WHAT == "changelog" ]]; then
-  INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt
-  URI=${URI}/changelog-$VERSION
+  INSERTFILE=$releaseDir/changelog.short.$gitVersion.txt
+  URI=${URI}/changelog-$buildNumber
   IDENT=${IDENT}-changelog
 fi
 if [[ $WHAT == "fullchangelog" ]]; then
-  INSERTFILE=/usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
-  URI=${URI}/fullchangelog-$VERSION
+  INSERTFILE=$releaseDir/changelog.full.$gitVersion.txt
+  URI=${URI}/fullchangelog-$buildNumber
   IDENT=${IDENT}-fullchangelog
 fi
 if [[ $WHAT == "iptocountryv4" ]]; then
-  INSERTFILE=$COUNTRYDATA
-  URI=${URI}/iptocountryv4-$VERSION
+  INSERTFILE=$countryDataFile
+  URI=${URI}/iptocountryv4-$buildNumber
   IDENT=${IDENT}-iptocountryv4
   PCLASS=$((PCLASS+2))
 fi
