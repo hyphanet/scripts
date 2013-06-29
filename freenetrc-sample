@@ -59,3 +59,7 @@ jarsignerStorePassword="password"
 
 # Jar signer keystore alias
 jarsignerAlias="alias"
+
+# Location of IpToCountry.dat
+# Get it from here: http://software77.net/faq.html#automated
+countryDataFile="../IpToCountry/IpToCountry.dat"
