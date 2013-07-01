@@ -24,7 +24,7 @@ websiteStagingDir="../website-staging"
 wininstallerDir="../wininstaller-staging"
 
 # Java (Mac, Linux) installer source location
-installerDir="../app-new_installer
+installerDir="../app-new_installer"
 
 # Path to Fred repository.
 fredDir="../fred-official"
