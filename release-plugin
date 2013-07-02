@@ -29,15 +29,15 @@ rm ${PLUGIN}-${GITVERSION}.jar*
 echo Uploaded new snapshot
 echo "http://downloads.freenetproject.org/alpha/plugins/${PLUGIN}/${PLUGIN}-${GITVERSION}.jar" > ../${PLUGIN}.jar.url
 (cd ..; sha1sum ${PLUGIN}.jar.url > ${PLUGIN}.jar.url.sha1)
-rsync -vz ../${PLUGIN}.jar.url* ${targetHost}:/var/www/downloads/alpha/plugins/
-ssh $targetHost -- "cat /var/www/downloads/alpha/.registry | sed \"s/${PLUGIN}.jar .*$/${PLUGIN}.jar plugins\\/${PLUGIN}\\/${PLUGIN}-${GITVERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+rsync -vz ../${PLUGIN}.jar.url* ${targetHost}:/var/www/downloads/alpha/plugins/ || exit
+ssh $targetHost -- "cat /var/www/downloads/alpha/.registry | sed \"s/${PLUGIN}.jar .*$/${PLUGIN}.jar plugins\\/${PLUGIN}\\/${PLUGIN}-${GITVERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry" || exit
 echo Uploaded new pointers
 git clean -dfx
 rm -Rf .git
 cd ..
 mv plugin-$PLUGIN ${PLUGIN}-${GITVERSION}
-tar cjf ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${PLUGIN}-${GITVERSION}
-rsync -vz ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${targetHost}:/var/www/downloads/alpha/plugins/
+tar cjf ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${PLUGIN}-${GITVERSION} || exit
+rsync -vz ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${targetHost}:/var/www/downloads/alpha/plugins/ || exit
 echo Uploaded source
 (echo ClientHello; echo Name=Toad-update-${PLUGIN}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=${PLUGIN}-${GITVERSION}.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar"; echo "TargetFilename=${PLUGIN}.jar"; echo Persistence=forever; echo PriorityClass=2; echo Global=true; echo End) > $TEMPLOC/upload
 cat $TEMPLOC/upload | nc 127.0.0.1 9481
