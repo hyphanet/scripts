@@ -4,7 +4,7 @@ if [[ $PLUGIN == "WoT" ]]; then PLUGIN=WebOfTrust; fi
 TEMPLOC=`mktemp -d`
 cp -a /usr/src/cvs/eclipse-workspace/plugin-$PLUGIN/ $TEMPLOC
 echo Copied data
-cd $TEMPLOC/plugin-$PLUGIN
+cd $TEMPLOC/plugin-$PLUGIN || exit
 git reset --hard
 ln -s /usr/src/cvs/eclipse-workspace/fred $TEMPLOC/fred
 #export JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
@@ -14,11 +14,12 @@ ant clean || exit
 ant distclean
 ant || exit
 GITVERSION=`git describe --always --abbrev=40`
-mv dist/${PLUGIN}.jar ${PLUGIN}-${GITVERSION}.jar
+JARNAME=`echo $PLUGIN | cut -d "_" -f 1`
+mv dist/${JARNAME}.jar ${PLUGIN}-${GITVERSION}.jar || exit
 sha1sum ${PLUGIN}-${GITVERSION}.jar > ${PLUGIN}-${GITVERSION}.jar.sha1
 eval `ssh-agent -s`
 ssh-add
-rsync -vz ${PLUGIN}-${GITVERSION}.jar* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/${PLUGIN}/
+rsync -vz ${PLUGIN}-${GITVERSION}.jar* osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/plugins/${PLUGIN}/ || exit
 cp ${PLUGIN}-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar || exit
 cp ${PLUGIN}-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/FreenetReleased/${PLUGIN}.jar || exit
 rm ${PLUGIN}-${GITVERSION}.jar*
