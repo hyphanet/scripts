@@ -3,13 +3,17 @@ DIFF=`git diff`
 if [[ ! -z $DIFF ]]; then
         echo You did not commit the files!
         echo "$DIFF"
-        exit
+        exit 1
 fi
 DIFF=
-if grep TESTNET src/freenet/node/Version.java ; then echo TRYING TO RELEASE A TESTNET BUILD AS A REAL BUILD ; exit; fi
+if grep TESTNET src/freenet/node/Version.java ; then echo TRYING TO RELEASE A TESTNET BUILD AS A REAL BUILD ; exit 2; fi
 BUILD=$1
-if [[ -z $BUILD ]]; then exit; fi
-if ! grep "buildNumber = $BUILD" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit; fi
+if [[ -z $BUILD ]]; then 
+	echo Usage: tag-build 1234
+	echo 1234 is the build number.
+	exit 3
+fi
+if ! grep "buildNumber = $BUILD" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit 4; fi
 TAG=build0$BUILD
 echo Releasing build $TAG
 echo Please enter developer changelog:
@@ -34,7 +38,7 @@ if [[ $x != "y" ]]; then
 	rm $TEMP
 	git tag -d $TAG
 	echo FAILED
-	exit
+	exit 5
 fi
 git tag -s $TAG -F $TEMP
 git push --tags origin
@@ -42,13 +46,13 @@ git push stable $TAG
 git push origin
 git push stable
 git push --tags stable
-echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit
+echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit 6
 echo $BUILD > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build
 BRANCH=`git branch | grep "^*" | cut -b 3-`
 if test $BRANCH != "master" && test $BRANCH != "next"; then
 	echo Merging back into master
 	git checkout master
-	git merge $TAG || exit
+	git merge $TAG || exit 7
 	echo Delete branch $BRANCH? y/n
 	read x
 	if [[ $x == "y" ]]; then
