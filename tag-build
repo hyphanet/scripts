@@ -13,9 +13,12 @@ if [[ -z $BUILD ]]; then
 	echo 1234 is the build number.
 	exit 3
 fi
-if ! grep "buildNumber = $BUILD" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit 4; fi
-TAG=build0$BUILD
+if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit 4; fi
+TAG=$(printf 'build%05d' "$BUILD")
+PREVBUILD=$(($BUILD-1))
+PREVTAG=$(printf 'build%05d' "$PREVBUILD")
 echo Releasing build $TAG
+echo Previous build was $PREVTAG
 echo Please enter developer changelog:
 cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
 echo Please enter end-user-friendly changelog:
@@ -26,6 +29,8 @@ echo >> $TEMP
 echo "Developer changelog:" >> $TEMP
 echo >> $TEMP
 cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt >> $TEMP
+echo >> $TEMP
+git log ${PREVTAG}.. | grep Author: | sort | uniq >> $TEMP || exit 9
 echo
 echo
 echo Combined changelog as will be tagged:
@@ -40,7 +45,7 @@ if [[ $x != "y" ]]; then
 	echo FAILED
 	exit 5
 fi
-git tag -s $TAG -F $TEMP
+git tag -s $TAG -F $TEMP || exit 8
 git push --tags origin
 git push stable $TAG
 git push origin
