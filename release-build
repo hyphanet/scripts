@@ -1,0 +1,34 @@
+#!/bin/bash
+# Release a Freenet build.
+BUILD=$1
+source freenet-scripts-common || exit
+readConfig || exit
+getBuildInfo
+cd "$fredDir"
+tag-build $BUILD || exit 1
+release-fred --build || exit 2
+release-installer || exit 3
+release-wininstaller || exit 4
+upload-snapshot-googlecode || exit 5
+echo Now please test the new build.
+echo Deploy the build only when:
+echo 1: You have tested the new build and are satisfied that it works, and
+echo 2: You have a node running on FCP port 9482, without excessive logging - this should NOT be your normal development node.
+echo The test node you just installed will do fine.
+java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
+echo -n "Perform release [y/N]?"
+read response
+if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+   echo "Aborting release."
+   exit 7
+fi
+echo Performing final release.
+remote-deploy-website
+echo "Final chance: Deploy to auto-update? [y/N]?"
+read response
+if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+   echo "Aborting release."
+   exit 8
+fi
+insert-update || exit 9
+echo All done.
