@@ -17,18 +17,20 @@ if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then echo YOU 
 TAG=$(printf 'build%05d' "$BUILD")
 PREVBUILD=$(($BUILD-1))
 PREVTAG=$(printf 'build%05d' "$PREVBUILD")
+FULLCHANGELOG=$releaseDir/changelog.full.$TAG.txt
+CHANGELOG=$releaseDir/changelog.short.$TAG.txt
 echo Releasing build $TAG
 echo Previous build was $PREVTAG
 echo Please enter developer changelog:
-cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
+cat > $FULLCHANGELOG
 echo Please enter end-user-friendly changelog:
-cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt
+cat > $CHANGELOG
 TEMP=`mktemp`
-cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt > $TEMP
+cat $CHANGELOG > $TEMP
 echo >> $TEMP
 echo "Developer changelog:" >> $TEMP
 echo >> $TEMP
-cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt >> $TEMP
+cat $FULLCHANGELOG >> $TEMP
 echo >> $TEMP
 git log ${PREVTAG}.. | grep Author: | sort | uniq >> $TEMP || exit 9
 echo
