@@ -59,7 +59,7 @@ BRANCH=`git branch | grep "^*" | cut -b 3-`
 if test $BRANCH != "master" && test $BRANCH != "next"; then
 	echo Merging back into master
 	git checkout master
-	git merge $TAG || exit 7
+	git merge --ff-only $TAG || exit 7
 	echo Delete branch $BRANCH? y/n
 	read x
 	if [[ $x == "y" ]]; then
