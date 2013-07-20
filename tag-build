@@ -22,9 +22,9 @@ CHANGELOG=$releaseDir/changelog.short.$TAG.txt
 echo Releasing build $TAG
 echo Previous build was $PREVTAG
 echo Please enter developer changelog:
-cat > $FULLCHANGELOG
+cat > $FULLCHANGELOG || exit 10
 echo Please enter end-user-friendly changelog:
-cat > $CHANGELOG
+cat > $CHANGELOG || exit 11
 TEMP=`mktemp`
 cat $CHANGELOG > $TEMP
 echo >> $TEMP
