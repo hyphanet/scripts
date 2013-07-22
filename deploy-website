@@ -148,8 +148,6 @@ if $update; then
     echo "Updating website repo."
     cd "$websiteDir"
     git_update
-    git submodule init
-    git submodule update
     if ! [[ "$forceWebsiteID" = "" ]]
     then
         checkGitID "$forceWebsiteID"
