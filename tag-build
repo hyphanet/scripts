@@ -78,5 +78,13 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	git push stable master
 	git push stable next
 	git checkout next
+elif test $BRANCH == "next"; then
+	git checkout master
+	git merge next
+	git push origin next
+	git push origin master
+	git push stable master
+	git push stable next
+	git checkout next
 fi
 rm $TEMP
