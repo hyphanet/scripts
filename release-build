@@ -4,9 +4,11 @@
 BUILD=$1
 source freenet-scripts-common || exit
 readConfig || exit
-getBuildInfo
 cd "$fredDir"
 tag-build $BUILD || exit 1
+# Get build info after tagging the new build.
+getBuildInfo
+echo Releasing build $buildNumber
 release-fred --build || exit 2
 release-installer || exit 3
 release-wininstaller || exit 4

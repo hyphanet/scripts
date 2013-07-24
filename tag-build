@@ -1,4 +1,6 @@
 #!/bin/bash
+source freenet-scripts-common || exit
+readConfig || exit
 DIFF=`git diff`
 if [[ ! -z $DIFF ]]; then
         echo You did not commit the files!
