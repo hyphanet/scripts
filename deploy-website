@@ -164,14 +164,7 @@ cd "$websiteDir"
 
 #Determine which languages are present.
 presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
-cd "$startingDir"
 
-cat <<EOF
-Using FREENETVERSION "$buildNumber"
-Using FREENETTAG "$gitVersion"
-Website contains languages: $presentLangs
-Using website repo in: "$websiteDir"
-EOF
 cd "$fredDir"
 if ! git tag -v "$gitVersion"
 then
@@ -179,6 +172,14 @@ then
 	echo Please ensure you have all relevant gpg keys, and check the fingerprints.
 	exit 3
 fi
+
+cat <<EOF
+Using FREENETVERSION "$buildNumber"
+Using FREENETTAG "$gitVersion"
+Website contains languages: $presentLangs
+Using website repo in: "$websiteDir"
+EOF
+
 cd "$websiteDir"
 echo "Website commit ID is $(git rev-parse --verify HEAD)"
 cd "$startingDir"
