@@ -1,0 +1,12 @@
+#!/bin/bash
+PLUGIN=$1
+if [[ $PLUGIN == "WoT" ]]; then PLUGIN=WebOfTrust; fi
+TEMPLOC=`mktemp -d`
+# Shared default configuration and utility functions.
+source freenet-scripts-common || exit
+readConfig
+JARNAME=`echo $PLUGIN | cut -d "_" -f 1`
+(echo ClientHello; echo Name=Toad-update-${PLUGIN}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=${PLUGIN}.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar"; echo "TargetFilename=${PLUGIN}.jar"; echo Persistence=forever; echo PriorityClass=2; echo Global=true; echo End) > $TEMPLOC/upload
+cat $TEMPLOC/upload | nc 127.0.0.1 9481
+cat $TEMPLOC/upload | nc 127.0.0.1 19841
+rm -Rf $TEMPLOC
