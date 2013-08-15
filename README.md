@@ -27,7 +27,7 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ cp scripts/freenetrc-sample ~/.freenetrc
     $ mkdir FreenetReleased
     $ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleased/freenet-ext.jar
-    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-147.jar -O FreenetReleased/bcprov.jar
+    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar -O FreenetReleased/bcprov.jar
     $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
     $ gpg --import toad.gpg
     $ cd lib-pyFreenet-staging

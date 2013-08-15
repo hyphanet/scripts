@@ -13,7 +13,7 @@
 #
 # The following files should be in the RELEASE_DIRECTORY:
 #
-# * dependencies/bcprov-jdk15on-147.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-147.jar
+# * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
 # * dependencies/Ahk2Exe.exe
 # * dependencies/AutoHotkeySC.bin
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
@@ -150,7 +150,7 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 cp "$releaseDir/freenet.jar"                         "res/install_node/"                || exit
 cp "$freenetExtPath"                                 "res/install_node/freenet-ext.jar" || exit
-cp "$releaseDir/dependencies/bcprov-jdk15on-147.jar" "res/install_node/"                || exit
+cp "$releaseDir/dependencies/bcprov-jdk15on-149.jar" "res/install_node/"                || exit
 cp "$releaseDir/seednodes.fref"                      "res/install_node/"                || exit
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "res/install_node/plugins/"        || exit
