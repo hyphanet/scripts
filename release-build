@@ -4,6 +4,7 @@
 BUILD=$1
 source freenet-scripts-common || exit
 readConfig || exit
+#eval `gpg-agent --daemon`
 cd "$fredDir"
 tag-build $BUILD || exit 1
 # Get build info after tagging the new build.
@@ -34,4 +35,5 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
    exit 8
 fi
 insert-update || exit 9
+#killall gpg-agent
 echo All done.
