@@ -3,6 +3,6 @@ cd /usr/src/cvs/eclipse-workspace/app-new_installer/dist
 
 #eval `gpg-agent --daemon`
 
-for x in new_installer.jar new_installer_offline.jar sha1test.jar wrapper_Darwin.zip wrapper_Linux.zip wrapper_windows.zip; do echo Signing ${x}; rm -f ${x}.sig; sha1sum ${x} > ${x}.sha1; gpg --sign --detach-sign ${x}; done
+for x in new_installer.jar new_installer_offline.jar sha1test.jar wrapper_Darwin.zip wrapper_Linux.zip wrapper_windows.zip; do echo Signing ${x}; rm -f ${x}.sig; sha1sum ${x} > ${x}.sha1; gpg --sign --detach-sign ${x}; gpg --verify ${x}.sig || exit 1; done
 
 #killall gpg-agent
