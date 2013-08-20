@@ -15,7 +15,7 @@ echo Copied to $TEMPDIR
 echo Signing the jars
 for i in $(ls -1 *jar); do jarsigner -storepass $jarsignerStorePassword $i $jarsignerAlias; done
 cp *jar $installerDir/dist/
-sign-installer-jars || exit 6
+sign-installer-jars $installerDir/dist/ || exit 6
 cp $installerDir/dist/*jar.sig .
 (cd $installerDir/scripts/; sha1sum update.cmd > update.cmd.sha1; sha1sum update.sh > update.sh.sha1; cd $installerDir/res/; sha1sum wrapper.conf > wrapper.conf.sha1)
 eval `ssh-agent -s`
