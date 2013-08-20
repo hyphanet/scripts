@@ -1,30 +1,30 @@
 #!/bin/bash
 # Shared default configuration and utility functions.
-source freenet-scripts-common || exit
-readConfig || exit
+source freenet-scripts-common || exit 1
+readConfig || exit 2
 
 cd $installerDir
-./build-all.sh || exit
+./build-all.sh || exit 3
 getBuildInfo
-if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
+if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
 TEMPDIR=`mktemp -d`
-cp $installerDir/dist/* $TEMPDIR || exit
+cp $installerDir/dist/* $TEMPDIR || exit 5
 cd $TEMPDIR
 echo Copied to $TEMPDIR
 echo Signing the jars
 for i in $(ls -1 *jar); do jarsigner -storepass $jarsignerStorePassword $i $jarsignerAlias; done
 cp *jar $installerDir/dist/
-sign-installer-jars || exit
+sign-installer-jars || exit 6
 cp $installerDir/dist/*jar.sig .
 (cd $installerDir/scripts/; sha1sum update.cmd > update.cmd.sha1; sha1sum update.sh > update.sh.sha1; cd $installerDir/res/; sha1sum wrapper.conf > wrapper.conf.sha1)
 eval `ssh-agent -s`
 ssh-add
-rsync $installerDir/scripts/update.* $installerDir/res/wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit
-cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit
-cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit
+rsync $installerDir/scripts/update.* $installerDir/res/wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
+cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
+cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
 ls -l new_installer_offline_${buildNumber}.jar
-cp new_installer_offline_${buildNumber}.jar* $releaseDir || exit
+cp new_installer_offline_${buildNumber}.jar* $releaseDir || exit 10
 rm new_installer_offline_${buildNumber}.jar new_installer_offline_${buildNumber}.jar.sig
 echo Uploading to emu
 rsync -v new_installer* sha1test.jar* wrapper* $targetHost:/var/www/downloads/alpha/installer/
