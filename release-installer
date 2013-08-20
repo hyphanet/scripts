@@ -2,25 +2,28 @@
 # Shared default configuration and utility functions.
 source freenet-scripts-common || exit 1
 readConfig || exit 2
-
-cd $installerDir
-./build-all.sh || exit 3
 getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
+
 TEMPDIR=`mktemp -d`
-cp $installerDir/dist/* $TEMPDIR || exit 5
 cd $TEMPDIR
-echo Copied to $TEMPDIR
+cp -a $installerDir build
+cd build
+./build-all.sh || exit 3
+cd ..
+cp build/dist/* .
 echo Signing the jars
 for i in $(ls -1 *jar); do jarsigner -storepass $jarsignerStorePassword $i $jarsignerAlias; done
-cp *jar $installerDir/dist/
-sign-installer-jars $installerDir/dist/ || exit 6
-cp $installerDir/dist/*jar.sig .
-(cd $installerDir/scripts/; sha1sum update.cmd > update.cmd.sha1; sha1sum update.sh > update.sh.sha1; cd $installerDir/res/; sha1sum wrapper.conf > wrapper.conf.sha1)
+sign-installer-jars . || exit 6
+cp build/scripts/* .
+sha1sum update.cmd > update.cmd.sha1 || exit 7
+sha1sum update.sh > update.sh.sha1 || exit 7
+cp build/res/wrapper.conf . || exit 7
+sha1sum wrapper.conf > wrapper.conf.sha1 || exit 7
 eval `ssh-agent -s`
 ssh-add
-rsync $installerDir/scripts/update.* $installerDir/res/wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
+rsync update.* wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
 cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
 cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
 ls -l new_installer_offline_${buildNumber}.jar
@@ -34,4 +37,6 @@ OLDVERSION=$[$buildNumber-5]
 echo Deleting old version ${OLDVERSION}
 ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
 ssh $targetHost -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+cd
+rm -Rf $TEMPDIR
 ssh-agent -k
