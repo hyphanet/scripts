@@ -21,8 +21,6 @@ sha1sum update.cmd > update.cmd.sha1 || exit 7
 sha1sum update.sh > update.sh.sha1 || exit 7
 cp build/res/wrapper.conf . || exit 7
 sha1sum wrapper.conf > wrapper.conf.sha1 || exit 7
-eval `ssh-agent -s`
-ssh-add
 rsync update.* wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
 cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
 cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
@@ -39,4 +37,3 @@ ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OL
 ssh $targetHost -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
 cd
 rm -Rf $TEMPDIR
-ssh-agent -k

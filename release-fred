@@ -188,12 +188,6 @@ if [[ "$target" = "build" ]]; then
     sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
 fi
 
-# start ssh agent and collect password
-if [ "$useSshAgent" == "1" ]; then
-    eval $(ssh-agent -s)
-    ssh-add
-fi
-
 # upload all files
 rsync -vvzP "$jarName"* freenet-testing-latest.jar.url .registry "$archiveName"* "$targetHost:/var/www/downloads/alpha/" || exit 24
 
@@ -202,11 +196,6 @@ if [[ "$target" = "build" ]]; then
     rsync -vz "$releaseDir/$diffName" "$targetHost:/var/www/emu/l10n/" || exit 25
     rsync -vvzP freenet-testing-latest.jar.url "$targetHost:/var/www/downloads/alpha/freenet-stable-latest.jar.url" || exit 26
     rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
-fi
-
-# shut down the ssh agent
-if [ "$useSshAgent" == "1" ]; then
-    ssh-agent -k
 fi
 
 # Return to starting directory and remove temporary.

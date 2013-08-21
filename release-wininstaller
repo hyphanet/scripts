@@ -37,7 +37,6 @@
 #       gpg
 #   Release:
 #       rsync
-#       ssh-agent
 
 # Shared default configuration and utility functions.
 source freenet-scripts-common || exit
@@ -168,17 +167,6 @@ chmod -R 770 . || exit
 chgrp -R "$wineUser" . || exit
 
 echo Running the build
-if [ "$useSshAgent" == "1" ]; then
-    eval $(ssh-agent -s)
-    ssh-add
-
-    function stopAgent() {
-        ssh-agent -k
-        rmTemp
-    }
-
-    trap stopAgent EXIT
-fi
 
 # The Wine user must create the prefix directory. If the directory is missing
 # Wine will refuse to create it if the directory that would contain it is not

@@ -5,6 +5,19 @@ BUILD=$1
 source freenet-scripts-common || exit
 readConfig || exit
 #eval `gpg-agent --daemon`
+
+if [ "$useSshAgent" == "1" ]; then
+    eval $(ssh-agent -s)
+    ssh-add
+
+    function stopAgent() {
+        ssh-agent -k
+        rmTemp
+    }
+
+    trap stopAgent EXIT
+fi
+
 cd "$fredDir"
 tag-build $BUILD || exit 1
 # Get build info after tagging the new build.
