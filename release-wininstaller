@@ -219,7 +219,13 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
     exit 0
 fi
 
+echo Uploading update scripts
 rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/"
+
+echo Uploading wrapper.conf
+cp res/install_node/wrapper/wrapper.conf wrapper.conf.windows || exit 7
+sha1sum wrapper.conf.windows > wrapper.conf.windows.sha1 || exit 7
+rsync wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
 
 echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/"
