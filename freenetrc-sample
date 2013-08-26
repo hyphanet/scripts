@@ -2,6 +2,9 @@
 # Should be saved to ~/.freenetrc
 # Paths should be absolute.
 
+# Absolute path to base directory. Used for convenience in setting other paths.
+freenetRoot="/home/freenet/"
+
 # Webserver directory for updating project money balance.
 moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
 
@@ -12,22 +15,22 @@ websiteDeployLiveDir="/var/www/freenet-website"
 websiteDeployTestingDir="/var/www/freenet-website-testing"
 
 # Target directory for generated files.
-releaseDir="../FreenetReleased"
+releaseDir="$freenetRoot/FreenetReleased"
 
 # Path to the website-official repository. Used when deploying to the live website.
-websiteOfficialDir="../website-official"
+websiteOfficialDir="$freenetRoot/website-official"
 
 # Path to the website-staging repository. Used when deploying to the testing website.
-websiteStagingDir="../website-staging"
+websiteStagingDir="$freenetRoot/website-staging"
 
 # Windows installer source location.
-wininstallerDir="../wininstaller-staging"
+wininstallerDir="$freenetRoot/wininstaller-staging"
 
 # Java (Mac, Linux) installer source location
-installerDir="../app-new_installer"
+installerDir="$freenetRoot/app-new_installer"
 
 # Path to Fred repository.
-fredDir="../fred-official"
+fredDir="$freenetRoot/fred-official"
 
 # Path to freenet-ext.jar.
 freenetExtPath="$releaseDir/freenet-ext.jar"
@@ -62,7 +65,7 @@ jarsignerAlias="alias"
 
 # Location of IpToCountry.dat
 # Get it from here: http://software77.net/faq.html#automated
-countryDataFile="../IpToCountry/IpToCountry.dat"
+countryDataFile="$freenetRoot/IpToCountry/IpToCountry.dat"
 
 # Where are the (encrypted) auto-update insert keys stored?
 insertKeys="~/.freenet.insertKeys.gpg"
