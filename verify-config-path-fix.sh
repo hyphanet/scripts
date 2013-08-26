@@ -12,10 +12,20 @@ freenet_dir=`realpath "${this_script_dir}/../"` # 1 above
 # Escape for sed string. Replae "/" with "\/". But "\\/" because sed-escaped, "\\\\/" because bash
 freenet_dir_escapedsed=`echo "$freenet_dir" | sed -e 's|/|\\\\/|g'`
 
-for varname in "releaseDir" "fredDir" # replacing
+
+# replacing new-style (since https://github.com/freenet/scripts/commit/cf97427331c8c2bc8ecf870e45decd3b46a1f313)
+for varname in "freenetRoot"
 do
-	expr1='s/'; expr2='="\.\./'; expr3='="'; expr4='/' 
-	expr="${expr1}${varname}${expr2}${varname}${expr3}${freenet_dir_escapedsed}${expr4}"; 
+	expr1='s/'; expr2='=".*'; expr3='="'; expr4='"/'  # replace entire line
+	expr="${expr1}${varname}${expr2}/${varname}${expr3}${freenet_dir_escapedsed}${expr4}"; 
+	sed -e "$expr" ~/.freenetrc > ~/.freenetrc-absolute ; mv ~/.freenetrc-absolute ~/.freenetrc
+	# e.g.: sed -e 's/fredDir="\.\./fredDir="\/home\/fn_verify\/01453/' /home/fn_verify/.freenetrc
+done
+
+for varname in "releaseDir" "fredDir" # replacing old style (up to 1453)
+do
+	expr1='s/'; expr2='="\.\.'; expr3='="'; expr4='/' 
+	expr="${expr1}${varname}${expr2}/${varname}${expr3}${freenet_dir_escapedsed}${expr4}"; 
 	sed -e "$expr" ~/.freenetrc > ~/.freenetrc-absolute ; mv ~/.freenetrc-absolute ~/.freenetrc
 	# e.g.: sed -e 's/fredDir="\.\./fredDir="\/home\/fn_verify\/01453/' /home/fn_verify/.freenetrc
 done
