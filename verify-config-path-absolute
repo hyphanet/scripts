@@ -6,9 +6,14 @@
 # Tool: sed.  Will use expressions like: s/releaseDir="\.\./releaseDir="\/home\/fn_verify\/01453/
 
 # *** First get absolute path to freenet installation that is 1-level up form location of this script (../)
-this_script_filename=`readlink -f $0` 
+this_script_filename=`readlink -e $0` 
 this_script_dir=`dirname ${this_script_filename}`
-freenet_dir=`readlink -f "${this_script_dir}/../"` # 1 above
+freenet_dir=`readlink -e "${this_script_dir}/../"` # 1 above
+
+if [ -z "$freenet_dir" ] ; then
+	echo "ERROR: Unable to find out the freenet_dir from reading our location $0"
+	exit 1;
+fi
 
 # Escape for sed string. Replae "/" with "\/". But "\\/" because sed-escaped, "\\\\/" because bash
 freenet_dir_escapedsed=`echo "$freenet_dir" | sed -e 's|/|\\\\/|g'`
