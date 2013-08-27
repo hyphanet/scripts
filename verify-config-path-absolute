@@ -24,12 +24,11 @@ script_error() {
 }
 
 # replacing new-style (since https://github.com/freenet/scripts/commit/cf97427331c8c2bc8ecf870e45decd3b46a1f313)
-for varname in "freenetRoot" # loop just used for identical syntax and in case more are needed
+for varname in "freenetRoot" # loop just used for identical syntax and in case more are needed :-)
 do
 	expr1='s/'; expr2='=".*'; expr3='="'; expr4='"/'  # replace entire line
 	expr="${expr1}${varname}${expr2}/${varname}${expr3}${freenet_dir_escapedsed}${expr4}"; 
-	sed -e "$expr" ~/.freenetrc > ~/.freenetrc-absolute || script_error 
-	mv ~/.freenetrc-absolute ~/.freenetrc || script_error
+	sed -i -e "$expr" ~/.freenetrc || script_error 
 	# e.g.: sed -e 's/fredDir="\.\./fredDir="\/home\/fn_verify\/01453/' /home/fn_verify/.freenetrc
 done
 
@@ -37,9 +36,7 @@ for varname in "releaseDir" "fredDir" # replacing old style (up to 1453) so you 
 do
 	expr1='s/'; expr2='="\.\.'; expr3='="'; expr4='/' 
 	expr="${expr1}${varname}${expr2}/${varname}${expr3}${freenet_dir_escapedsed}${expr4}"; 
-	sed -e "$expr" ~/.freenetrc > ~/.freenetrc-absolute || script_error
-	mv ~/.freenetrc-absolute ~/.freenetrc || script_error
-	# e.g.: sed -e 's/fredDir="\.\./fredDir="\/home\/fn_verify\/01453/' /home/fn_verify/.freenetrc
+	sed -i -e "$expr" ~/.freenetrc || script_error
 done
 
 echo "Fixed the patches, should be absolute now (where needed)"
