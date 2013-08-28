@@ -14,6 +14,7 @@
 # The following files should be in the RELEASE_DIRECTORY:
 #
 # * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
+# * dependencies/wrapper.jar		-   The version of the Java Service Wrapper jar we are currently using, must correspond to the native binaries
 # * dependencies/Ahk2Exe.exe
 # * dependencies/AutoHotkeySC.bin
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
@@ -71,7 +72,6 @@ Configuration file is at $configPath by default.
                   See http://wiki.winehq.org/DebugChannels
 --xnest		  Run Wine in an Xnest window (so you can see the graphical output).
 		  Useful for debugging your wine setup.
---dry-run         Don't upload the files, just copy them to ~
 
 EOF
             exit 0
@@ -114,6 +114,7 @@ readConfig
 
 # Make temporary build directory to hold installer source, dependencies,
 # and Wine prefix. This will be wiped on exit.
+# TODO: Common function.
 buildDir=$(mktemp -d) || exit
 
 function rmTemp {
@@ -151,7 +152,9 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 cp "$releaseDir/freenet.jar"                         "res/install_node/"                || exit
 cp "$freenetExtPath"                                 "res/install_node/freenet-ext.jar" || exit
 cp "$releaseDir/dependencies/bcprov-jdk15on-149.jar" "res/install_node/"                || exit
+cp "$releaseDir/dependencies/wrapper.jar"            "res/install_node/wrapper/"        || exit
 cp "$releaseDir/seednodes.fref"                      "res/install_node/"                || exit
+# TODO: Is this an appropriate place to have a bundled plugin list? 
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "res/install_node/plugins/"        || exit
 done
@@ -207,12 +210,11 @@ fi
 
 echo "Fred git version is $gitVersion"
 echo "Fred commit ID is $commitID"
+cp FreenetInstaller-$buildNumber.exe* $releaseDir
 if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
-    cp FreenetInstaller-$buildNumber.exe* ~
     exit 0
 fi
-cp FreenetInstaller-$buildNumber.exe* $releaseDir
 
 echo -n "Perform release [y/N]?"
 read response
