@@ -22,6 +22,7 @@ Prompts for confirmation before releasing.
 Configuration file is at $configPath by default.
 Requires --snapshot or --build.
 
+# TODO: Is this a reasonable argument? My initial impression is no.
 --config CONFIG   Path to freenetrc
 --dry-run         If present, builds packages and skips releasing.
 --build           If present packages the highest-numbered build tag.
@@ -88,7 +89,7 @@ if [[ "$target" = "build" ]]; then
 elif [[ "$target" = "snapshot" ]]; then
     gitVersion=$(git describe --always --abbrev=40)
 else
-    echo "Unrecognized internal target of \"$target\"."
+    echo "Internal error: unrecognized target \"$target\"."
     exit 14
 fi
 
@@ -101,6 +102,7 @@ cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
 
 # clean
 ant clean || exit 5
+# TODO: It'd make more sense to clone to a temporary directory. IIRC release-wininstaller does this. TODO: Temporary directory creation and cleanup.
 git reset --hard || exit 6
 
 if [[ "$target" = "build" ]]; then
@@ -112,7 +114,7 @@ elif [[ "$target" = "snapshot" ]]; then
 ant -f build-clean.xml -Ddoc.skip=true || exit 9
     jarName="freenet-$gitVersion-snapshot.jar"
 else
-    echo "Unrecognized internal target of \"$target\"."
+    echo "Internal error: Unrecognized target \"$target\"."
     exit 15
 fi
 
@@ -125,6 +127,7 @@ mv dist/freenet.jar "$jarName" || exit 10
 git archive --format=tar HEAD --prefix="freenet-$gitVersion/" | bzip2 -v9 > "$archiveName" || exit 11
 
 # Generate checksums and signatures for the jar and source archive.
+# TODO: Binary sha512sum instead of sha1sum
 sha1sum "$jarName" > "$jarName.sha1"
 sha1sum "$archiveName" > "$archiveName.sha1"
 if [ -n "$signingUser" ]; then
@@ -145,7 +148,7 @@ fi
 
 # make sure release directory exists
 mkdir -p "$releaseDir"
-# copy files and signatures to local release directory
+# Copy files, checksums, and signatures to local release directory
 cp "$jarName"* "$releaseDir"
 cp "$archiveName"* "$releaseDir"
 rm "$releaseDir/freenet.jar"
@@ -237,7 +240,7 @@ if [[ "$target" = "snapshot" ]]; then
     echo End
     ) | nc "$fcpHost" "$fcpPort"
 else
-    echo "Not inserting build into Freenet."
+    echo "Not inserting build into Freenet. insert-update does that as part of release-build."
 fi
 
 echo "Release complete."
