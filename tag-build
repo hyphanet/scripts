@@ -1,68 +1,105 @@
 #!/bin/bash
 source freenet-scripts-common || exit
 readConfig || exit
-DIFF=`git diff`
+
+DIFF="$(git diff)"
 if [[ ! -z $DIFF ]]; then
-        echo You did not commit the files!
-        echo "$DIFF"
-        exit 1
+    echo "$DIFF"
+    echo There are modified files. Please commit or stash them.
+    exit 1
 fi
-DIFF=
-if grep TESTNET src/freenet/node/Version.java ; then echo TRYING TO RELEASE A TESTNET BUILD AS A REAL BUILD ; exit 2; fi
+
+# TODO: Is this still relevant?
+if grep TESTNET src/freenet/node/Version.java ; then
+    echo This appears to be a testnet build because freenet.node.Version contains "TESTNET".
+# TODO: What to do instead? If testnet will continue to exist, it would make more sense to have --testnet or --release switches for the scripts instead of maintaining parallel versions.
+    echo Testnet builds are not suitable for release as a normal build.
+    exit 2
+fi
+
 BUILD=$1
-if [[ -z $BUILD ]]; then 
+if [[ -z $BUILD ]]; then
 	echo Usage: tag-build 1234
 	echo 1234 is the build number.
 	exit 3
 fi
-if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit 4; fi
+
+# TODO: Committing this change is a manual process, then? It might be nice to have a similar helper script.
+if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then
+    echo src/freenet/node/Version.java does not contain the requested build number.
+    echo Please update it.
+    exit 4
+fi
+
 TAG=$(printf 'build%05d' "$BUILD")
 PREVBUILD=$(($BUILD-1))
 PREVTAG=$(printf 'build%05d' "$PREVBUILD")
+
 FULLCHANGELOG=$releaseDir/changelog.full.$TAG.txt
 CHANGELOG=$releaseDir/changelog.short.$TAG.txt
+
 echo Releasing build $TAG
 echo Previous build was $PREVTAG
+
 echo Please enter developer changelog:
-cat > $FULLCHANGELOG || exit 10
+editor $FULLCHANGELOG || exit 10
 echo Please enter end-user-friendly changelog:
-cat > $CHANGELOG || exit 11
-TEMP=`mktemp`
-cat $CHANGELOG > $TEMP
-echo >> $TEMP
-echo "Developer changelog:" >> $TEMP
-echo >> $TEMP
-cat $FULLCHANGELOG >> $TEMP
-echo >> $TEMP
-git log ${PREVTAG}.. | grep Author: | sort | uniq >> $TEMP || exit 9
-echo
+editor $CHANGELOG || exit 11
+
+# Temporary file to hold developer changelog, user-facing changelog, and contributing authors.
+TEMP="$(mktemp)"
+
+# Remove temporary file on exit.
+function cleanup {
+    rm "$TEMP"
+}
+trap cleanup EXIT
+
+cat "$CHANGELOG" > "$TEMP"
+echo >> "$TEMP"
+echo "Developer changelog:" >> "$TEMP"
+echo >> "$TEMP"
+cat "$FULLCHANGELOG" >> "$TEMP"
+echo "Authors:" >> "$TEMP"
+git log --format="format:%an <%ae>" "$PREVTAG.." | sort | uniq >> "$TEMP" || exit 9
+
 echo
 echo Combined changelog as will be tagged:
 echo
-cat $TEMP
+cat "$TEMP"
 echo
-echo Confirm release of $TAG? y/n
-read x
-if [[ $x != "y" ]]; then
-	rm $TEMP
-	git tag -d $TAG
-	echo FAILED
-	exit 5
-fi
-git tag -s $TAG -F $TEMP || exit 8
+
+require "Tag as $TAG?"
+
+# Tag with the message, and push the tags and changes.
+# TODO: This pushes all tags - would it make more sense to push only the new tag?
+git tag -s "$TAG" -F "$TEMP" || exit 8
+
 git push --tags origin
-git push stable $TAG
+# TODO: Why push this tag explicitly when pushing all tags immeditely thereafter?
+# TODO: This assumes there is a "stable" remote. Require its presence?
+git push stable "$TAG"
 git push origin
 git push stable
 git push --tags stable
-echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit 6
-echo $BUILD > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build
-BRANCH=`git branch | grep "^*" | cut -b 3-`
+
+echo "$TAG" > "$releaseDir/freenet.tag" || exit 6
+# TODO: Why might .tag echo fail but .build not?
+echo "$BUILD" > "$releaseDir/freenet.build"
+
+# TODO: test vs. [ ] or [[ ]]?
+# Get the name of the active branch. TODO: More idiomatic?
+BRANCH="$(git branch | grep "^\*" | cut -b3 -)"
+
 if test $BRANCH != "master" && test $BRANCH != "next"; then
-	echo Merging back into master
+    # If the active branch is one other than next or master, merge it into master.
+    # TODO: What is the use case of this? stable-BUILDNUMBER branches?
+	echo "Merging active branch $BRANCH back into master."
 	git checkout master
 	git merge --ff-only $TAG || exit 7
-	echo Delete branch $BRANCH? y/n
+
+    # Then offer to delete it.
+	echo "Delete branch $BRANCH? [y/N]"
 	read x
 	if [[ $x == "y" ]]; then
 		git branch -d $BRANCH
@@ -71,20 +108,21 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	else
 		git checkout $BRANCH
 	fi
+
+    # Merge master into next.
 	git checkout next
 	git merge master
-	git push origin next
-	git push origin master
-	git push stable master
-	git push stable next
-	git checkout next
 elif test $BRANCH == "next"; then
+    # Merge next into master.
 	git checkout master
 	git merge next
-	git push origin next
-	git push origin master
-	git push stable master
-	git push stable next
-	git checkout next
 fi
-rm $TEMP
+
+# Push changes and end on next.
+# TODO: Previously did not push changes if branch was master. Why?
+git push origin next
+git push origin master
+git push stable master
+git push stable next
+
+git checkout next
