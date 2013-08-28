@@ -68,3 +68,14 @@ function readConfig {
     fi
 }
 
+# Reads a case insensitive y/n response to the question given in the argument.
+# Prints "Aborting." and exits if it is not y.
+function require {
+    echo -n "$1 [y/N]"
+    read response
+    if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+       echo "Aborting."
+       exit 1
+    fi
+}
+
