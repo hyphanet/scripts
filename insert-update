@@ -20,7 +20,6 @@ KEYS="$(mktemp -d -p /tmp temp.XXXXXXXX)"
 if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
 # Decrypt the keys.
 gpg -o $KEYS/keys "$insertKeys" || exit
-source $KEYS/keys || exit
 TEMPLOC="$(mktemp -d)"
 echo Temporary file location: "$TEMPLOC"
 # TODO consider just using the source tarball.
@@ -41,13 +40,13 @@ echo Inserting update for build number $buildNumber
 # This avoids the insert keys ever being known to the main node.
 PORT=9482
 
-TEMPFILE1="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
-echo Temp file $TEMPFILE1
-echo ClientHello > $TEMPFILE1
-echo "Name=Toad-update-$buildNumber" >> $TEMPFILE1
-echo ExpectedVersion=2 >> $TEMPFILE1
-echo End >> $TEMPFILE1
-echo >> $TEMPFILE1
+TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
+echo Temp file $TEMPFILE
+echo ClientHello > $TEMPFILE
+echo "Name=Toad-update-$buildNumber" >> $TEMPFILE
+echo ExpectedVersion=2 >> $TEMPFILE
+echo End >> $TEMPFILE
+echo >> $TEMPFILE
 
 INSTALLERFILE=$releaseDir/new_installer_offline_$buildNumber.jar
 WININSTALLERFILE=$releaseDir/FreenetInstaller-$buildNumber.exe
@@ -69,60 +68,60 @@ for WHAT in binary source installer wininstaller seednodes changelog fullchangel
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
 # Of course, you should run this against the testing node which should already be running the new version, so won't restart.
 PCLASS=0
-URI=NEWKEY
 IDENT=update-new-$buildNumber
 if [[ $WHAT == "source" ]]; then
   INSERTFILE=$SOURCENAME
   PCLASS=$((PCLASS+3))
-  URI=${URI}/update-source-$buildNumber
+  URIEND=/update-source-$buildNumber
   IDENT=${IDENT}-source
 fi
 if [[ $WHAT == "installer" ]]; then
   INSERTFILE=$INSTALLERFILE
-  URI=${URI}/installer-$buildNumber
+  URIEND=/installer-$buildNumber
   IDENT=${IDENT}-installer
   PCLASS=$((PCLASS+2))
 fi
 if [[ $WHAT == "wininstaller" ]]; then
   INSERTFILE=$WININSTALLERFILE
-  URI=${URI}/wininstaller-${buildNumber}
+  URIEND=/wininstaller-${buildNumber}
   IDENT=${IDENT}-wininstaller
   PCLASS=$((PCLASS+2))
 fi
 if [[ $WHAT == "binary" ]]; then
   INSERTFILE=$FILENAME
-  URI=${URI}/jar-$buildNumber
+  URIEND=/jar-$buildNumber
   PCLASS=$((PCLASS))
 fi
 if [[ $WHAT == "seednodes" ]]; then
   INSERTFILE=$SEEDNODESFILE
-  URI=${URI}/seednodes-$buildNumber
+  URIEND=/seednodes-$buildNumber
   IDENT=${IDENT}-seednodes
 fi
 if [[ $WHAT == "changelog" ]]; then
   INSERTFILE=$releaseDir/changelog.short.$gitVersion.txt
-  URI=${URI}/changelog-$buildNumber
+  URIEND=/changelog-$buildNumber
   IDENT=${IDENT}-changelog
 fi
 if [[ $WHAT == "fullchangelog" ]]; then
   INSERTFILE=$releaseDir/changelog.full.$gitVersion.txt
-  URI=${URI}/fullchangelog-$buildNumber
+  URIEND=/fullchangelog-$buildNumber
   IDENT=${IDENT}-fullchangelog
 fi
 if [[ $WHAT == "iptocountryv4" ]]; then
   INSERTFILE=$countryDataFile
-  URI=${URI}/iptocountryv4-$buildNumber
+  URIEND=/iptocountryv4-$buildNumber
   IDENT=${IDENT}-iptocountryv4
   PCLASS=$((PCLASS+2))
 fi
-TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
 echo ClientPut >> $TEMPFILE
 # Turn off compression: Limit possibilities for things breaking
 echo "DontCompress=true" >> $TEMPFILE
 # Force a specific compatibility mode. This should be whatever was current at the time of the last transition build.
 echo "CompatibilityMode=COMPAT_1250_EXACT" >> $TEMPFILE
-# The URI at this point is "NEWKEY", we will replace it later on.
-echo "URI=$URI" >> $TEMPFILE
+# Add the actual private URI
+echo -n "URI=" >> $TEMPFILE
+cat $KEYS/keys | grep "NEWKEY=" | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" | tr --delete "\n\"" >> $TEMPFILE
+echo "$URIEND" >> $TEMPFILE
 echo "Identifier=$IDENT" >> $TEMPFILE
 # Enable all verbosity flags. I guess we don't need this as it's a global insert anyway.
 echo Verbosity=1023 >> $TEMPFILE
@@ -136,34 +135,17 @@ echo Persistence=reboot >> $TEMPFILE
 echo PriorityClass=$PCLASS >> $TEMPFILE
 echo Global=true >> $TEMPFILE
 echo End >> $TEMPFILE
-
-# Construct a sed script to substitute in the real insert keys.
-# On POSIX, the arguments of any script are visible to any process on the system.
-# So it's vital that we not just include the keys in the arguments to sed.
-# Hence we create a script here, in a tempfile.
-# TODO just cat it
-SCRIPT=$KEYS/script
-echo -n "s/NEWKEY/" > $SCRIPT
-cat $KEYS/keys | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" >> $SCRIPT
-cat $SCRIPT | tr --delete "\n" > ${SCRIPT}.1 && mv ${SCRIPT}.1 $SCRIPT
-echo "/" >> $SCRIPT
-cat $TEMPFILE | sed -f $SCRIPT > $TEMPFILE.1
-mv $TEMPFILE.1 $TEMPFILE
-
-# Send the message followed by the data.
-cat $TEMPFILE >> $TEMPFILE1
-cat $INSERTFILE >> $TEMPFILE1
-rm $TEMPFILE
+# Send the data after the message
+cat $INSERTFILE >> $TEMPFILE
 
 done
 
 SCRIPT=$KEYS/script
 
-#cat $TEMPFILE1 | nc 127.0.0.1 $PORT | sed "/^URI=/d" &
-cat $TEMPFILE1 | nc 127.0.0.1 $PORT | sed "/^URI=/d"
+cat $TEMPFILE | nc 127.0.0.1 $PORT | sed "/^URI=/d"
 
 rm -Rf $KEYS
-rm -Rf $TEMPFILE1
+rm -Rf $TEMPFILE
 
 #jobs
 #wait %1
