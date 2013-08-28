@@ -1,4 +1,6 @@
 #!/bin/bash
+# Requires remotes: "origin" = fred-staging, "stable" = fred-official
+# TODO Test for this?
 source freenet-scripts-common || exit
 readConfig || exit
 
@@ -9,10 +11,10 @@ if [[ ! -z $DIFF ]]; then
     exit 1
 fi
 
-# TODO: Is this still relevant?
+# Testnet is a separate source repository, so we need to check for it.
+# TODO we should have --testnet switches on the scripts.
 if grep TESTNET src/freenet/node/Version.java ; then
     echo This appears to be a testnet build because freenet.node.Version contains "TESTNET".
-# TODO: What to do instead? If testnet will continue to exist, it would make more sense to have --testnet or --release switches for the scripts instead of maintaining parallel versions.
     echo Testnet builds are not suitable for release as a normal build.
     exit 2
 fi
@@ -24,7 +26,9 @@ if [[ -z $BUILD ]]; then
 	exit 3
 fi
 
-# TODO: Committing this change is a manual process, then? It might be nice to have a similar helper script.
+# Committing is a manual process, and doing it this way reduces the chances of the user deploying the wrong build.
+# Plus we might need to make the build mandatory.
+# TODO But we could automate it more, while still being robust, if we really wanted to ...
 if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then
     echo src/freenet/node/Version.java does not contain the requested build number.
     echo Please update it.
@@ -41,9 +45,8 @@ CHANGELOG=$releaseDir/changelog.short.$TAG.txt
 echo Releasing build $TAG
 echo Previous build was $PREVTAG
 
-echo Please enter developer changelog:
+# The editor will indicate the filename so the user should know what he's doing.
 editor $FULLCHANGELOG || exit 10
-echo Please enter end-user-friendly changelog:
 editor $CHANGELOG || exit 11
 
 # Temporary file to hold developer changelog, user-facing changelog, and contributing authors.
@@ -77,28 +80,25 @@ git tag -s "$TAG" -F "$TEMP" || exit 8
 
 git push --tags origin
 # TODO: Why push this tag explicitly when pushing all tags immeditely thereafter?
-# TODO: This assumes there is a "stable" remote. Require its presence?
 git push stable "$TAG"
 git push origin
 git push stable
 git push --tags stable
 
 echo "$TAG" > "$releaseDir/freenet.tag" || exit 6
-# TODO: Why might .tag echo fail but .build not?
-echo "$BUILD" > "$releaseDir/freenet.build"
+echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
 
 # TODO: test vs. [ ] or [[ ]]?
 # Get the name of the active branch. TODO: More idiomatic?
 BRANCH="$(git branch | grep "^\*" | cut -b3 -)"
 
 if test $BRANCH != "master" && test $BRANCH != "next"; then
-    # If the active branch is one other than next or master, merge it into master.
-    # TODO: What is the use case of this? stable-BUILDNUMBER branches?
+	# Common case: Releasing from a branch, e.g. stable-9999, fixes
 	echo "Merging active branch $BRANCH back into master."
 	git checkout master
 	git merge --ff-only $TAG || exit 7
 
-    # Then offer to delete it.
+	# Then offer to delete it.
 	echo "Delete branch $BRANCH? [y/N]"
 	read x
 	if [[ $x == "y" ]]; then
@@ -109,17 +109,17 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 		git checkout $BRANCH
 	fi
 
-    # Merge master into next.
+	# Merge master into next.
 	git checkout next
 	git merge master
 elif test $BRANCH == "next"; then
-    # Merge next into master.
+	# Releasing from next.
+	# Merge next into master.
 	git checkout master
 	git merge next
 fi
 
 # Push changes and end on next.
-# TODO: Previously did not push changes if branch was master. Why?
 git push origin next
 git push origin master
 git push stable master
