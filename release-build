@@ -1,9 +1,15 @@
 #!/bin/bash
 # Release a Freenet build.
 # Everything here can be safely re-run except for tag-build. If you get a failure after that, comment out tag-build before running this script again.
+# Usage is "release-build 9999" for build 9999. 
+# TODO Add --help etc.
+# TODO Add --snapshot to proxy to release-fred --snapshot ???
 BUILD=$1
 source freenet-scripts-common || exit 1
 readConfig || exit 1
+
+# Set up agents at the beginning of this script, but not the individual scripts.
+# TODO We could put this in freenet-scripts-common but only if it doesn't get re-run in every script we call.
 #eval `gpg-agent --daemon`
 
 if [ "$useSshAgent" == "1" ]; then
@@ -27,6 +33,8 @@ release-fred --build || exit 2
 release-installer || exit 3
 release-wininstaller || exit 4
 upload-snapshot-googlecode || exit 5
+# TODO Make 9482 configurable here and in insert-update.
+# REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.
 echo Deploy the build only when:
 echo 1: You have tested the new build and are satisfied that it works, and
@@ -49,4 +57,5 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
 fi
 insert-update || exit 9
 #killall gpg-agent
+# TODO How to terminate our gpg-agent and no others?
 echo All done.

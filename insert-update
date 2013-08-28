@@ -38,6 +38,8 @@ echo Inserting update for build number $buildNumber
 
 # SECURITY: Insert via secondary testing node, NOT VIA MAIN NODE
 # This avoids the insert keys ever being known to the main node.
+# TODO Make 9482 configurable here and in insert-update.
+# REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 PORT=9482
 
 TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
