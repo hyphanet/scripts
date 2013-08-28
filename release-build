@@ -32,7 +32,7 @@ echo Releasing build $buildNumber
 release-fred --build || exit 2
 release-installer || exit 3
 release-wininstaller || exit 4
-upload-snapshot-googlecode || exit 5
+upload-release-to-googlecode || exit 5
 # TODO Make 9482 configurable here and in insert-update.
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.
