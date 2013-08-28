@@ -1,5 +1,7 @@
 #!/bin/bash
 # User should put the real keys in $insertKeys (see ~/.freenetrc)
+# Format of keys file: NEWKEY=[SSK private URI]
+# We used to also include OLDKEY, but this is not used any more, since the transition version is the last build inserted on the old key and the first inserted on the new key.
 # Load the shared utility functions.
 source freenet-scripts-common || exit
 readConfig
@@ -11,25 +13,29 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 echo Build number $buildNumber git tag $gitVersion
 
+# The auto-update keys should never, EVER be written to disk in plaintext.
+# /tmp is a tmpfs on encrypted swap, right?
+# PARANOIA: Maybe we should check :)
 KEYS="$(mktemp -d -p /tmp temp.XXXXXXXX)"
 if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
+# Decrypt the keys.
 gpg -o $KEYS/keys "$insertKeys" || exit
 source $KEYS/keys || exit
 TEMPLOC="$(mktemp -d)"
 echo Temporary file location: "$TEMPLOC"
+# TODO consider just using the source tarball.
+# TODO We need to know the version and the gitVersion but that's stored somewhere IIRC.
 git clone "$fredDir" "$TEMPLOC" || exit
 cd $TEMPLOC
 git reset --hard
 git checkout "$gitVersion" || exit
 cp "$freenetExtPath" lib/freenet-ext.jar || exit
 ant clean
-cp "$releaseDir/freenet-$gitVersion.jar" lib/freenet-cvs-snapshot.jar
 FILENAME="$releaseDir/freenet-$gitVersion.jar"
 SOURCENAME="$releaseDir/freenet-$gitVersion-source.tar.bz2"
 if [[ ! -e "$FILENAME" ]]; then echo Jar not found; exit; fi
 if [[ ! -e "$SOURCENAME" ]]; then echo Source not found; exit; fi
 echo Inserting update for build number $buildNumber
-set -m
 
 # SECURITY: Insert via secondary testing node, NOT VIA MAIN NODE
 # This avoids the insert keys ever being known to the main node.
@@ -61,6 +67,7 @@ fi
 for WHAT in binary source installer wininstaller seednodes changelog fullchangelog iptocountryv4; do
 
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
+# Of course, you should run this against the testing node which should already be running the new version, so won't restart.
 PCLASS=0
 URI=NEWKEY
 IDENT=update-new-$buildNumber
@@ -110,13 +117,19 @@ if [[ $WHAT == "iptocountryv4" ]]; then
 fi
 TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
 echo ClientPut >> $TEMPFILE
+# Turn off compression: Limit possibilities for things breaking
 echo "DontCompress=true" >> $TEMPFILE
+# Force a specific compatibility mode. This should be whatever was current at the time of the last transition build.
 echo "CompatibilityMode=COMPAT_1250_EXACT" >> $TEMPFILE
+# The URI at this point is "NEWKEY", we will replace it later on.
 echo "URI=$URI" >> $TEMPFILE
 echo "Identifier=$IDENT" >> $TEMPFILE
+# Enable all verbosity flags. I guess we don't need this as it's a global insert anyway.
 echo Verbosity=1023 >> $TEMPFILE
+# Keep on retrying the insert until it succeeds.
 echo MaxRetries=-1 >> $TEMPFILE
 echo UploadFrom=direct >> $TEMPFILE
+# TODO: wc -c instead of relying on the ls -l format?
 echo DataLength=$(ls -l $INSERTFILE | cut -d " " -f 5) >> $TEMPFILE
 # SECURITY: Persistence=reboot so the keys are never written to disk
 echo Persistence=reboot >> $TEMPFILE
@@ -124,6 +137,11 @@ echo PriorityClass=$PCLASS >> $TEMPFILE
 echo Global=true >> $TEMPFILE
 echo End >> $TEMPFILE
 
+# Construct a sed script to substitute in the real insert keys.
+# On POSIX, the arguments of any script are visible to any process on the system.
+# So it's vital that we not just include the keys in the arguments to sed.
+# Hence we create a script here, in a tempfile.
+# TODO just cat it
 SCRIPT=$KEYS/script
 echo -n "s/NEWKEY/" > $SCRIPT
 cat $KEYS/keys | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" >> $SCRIPT
@@ -132,6 +150,7 @@ echo "/" >> $SCRIPT
 cat $TEMPFILE | sed -f $SCRIPT > $TEMPFILE.1
 mv $TEMPFILE.1 $TEMPFILE
 
+# Send the message followed by the data.
 cat $TEMPFILE >> $TEMPFILE1
 cat $INSERTFILE >> $TEMPFILE1
 rm $TEMPFILE
