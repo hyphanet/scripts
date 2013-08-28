@@ -125,8 +125,6 @@ echo -n "URI=" >> $TEMPFILE
 cat $KEYS/keys | grep "NEWKEY=" | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" | tr --delete "\n\"" >> $TEMPFILE
 echo "$URIEND" >> $TEMPFILE
 echo "Identifier=$IDENT" >> $TEMPFILE
-# Enable all verbosity flags. I guess we don't need this as it's a global insert anyway.
-echo Verbosity=1023 >> $TEMPFILE
 # Keep on retrying the insert until it succeeds.
 echo MaxRetries=-1 >> $TEMPFILE
 echo UploadFrom=direct >> $TEMPFILE
