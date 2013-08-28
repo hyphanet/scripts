@@ -1,6 +1,6 @@
 #!/bin/bash
-# Put the real keys in ~/bin/insert-update-keys
-# Shared default configuration and utility functions.
+# User should put the real keys in $insertKeys (see ~/.freenetrc)
+# Load the shared utility functions.
 source freenet-scripts-common || exit
 readConfig
 
@@ -13,7 +13,7 @@ echo Build number $buildNumber git tag $gitVersion
 
 KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
 if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
-gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg || exit
+gpg -o $KEYS/keys "$insertKeys" || exit
 source $KEYS/keys || exit
 TEMPLOC=`mktemp -d`
 echo Temporary file location: $TEMPLOC

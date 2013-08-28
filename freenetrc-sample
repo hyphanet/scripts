@@ -63,3 +63,7 @@ jarsignerAlias="alias"
 # Location of IpToCountry.dat
 # Get it from here: http://software77.net/faq.html#automated
 countryDataFile="../IpToCountry/IpToCountry.dat"
+
+# Where are the (encrypted) auto-update insert keys stored?
+insertKeys="~/.freenet.insertKeys.gpg"
+
