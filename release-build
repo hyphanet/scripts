@@ -41,7 +41,7 @@ echo 1: You have tested the new build and are satisfied that it works, and
 echo 2: You have a node running on FCP port 9482, without excessive logging - this should NOT be your normal development node.
 echo The test node you just installed will do fine.
 java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
-echo -n "Perform release [y/N]?"
+require "Perform release?"
 read response
 if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
    echo "Aborting release."
@@ -49,7 +49,7 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
 fi
 echo Performing final release.
 remote-deploy-website
-echo "Final chance: Deploy to auto-update? [y/N]?"
+require "Final chance: Deploy to auto-update?"
 read response
 if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
    echo "Aborting release."
