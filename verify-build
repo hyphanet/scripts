@@ -138,19 +138,32 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config
-fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber" inserted-freenet.jar
+key="SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber"
+echo "" ; echo "Downloading from freenet - this can take a moment... key: $key"
+fcpget --verbose --fcpHost="$fcpHost" --fcpPort="$fcpPort" "$key" inserted-freenet.jar
 if [ ! -e "inserted-freenet.jar" ]; then
     echo "Unable to fetch freenet.jar from Freenet."
     exit 12
 fi
+echo "Downloaded file: "
+sha512sum inserted-freenet.jar
+
+echo "Comparing: "
 if ! cmp freenet.jar inserted-freenet.jar; then
+    echo ""
+    echo ""
+    echo "ERROR - VERIFICATION FAILED"
     echo FAILED TO VERIFY: The freenet.jar from the website and the
     echo freenet.jar fetched from Freenet are different.
     echo "Website jar SHA512: $(sha512sum freenet.jar)"
     echo "Inserted jar SHA512: $(sha512sum inserted-freenet.jar)"
+    echo ""
+    echo "FAILED TO VERIFY. Please warn everyone using freenet and non-freenet."
     exit 11
 else
+    echo ""
     echo freenet.jar from the website and fetched from Freenet are the same.
+    echo "So far OK..."
 fi
 
 mkdir unpacked-official
@@ -167,6 +180,8 @@ if ! cmp unpacked-official.list unpacked-built.list; then
     echo Files in official but not in built are marked as +
     echo Files in built but not in official are marked with -
     diff -u unpacked-built.list unpacked-official.list
+    echo ""
+    echo "FAILED TO VERIFY. Please warn everyone using freenet and non-freenet."
     exit 9
 fi
 
@@ -194,6 +209,8 @@ if [[ -s "differences" ]]; then
     echo VERIFY FAILED: FILES ARE DIFFERENT:
     cat differences
     summary
+    echo ""
+    echo "FAILED TO VERIFY. Please warn everyone using freenet and non-freenet."
     exit 10
 fi
 echo "Verification successful."
