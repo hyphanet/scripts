@@ -2,8 +2,8 @@
 # Release a Freenet build.
 # Everything here can be safely re-run except for tag-build. If you get a failure after that, comment out tag-build before running this script again.
 BUILD=$1
-source freenet-scripts-common || exit
-readConfig || exit
+source freenet-scripts-common || exit 1
+readConfig || exit 1
 #eval `gpg-agent --daemon`
 
 if [ "$useSshAgent" == "1" ]; then
