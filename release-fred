@@ -127,7 +127,7 @@ mv dist/freenet.jar "$jarName" || exit 10
 git archive --format=tar HEAD --prefix="freenet-$gitVersion/" | bzip2 -v9 > "$archiveName" || exit 11
 
 # Generate checksums and signatures for the jar and source archive.
-# TODO: Binary sha512sum instead of sha1sum
+# TODO: Binary sha512sum instead of sha1sum. Note that this will require changes to the installer and update scripts, we probably want to keep the .sha1's as well as .sha512/.sha256.
 sha1sum "$jarName" > "$jarName.sha1"
 sha1sum "$archiveName" > "$archiveName.sha1"
 if [ -n "$signingUser" ]; then
