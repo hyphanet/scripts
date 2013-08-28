@@ -6,34 +6,48 @@ getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
 
-TEMPDIR=`mktemp -d`
-cd $TEMPDIR
-cp -a $installerDir build
+# Set up build directory
+# TODO: Common temp dir creation and cleanup.
+TEMPDIR="$(mktemp -d)"
+cd "$TEMPDIR"
+cp -a "$installerDir" build
 cd build
 ./build-all.sh || exit 3
 cd ..
 cp build/dist/* .
+
 echo Signing the jars
-for i in $(ls -1 *jar); do jarsigner -storepass $jarsignerStorePassword $i $jarsignerAlias; done
+# jarsigner* are configured in .freenetrc
+for i in *jar; do
+    jarsigner -storepass $jarsignerStorePassword "$i" $jarsignerAlias
+done
 sign-installer-jars . || exit 6
+
+# Generate checksums.
 cp build/scripts/* .
+# TODO: Use sha512 as well as sha256, update the update scripts, installers etc, see release-fred
 sha1sum update.cmd > update.cmd.sha1 || exit 7
 sha1sum update.sh > update.sh.sha1 || exit 7
 cp build/res/wrapper.conf . || exit 7
 sha1sum wrapper.conf > wrapper.conf.sha1 || exit 7
+
+# Upload generated files to web host.
+echo Uploading
 rsync update.* wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
 cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
 cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
 ls -l new_installer_offline_${buildNumber}.jar
 cp new_installer_offline_${buildNumber}.jar* $releaseDir || exit 10
 rm new_installer_offline_${buildNumber}.jar new_installer_offline_${buildNumber}.jar.sig
-echo Uploading to emu
 rsync -v new_installer* sha1test.jar* wrapper* $targetHost:/var/www/downloads/alpha/installer/
 ssh $targetHost -- "cp /var/www/downloads/alpha/installer/new_installer_offline.jar /var/www/downloads/alpha/installer/new_installer_offline_${buildNumber}.jar"
 rsync -v new_installer_offline.jar.sig $targetHost:/var/www/downloads/alpha/installer/new_installer_offline_${buildNumber}.jar.sig
+
+# Delete the old version to avoid running out of disk space.
 OLDVERSION=$[$buildNumber-5]
 echo Deleting old version ${OLDVERSION}
 ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
 ssh $targetHost -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
+
 cd
-rm -Rf $TEMPDIR
+rm -Rf "$TEMPDIR"
