@@ -119,7 +119,7 @@ echo ClientPut >> $TEMPFILE
 # Turn off compression: Limit possibilities for things breaking
 echo "DontCompress=true" >> $TEMPFILE
 # Force a specific compatibility mode. This should be whatever was current at the time of the last transition build.
-echo "CompatibilityMode=COMPAT_1250_EXACT" >> $TEMPFILE
+echo "CompatibilityMode=COMPAT_1416" >> $TEMPFILE
 # Add the actual private URI
 echo -n "URI=" >> $TEMPFILE
 cat $KEYS/keys | grep "NEWKEY=" | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" | tr --delete "\n\"" >> $TEMPFILE
