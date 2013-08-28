@@ -43,6 +43,10 @@ echo Inserting update for build number $buildNumber
 PORT=9482
 
 TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
+# TODO Consider not using a tempfile.
+# Obvious way to do this is (.....) | nc ...
+# The error messages would need to be echo Blah >&2, which they are not now.
+# However, we need to be able to exit the whole script from within the parentheses...
 echo Temp file $TEMPFILE
 echo ClientHello > $TEMPFILE
 echo "Name=Toad-update-$buildNumber" >> $TEMPFILE
