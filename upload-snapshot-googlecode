@@ -1,61 +1,70 @@
 #!/bin/bash
-DIR=/usr/src/cvs/eclipse-workspace/FreenetReleased
-MAINVER=`cat $DIR/freenet.mainver`
-VERSION=`cat $DIR/freenet.build`
-GITVERSION=`cat $DIR/freenet.tag`
+# TODO: Use getBuildInfo?
+MAINVER="$(cat "$releaseDir/freenet.mainver")"
+VERSION="$(cat "$releaseDir/freenet.build")"
+GITVERSION="$(cat "$releaseDir/freenet.tag")"
 echo Version is $VERSION
 echo Git version is $GITVERSION
-TEMP=`mktemp -d`
+
+# TODO: Use common temp dir.
+TEMP="$(mktemp -d)"
 echo Temp is $TEMP
-gpg -d -o $TEMP/.send2goog.conf ~/.send2goog.conf.gpg || exit
+# TODO: Assumes an encrypted configuration file in ~/
+# TODO: Set up exit hook to remove the unencrypted version.
+# TODO: Would gpg-agent be of use here?
+gpg -d -o "$TEMP/.send2goog.conf" ~/.send2goog.conf.gpg || exit
+
+# Remove any existing link, then link
 rm -f ~/.send2goog.conf
-ln -s $TEMP/.send2goog.conf ~/.send2goog.conf
-DESCRIPTION="Freenet $MAINVER build $VERSION main jar (signature)"
-echo Checking for $DIR/freenet-${GITVERSION}.jar
-[[ -e $DIR/freenet-${GITVERSION}.jar ]] || exit 1
-echo Checking for $DIR/freenet-${GITVERSION}.jar.sig
-[[ -e $DIR/freenet-${GITVERSION}.jar.sig ]] || exit 1
-echo Checking for $DIR/freenet-${GITVERSION}-source.tar.bz2
-[[ -e $DIR/freenet-${GITVERSION}-source.tar.bz2 ]] || exit 1
-echo Checking for $DIR/freenet-${GITVERSION}-source.tar.bz2.sig
-[[ -e $DIR/freenet-${GITVERSION}-source.tar.bz2.sig ]] || exit 1
-echo Checking for $DIR/new_installer_offline_$VERSION.jar
-[[ -e $DIR/new_installer_offline_$VERSION.jar ]] || exit 1
-echo Checking for $DIR/new_installer_offline_$VERSION.jar.sig
-[[ -e $DIR/new_installer_offline_$VERSION.jar.sig ]] || exit 1
-echo Checking for $DIR/FreenetInstaller-$VERSION.exe.sig
-[[ -e $DIR/FreenetInstaller-$VERSION.exe.sig ]] || exit 1
-echo Checking for $DIR/FreenetInstaller-$VERSION.exe
-[[ -e $DIR/FreenetInstaller-$VERSION.exe ]] || exit 1
-#echo Checking for $DIR/FreenetInstaller-$VERSION-old.exe
-#[[ -e $DIR/FreenetInstaller-$VERSION-old.exe ]] || exit 1
+ln -s "$TEMP/.send2goog.conf" ~/.send2goog.conf
+
+# TODO: Check this with a loop.
+echo Checking for $releaseDir/freenet-${GITVERSION}.jar
+[[ -e $releaseDir/freenet-${GITVERSION}.jar ]] || exit 1
+echo Checking for $releaseDir/freenet-${GITVERSION}.jar.sig
+[[ -e $releaseDir/freenet-${GITVERSION}.jar.sig ]] || exit 1
+echo Checking for $releaseDir/freenet-${GITVERSION}-source.tar.bz2
+[[ -e $releaseDir/freenet-${GITVERSION}-source.tar.bz2 ]] || exit 1
+echo Checking for $releaseDir/freenet-${GITVERSION}-source.tar.bz2.sig
+[[ -e $releaseDir/freenet-${GITVERSION}-source.tar.bz2.sig ]] || exit 1
+echo Checking for $releaseDir/new_installer_offline_$VERSION.jar
+[[ -e $releaseDir/new_installer_offline_$VERSION.jar ]] || exit 1
+echo Checking for $releaseDir/new_installer_offline_$VERSION.jar.sig
+[[ -e $releaseDir/new_installer_offline_$VERSION.jar.sig ]] || exit 1
+echo Checking for $releaseDir/FreenetInstaller-$VERSION.exe.sig
+[[ -e $releaseDir/FreenetInstaller-$VERSION.exe.sig ]] || exit 1
+echo Checking for $releaseDir/FreenetInstaller-$VERSION.exe
+[[ -e $releaseDir/FreenetInstaller-$VERSION.exe ]] || exit 1
+
 echo Uploading...
-~/bin/send2goog -b -d "$DESCRIPTION" $DIR/freenet-${GITVERSION}.jar.sig
+# TODO: Assumes some send2goog tool.
+# TODO: Can this not be done with a loop?
+# TODO: Why not mark old versions as no longer featured? Marking everything featured more or less defeats the purpose.
+DESCRIPTION="Freenet $MAINVER build $VERSION main jar (signature)"
+~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/freenet-${GITVERSION}.jar.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION main jar"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Type-Executable -l OpSys-All $DIR/freenet-${GITVERSION}.jar
+~/bin/send2goog -b -d "$DESCRIPTION" -l Type-Executable -l OpSys-All $releaseDir/freenet-${GITVERSION}.jar
 DESCRIPTION="Freenet $MAINVER build $VERSION source code (signature)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" $DIR/freenet-${GITVERSION}-source.tar.bz2.sig
+~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/freenet-${GITVERSION}-source.tar.bz2.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION source code"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Source -l OpSys-All $DIR/freenet-${GITVERSION}-source.tar.bz2
+~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Source -l OpSys-All $releaseDir/freenet-${GITVERSION}-source.tar.bz2
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (mac/linux/*nix) (signature)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" $DIR/new_installer_offline_$VERSION.jar.sig
+~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/new_installer_offline_$VERSION.jar.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (mac/linux/*nix)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-OSX -l OpSys-Linux $DIR/new_installer_offline_$VERSION.jar
+~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-OSX -l OpSys-Linux $releaseDir/new_installer_offline_$VERSION.jar
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows) (signature)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" $DIR/FreenetInstaller-$VERSION.exe.sig
+~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/FreenetInstaller-$VERSION.exe.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-Windows $DIR/FreenetInstaller-$VERSION.exe
+~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-Windows $releaseDir/FreenetInstaller-$VERSION.exe
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows) (signature) (old version)"
-#~/bin/send2goog -b -d "$DESCRIPTION" $DIR/FreenetInstaller-$VERSION-old.exe.sig
-#DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows) (old version)"
-#~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-Windows $DIR/FreenetInstaller-$VERSION-old.exe
 
+# Both of what?
 echo Sent both
 rm -Rf $TEMP
