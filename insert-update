@@ -11,11 +11,11 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 echo Build number $buildNumber git tag $gitVersion
 
-KEYS="`mktemp -d -p /tmp temp.XXXXXXXX`"
+KEYS="$(mktemp -d -p /tmp temp.XXXXXXXX)"
 if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
 gpg -o $KEYS/keys "$insertKeys" || exit
 source $KEYS/keys || exit
-TEMPLOC="`mktemp -d`"
+TEMPLOC="$(mktemp -d)"
 echo Temporary file location: "$TEMPLOC"
 git clone "$fredDir" "$TEMPLOC" || exit
 cd $TEMPLOC
@@ -35,7 +35,7 @@ set -m
 # This avoids the insert keys ever being known to the main node.
 for PORT in 9482; do
 
-TEMPFILE1="`mktemp /tmp/insert.temp.XXXXXXXXXX`"
+TEMPFILE1="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
 echo Temp file $TEMPFILE1
 echo ClientHello > $TEMPFILE1
 echo "Name=Toad-update-$buildNumber" >> $TEMPFILE1
@@ -108,7 +108,7 @@ if [[ $WHAT == "iptocountryv4" ]]; then
   IDENT=${IDENT}-iptocountryv4
   PCLASS=$((PCLASS+2))
 fi
-TEMPFILE="`mktemp /tmp/insert.temp.XXXXXXXXXX`"
+TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
 echo ClientPut >> $TEMPFILE
 echo "DontCompress=true" >> $TEMPFILE
 echo "CompatibilityMode=COMPAT_1250_EXACT" >> $TEMPFILE
@@ -117,7 +117,7 @@ echo "Identifier=$IDENT" >> $TEMPFILE
 echo Verbosity=1023 >> $TEMPFILE
 echo MaxRetries=-1 >> $TEMPFILE
 echo UploadFrom=direct >> $TEMPFILE
-echo DataLength=`ls -l $INSERTFILE | cut -d " " -f 5` >> $TEMPFILE
+echo DataLength=$(ls -l $INSERTFILE | cut -d " " -f 5) >> $TEMPFILE
 # SECURITY: Persistence=reboot so the keys are never written to disk
 echo Persistence=reboot >> $TEMPFILE
 echo PriorityClass=$PCLASS >> $TEMPFILE
