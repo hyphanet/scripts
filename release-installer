@@ -21,7 +21,7 @@ echo Signing the jars
 for i in *jar; do
     jarsigner -storepass $jarsignerStorePassword "$i" $jarsignerAlias
 done
-sign-installer-jars . || exit 6
+sign-installer-files . || exit 6
 
 # Generate checksums.
 cp build/scripts/* .

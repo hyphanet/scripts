@@ -2,7 +2,7 @@
 
 # Argument must be a folder
 if [[ -z $1 ]]; then
-	echo Usage: sign-installer-jars /some/dir/containing/jars
+	echo Usage: sign-installer-files /some/dir/containing/jars
 	exit 1
 fi
 cd "$1"
