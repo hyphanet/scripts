@@ -1,5 +1,5 @@
 #!/bin/bash
-# Will be compatible with Bash for now. Using $(..) subshells. (v3)
+# Will be compatible with Bash for now. Using $(..) subshells. (Script version 3a)
 
 # Goal: We need to edit ini file to change some relative pathes into absolute path.
 # Purpose: this is needed as part of verify-build for example.
