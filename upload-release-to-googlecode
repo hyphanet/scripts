@@ -1,5 +1,7 @@
 #!/bin/bash
 # TODO: Use getBuildInfo?
+source freenet-scripts-common || exit 1
+readConfig || exit 2
 MAINVER="$(cat "$releaseDir/freenet.mainver")"
 VERSION="$(cat "$releaseDir/freenet.build")"
 GITVERSION="$(cat "$releaseDir/freenet.tag")"
