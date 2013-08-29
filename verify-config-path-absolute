@@ -1,5 +1,4 @@
 #!/bin/bash
-# Will be compatible with Bash for now. Using $(..) subshells. (Script version 3a)
 
 # Goal: We need to edit ini file to change some relative pathes into absolute path.
 # Purpose: this is needed as part of verify-build for example.
@@ -23,7 +22,6 @@ script_error() {
 	exit 1;
 }
 
-# replacing new-style (since https://github.com/freenet/scripts/commit/cf97427331c8c2bc8ecf870e45decd3b46a1f313)
 for varname in "freenetRoot" # loop just used for identical syntax and in case more are needed :-)
 do
 	expr1='s/'; expr2='=".*'; expr3='="'; expr4='"/'  # replace entire line
