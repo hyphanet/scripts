@@ -25,6 +25,7 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ git clone git://github.com/freenet/fred-official.git
     $ git clone git://github.com/freenet/lib-pyFreenet-staging.git
     $ cp scripts/freenetrc-sample ~/.freenetrc
+    $ scripts/set-freenetrc-base
     $ mkdir FreenetReleased
     $ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleased/freenet-ext.jar
     $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar -O FreenetReleased/bcprov.jar
@@ -33,7 +34,7 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ cd lib-pyFreenet-staging
     # python setup.py install
 
-Now everything should be installed. Change ~/.freenetrc to have absolute paths. (At least for `releaseDir`, `fredDir`, and `freenetExtPath`.)  Make sure a Freenet node is accessible by FCP.
+Now everything should be installed and sufficiently configured. Make sure a Freenet node is accessible by FCP.
 
 
     $ cd ../scripts
