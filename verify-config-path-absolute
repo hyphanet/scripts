@@ -14,6 +14,8 @@ if [ -z "$freenet_dir" ] ; then
 	exit 1;
 fi
 
+echo "Setting base directory to \"$freenet_dir\""
+
 # Escape for sed string. Replace "/" with "\/". But "\\/" because sed-escaped
 freenet_dir_escaped="$(echo "$freenet_dir" | sed -e 's|/|\\/|g')"
 
@@ -25,5 +27,4 @@ script_error() {
 # Replace the entire line with a modified one.
 sed -ie "s/^freenetRoot=.*$/freenetRoot=\"$freenet_dir_escaped\"/" ~/.freenetrc || script_error
 
-echo "Fixed the patches, should be absolute now (where needed)"
-
+echo "Configuration updated."
