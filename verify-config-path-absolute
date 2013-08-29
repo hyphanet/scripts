@@ -30,12 +30,5 @@ do
 	# e.g.: sed -e 's/fredDir="\.\./fredDir="\/home\/fn_verify\/01453/' /home/fn_verify/.freenetrc
 done
 
-for varname in "releaseDir" "fredDir" # replacing old style (up to 1453) so you can verify old builds
-do
-	expr1='s/'; expr2='="\.\.'; expr3='="'; expr4='/' 
-	expr="${expr1}${varname}${expr2}/${varname}${expr3}${freenet_dir_escaped}${expr4}"; 
-	sed -i -e "$expr" ~/.freenetrc || script_error
-done
-
 echo "Fixed the patches, should be absolute now (where needed)"
 
