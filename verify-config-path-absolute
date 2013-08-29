@@ -22,13 +22,8 @@ script_error() {
 	exit 1;
 }
 
-for varname in "freenetRoot" # loop just used for identical syntax and in case more are needed :-)
-do
-	expr1='s/'; expr2='=".*'; expr3='="'; expr4='"/'  # replace entire line
-	expr="${expr1}${varname}${expr2}/${varname}${expr3}${freenet_dir_escaped}${expr4}"; 
-	sed -i -e "$expr" ~/.freenetrc || script_error 
-	# e.g.: sed -e 's/fredDir="\.\./fredDir="\/home\/fn_verify\/01453/' /home/fn_verify/.freenetrc
-done
+# Replace the entire line with a modified one.
+sed -ie "s/^freenetRoot=.*$/freenetRoot=\"$freenet_dir_escaped\"/" ~/.freenetrc || script_error
 
 echo "Fixed the patches, should be absolute now (where needed)"
 
