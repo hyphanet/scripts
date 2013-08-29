@@ -19,6 +19,9 @@ readConfig
 ## TODO: Allow choosing Freenet jar sources: at least one of website, freenet.
 ## TODO: Also verify consistency of source archives.
 
+# Avoid specifying this message multiple places. TODO: This may make more sense as a function?
+failureWarning="FAILED TO VERIFY. If you determine that this failure is not due to build environent differences, then the source files used to build the published version of Freenet are different from the published source files. The build has been compromised. Take care to only run version of Freenet with published, reviewable source code, as compromised versions of Freenet could easily contain back doors."
+
 # Exit with an error if freenet-ext does not exist.
 if [[ ! -e "$freenetExtPath" ]]; then
     echo "The path \"$freenetExtPath\" does not exist."
@@ -158,7 +161,7 @@ if ! cmp freenet.jar inserted-freenet.jar; then
     echo "Website jar SHA512: $(sha512sum freenet.jar)"
     echo "Inserted jar SHA512: $(sha512sum inserted-freenet.jar)"
     echo ""
-    echo "FAILED TO VERIFY. Please warn everyone using freenet and non-freenet."
+    echo "$failureWarning"
     exit 11
 else
     echo ""
@@ -181,7 +184,7 @@ if ! cmp unpacked-official.list unpacked-built.list; then
     echo Files in built but not in official are marked with -
     diff -u unpacked-built.list unpacked-official.list
     echo ""
-    echo "FAILED TO VERIFY. Please warn everyone using freenet and non-freenet."
+    echo "$failureWarning"
     exit 9
 fi
 
@@ -210,7 +213,7 @@ if [[ -s "differences" ]]; then
     cat differences
     summary
     echo ""
-    echo "FAILED TO VERIFY. Please warn everyone using freenet and non-freenet."
+    echo "$failureWarning"
     exit 10
 fi
 echo "Verification successful."
