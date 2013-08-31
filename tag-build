@@ -90,7 +90,7 @@ echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
 
 # TODO: test vs. [ ] or [[ ]]?
 # Get the name of the active branch. TODO: More idiomatic?
-BRANCH="$(git branch | grep "^\*" | cut -b3 -)"
+BRANCH="$(git branch | grep "^\*" | cut -b 3-)"
 
 if test $BRANCH != "master" && test $BRANCH != "next"; then
 	# Common case: Releasing from a branch, e.g. stable-9999, fixes
