@@ -18,7 +18,6 @@ if [ "$useSshAgent" == "1" ]; then
 
     function stopAgent() {
         ssh-agent -k
-        rmTemp
     }
 
     trap stopAgent EXIT
