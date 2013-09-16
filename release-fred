@@ -79,19 +79,24 @@ fi
 buildDir=$(mktemp -d)
 echo "Created temporary directory $buildDir."
 git clone "$fredDir" "$buildDir" || exit 2
-pushd "$buildDir"
+cd "$fredDir"
 
 # Function in freenet-scripts-common - sets $gitVersion, $buildNumber, and $commitID.
 getBuildInfo
 # If releasing a stable build checkout the latest build tag.
 if [[ "$target" = "build" ]]; then
-    git checkout "$gitVersion" || exit 12
+    echo "Building release."
 elif [[ "$target" = "snapshot" ]]; then
+    echo "Building snapshot."
     gitVersion=$(git describe --always --abbrev=40)
+    commitID=$(git rev-parse HEAD)
 else
     echo "Internal error: unrecognized target \"$target\"."
     exit 14
 fi
+
+cd "$buildDir"
+git checkout "$gitVersion" || exit 12
 
 # copy freenet-ext.jar
 mkdir -p lib 2>/dev/null
