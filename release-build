@@ -41,19 +41,9 @@ echo 2: You have a node running on FCP port 9482, without excessive logging - th
 echo The test node you just installed will do fine.
 java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
 require "Perform release?"
-read response
-if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
-   echo "Aborting release."
-   exit 7
-fi
 echo Performing final release.
 remote-deploy-website
 require "Final chance: Deploy to auto-update?"
-read response
-if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
-   echo "Aborting release."
-   exit 8
-fi
 insert-update || exit 9
 #killall gpg-agent
 # TODO How to terminate our gpg-agent and no others?
