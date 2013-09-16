@@ -100,11 +100,6 @@ mkdir -p lib/freenet
 cp lib/freenet-ext.jar lib/freenet/ || exit 4
 cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
 
-# clean
-ant clean || exit 5
-# TODO: It'd make more sense to clone to a temporary directory. IIRC release-wininstaller does this. TODO: Temporary directory creation and cleanup.
-git reset --hard || exit 6
-
 if [[ "$target" = "build" ]]; then
     ant -f build-clean.xml || exit 16
     ant javadoc || exit 32
