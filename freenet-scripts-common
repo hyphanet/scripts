@@ -34,9 +34,9 @@ function getBuildInfo {
     # Get highest build number, sorted numerically.
     # Git tag includes only those tags starting with "build", and the awk
     # substring excludes the first 5 characters, which are "build".
-    buildNumber=$(git tag -l 'build*' | awk '{print substr($0, 6)}' | sort --numeric-sort | tail -n1)
+    buildNumber=$(git tag -l 'build[0-9]*' | awk '{print substr($0, 6)}' | grep "^[0-9]*$" | sort --numeric-sort | tail -n1)
     # Get tag with highest build number.
-    gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
+    gitVersion=$(git tag -l 'build[0-9]*' | grep "$buildNumber$")
     getTagInfo $gitVersion
     popd
 }
