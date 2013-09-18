@@ -50,6 +50,10 @@ This will write the changes in the override file to the source file. To write th
 
 ## Releasing Freenet
 
+To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`)in the `www-downloads` group.
+
+Run `release-build`. It will run these steps:
+
 1. `tag-build [build number]` tags a build and prompts for a changelog.
 
 2. `release-fred` builds the Fred jar and source archive, signs them, creates l10n diffs, and uploads all to osprey.
@@ -68,4 +72,3 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 8. `insert-update` inserts the jars over FCP via a node on port 9482. This is intended to be the test node which was installed by testing the installer as above. This is so that a development node which may have heavy logging does not leak the keys into the logs.
 
 9. Once the inserts have completed announce the release.
-
