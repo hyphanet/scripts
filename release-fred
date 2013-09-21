@@ -160,9 +160,7 @@ if [[ "$target" = "build" ]]; then
 fi
 
 clean_up() {
-    # Return to starting directory and remove temporary.
-    popd
-    rm -Rf $buildDir
+    rm -Rf "$buildDir"
 }
 
 echo "Built $gitVersion as a $target release."
@@ -201,7 +199,6 @@ if [[ "$target" = "build" ]]; then
     rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
 fi
 
-# Return to starting directory and remove temporary.
 clean_up
 
 # upload snapshot binary and signature to freenet
