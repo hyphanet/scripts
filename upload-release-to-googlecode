@@ -39,32 +39,31 @@ echo Checking for $releaseDir/FreenetInstaller-$VERSION.exe
 [[ -e $releaseDir/FreenetInstaller-$VERSION.exe ]] || exit 1
 
 echo Uploading...
-# TODO: Assumes some send2goog tool.
 # TODO: Can this not be done with a loop?
 # TODO: Why not mark old versions as no longer featured? Marking everything featured more or less defeats the purpose.
 DESCRIPTION="Freenet $MAINVER build $VERSION main jar (signature)"
-~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/freenet-${GITVERSION}.jar.sig
+send2goog -b -d "$DESCRIPTION" $releaseDir/freenet-${GITVERSION}.jar.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION main jar"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Type-Executable -l OpSys-All $releaseDir/freenet-${GITVERSION}.jar
+send2goog -b -d "$DESCRIPTION" -l Type-Executable -l OpSys-All $releaseDir/freenet-${GITVERSION}.jar
 DESCRIPTION="Freenet $MAINVER build $VERSION source code (signature)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/freenet-${GITVERSION}-source.tar.bz2.sig
+send2goog -b -d "$DESCRIPTION" $releaseDir/freenet-${GITVERSION}-source.tar.bz2.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION source code"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Source -l OpSys-All $releaseDir/freenet-${GITVERSION}-source.tar.bz2
+send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Source -l OpSys-All $releaseDir/freenet-${GITVERSION}-source.tar.bz2
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (mac/linux/*nix) (signature)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/new_installer_offline_$VERSION.jar.sig
+send2goog -b -d "$DESCRIPTION" $releaseDir/new_installer_offline_$VERSION.jar.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (mac/linux/*nix)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-OSX -l OpSys-Linux $releaseDir/new_installer_offline_$VERSION.jar
+send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-OSX -l OpSys-Linux $releaseDir/new_installer_offline_$VERSION.jar
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows) (signature)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" $releaseDir/FreenetInstaller-$VERSION.exe.sig
+send2goog -b -d "$DESCRIPTION" $releaseDir/FreenetInstaller-$VERSION.exe.sig
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows)"
 echo $DESCRIPTION
-~/bin/send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-Windows $releaseDir/FreenetInstaller-$VERSION.exe
+send2goog -b -d "$DESCRIPTION" -l Featured -l Type-Installer -l OpSys-Windows $releaseDir/FreenetInstaller-$VERSION.exe
 DESCRIPTION="Freenet $MAINVER build $VERSION installer (windows) (signature) (old version)"
 
 echo Uploaded all released files to Google Code.
