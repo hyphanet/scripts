@@ -24,10 +24,10 @@ websiteOfficialDir="$freenetRoot/website-official"
 websiteStagingDir="$freenetRoot/website-staging"
 
 # Windows installer source location.
-wininstallerDir="$freenetRoot/wininstaller-staging"
+wininstallerDir="$freenetRoot/wininstaller"
 
 # Java (Mac, Linux) installer source location
-installerDir="$freenetRoot/app-new_installer"
+installerDir="$freenetRoot/java_installer"
 
 # Path to Fred repository.
 fredDir="$freenetRoot/fred"
