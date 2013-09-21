@@ -45,8 +45,9 @@ CHANGELOG=$releaseDir/changelog.short.$TAG.txt
 echo Releasing build $TAG
 echo Previous build was $PREVTAG
 
-# The editor will indicate the filename so the user should know what he's doing.
+echo "Enter developer-facing changelog." > "$FULLCHANGELOG"
 editor $FULLCHANGELOG || exit 10
+echo "Enter user-facing changelog." > "$CHANGELOG"
 editor $CHANGELOG || exit 11
 
 # Temporary file to hold developer changelog, user-facing changelog, and contributing authors.
