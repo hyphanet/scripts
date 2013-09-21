@@ -19,6 +19,7 @@ cp build/dist/* .
 echo Signing the jars
 # jarsigner* are configured in .freenetrc
 for i in *jar; do
+    # TODO: Instead of storing the jar cert password in freenetrc, have it in a GPG-encrypted file.
     jarsigner -storepass $jarsignerStorePassword "$i" $jarsignerAlias
 done
 sign-installer-files . || exit 6
