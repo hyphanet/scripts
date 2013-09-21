@@ -52,7 +52,7 @@ This will write the changes in the override file to the source file. To write th
 
 To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`)in the `www-downloads` group.
 
-To set up a release environment, set up freenetrc, then (read through and) run `release-setup`. Performing a release requires:
+To set up a release environment, set up freenetrc, then (read through and) run `setup-release-environment`. Performing a release requires:
 
 * push access to `fred-staging` and `fred-official`
 * SSH access to the FPI webserver. (Osprey)
