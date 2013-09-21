@@ -1,5 +1,8 @@
 #!/bin/bash
 # FIXME clean up, give --help etc.
+
+# Deploy the website on the webserver using locally-reviewed commit IDs.
+
 source freenet-scripts-common
 readConfig
 getBuildInfo
