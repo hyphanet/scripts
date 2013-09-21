@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source freenet-scripts-common || exit
+readConfig || exit
+
+# Packages on Debian Wheezy
+# For building Java: openjdk-6-jdk ant
+# For release management: rsync, coreutils, diffutils, gnupg, less, wget, perl
+# For building the Windows installer: xvfb, wine
+# It would be interesting to have the scripts repo without git, but might as well.
+sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl
+
+wget software77.net/geo-ip/?DL=4 -O "$countryDataFile"
+
+# Clone if not set up already.
+if [ ! -d "$fredDir" ]; then
+    require "Clone Freenet repository into \"$fredDir\"?"
+    git clone git@github.com:freenet/fred-staging.git "$fredDir" || exit
+else
+    # TODO: Check that fred-staging is the origin.
+    echo "Assuming origin is official fred-staging."
+fi
+
+if [ ! -d "$installerDir" ]; then
+    require "Clone Freenet installer into \"$installerDir\"?"
+    git clone https://github.com/freenet/java_installer-official.git "$installerDir" || exit
+fi
+
+if [ ! -d "$wininstallerDir" ]; then
+    require "Clone Freenet Windows installer into \"$wininstallerDir\"?"
+    git clone https://github.com/freenet/wininstaller-official.git "$wininstallerDir" || exit
+fi
+
+pushd "$fredDir"
+# tag-build assumes fred-staging as the `origin` remote, and fred-official as the `stable` remote.
+git remote add stable git@github.com:freenet/fred-official.git

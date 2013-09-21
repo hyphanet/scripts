@@ -52,6 +52,18 @@ This will write the changes in the override file to the source file. To write th
 
 To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`)in the `www-downloads` group.
 
+To set up a release environment, set up freenetrc, then (read through and) run `release-setup`. Performing a release requires:
+
+* push access to `fred-staging` and `fred-official`
+* SSH access to the FPI webserver. (Osprey)
+* FPI Google Code credentials (in `~/.send2goog.conf.gpg` - see `release-to-googlecode`
+* (Encrypted) auto-update keys at the location set in `insertKeys` in `freenetrc`.
+* A published gpg keypair.
+* [`send2goog`](https://code.google.com/p/send2goog/) (as included in the repo) on the path.
+* A jarsigner certificate. This can be a self-signed one, though once (or if) one exists for FPI one should use it. See [here](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html). For example: `keytool -genkeypair -keyalg RSA -sigalg SHA256withRSA -keysize 4096 -dname "cn=Robert Releaserson, o=The Freenet Project Inc, c=US" -alias freenet -storepass SomePassphrase -validity 365 -keystore ~/.keystore`
+ * Set freenetrc `jarsignerAlias` and `jarsignerPassword` to the alias and store passphrase, respectively.
+
+
 Run `release-build`. It will run these steps:
 
 1. `tag-build [build number]` tags a build and prompts for a changelog.
