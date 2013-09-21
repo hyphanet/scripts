@@ -7,8 +7,9 @@ readConfig || exit
 # For building Java: openjdk-6-jdk ant
 # For release management: rsync, coreutils, diffutils, gnupg, less, wget, perl
 # For building the Windows installer: xvfb, wine
+# For avoiding repeated password entry: gnupg-agent openssh-client
 # It would be interesting to have the scripts repo without git, but might as well.
-sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl
+sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl gnupg-agent openssh-client
 
 # countryDataFile might have a directory that doesn't exist (it is very likely
 # to by default) so create it.
