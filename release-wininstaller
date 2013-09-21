@@ -183,7 +183,7 @@ if [ "$xnest" == "true" ]; then
 	export DISPLAY
 	ssh="$ssh -X"
 fi
-$ssh -n $wineUser@localhost "cd $buildDir; mkdir .wine; WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine $xvfbrun wine cmd /c build.cmd; killall -s9 -u $wineUser"
+$ssh -n $wineUser@localhost "cd $buildDir; mkdir .wine; WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine $xvfbrun wine cmd /c build.cmd; wineserver -k"
 
 if [ "$xnest" == "true" ]; then
 	killall Xnest
