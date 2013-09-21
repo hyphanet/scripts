@@ -52,8 +52,14 @@ This will write the changes in the override file to the source file. To write th
 
 To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`)in the `www-downloads` group.
 
-To set up a release environment, set up freenetrc, then (read through and) run `setup-release-environment`. Performing a release requires:
+To set up a release environment, set up freenetrc, then (read through and) run
+`setup-release-environment`. This will install required packages (under Debian
+Wheezy), clone the repositories, and download the IP to country database.
+This should be kept up to date - maybe a cronjob would be good. Note
+that this should not be at the start of an hour
+[lest their server be overwhelmed](http://software77.net/faq.html#automated).
 
+Performing a release requires:
 * push access to `fred-staging` and `fred-official`
 * SSH access to the FPI webserver. (Osprey)
 * FPI Google Code credentials (in `~/.send2goog.conf.gpg` - see `release-to-googlecode`

@@ -10,6 +10,11 @@ readConfig || exit
 # It would be interesting to have the scripts repo without git, but might as well.
 sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl
 
+# countryDataFile might have a directory that doesn't exist (it is very likely
+# to by default) so create it.
+# NOTE: Beware of downloading this file multiple times per day. Those who host
+# it are apparently very happy to add to their blacklist.
+mkdir -p $(dirname "$countryDataFile")
 wget software77.net/geo-ip/?DL=4 -O "$countryDataFile"
 
 # Clone if not set up already.
