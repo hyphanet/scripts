@@ -3,7 +3,7 @@
 # Paths should be absolute.
 
 # Absolute path to base directory. Used for convenience in setting other paths.
-freenetRoot="/home/freenet/"
+freenetRoot="/home/freenet"
 
 # Webserver directory for updating project money balance.
 moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
@@ -30,7 +30,7 @@ wininstallerDir="$freenetRoot/wininstaller-staging"
 installerDir="$freenetRoot/app-new_installer"
 
 # Path to Fred repository.
-fredDir="$freenetRoot/fred-official"
+fredDir="$freenetRoot/fred"
 
 # Path to freenet-ext.jar.
 freenetExtPath="$releaseDir/freenet-ext.jar"
