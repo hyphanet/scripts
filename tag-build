@@ -49,7 +49,14 @@ echo Previous build was $PREVTAG
 
 echo "Enter developer-facing changelog." > "$FULLCHANGELOG"
 editor $FULLCHANGELOG || exit 10
-echo "Enter user-facing changelog." > "$CHANGELOG"
+# TODO: 0.7.5 shouldn't be hardcoded in multiple places.
+cat "$CHANGELOG" <<EOF
+Freenet 0.7.5 build $build is now available. [overview]
+
+[enumerate user-facing changes]
+
+Thank you for using Freenet!
+EOF
 editor $CHANGELOG || exit 11
 
 # Temporary file to hold developer changelog, user-facing changelog, and contributing authors.
