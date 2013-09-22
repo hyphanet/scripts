@@ -72,6 +72,14 @@ using these files can be set up with symlinks.
 * [`send2goog`](https://code.google.com/p/send2goog/) (as included in the repo) on the path.
 * A jarsigner certificate. This can be a self-signed one, though once (or if) one exists for FPI one should use it. See [here](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html). For example: `keytool -genkeypair -keyalg RSA -sigalg SHA256withRSA -keysize 4096 -dname "cn=Robert Releaserson, o=The Freenet Project Inc, c=US" -alias freenet -storepass SomePassphrase -validity 365 -keystore ~/.keystore`
  * Set freenetrc `jarsignerAlias` and `jarsignerPassword` to the alias and store passphrase, respectively.
+* For the Java installer: [launch4j](http://sourceforge.net/projects/launch4j/)
+(3.0.2 as of this writing) as `lib/launch4j`, and [IzPack](http://izpack.org/) 4's
+`standalone-compiler.jar` in `lib/`.
+* For the Windows installer: see the list in the header of `build.cmd`, though
+`release-wininstaller` assumes locations in `FreenetReleased/` and `FreenetReleased/dependencies`.
+Note that non-L AutoHotKey appears to no longer be hosted, and AutoHotKey-L
+triggers some resource packaging bug in Wine that results in 0-byte files. See
+[here](https://bugs.freenetproject.org/view.php?id=5456#c9812).
 
 
 Run `release-build`. It will run these steps:
