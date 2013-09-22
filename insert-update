@@ -20,6 +20,11 @@ KEYS="$(mktemp -d -p /tmp temp.XXXXXXXX)"
 if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
 # Decrypt the keys.
 gpg -o $KEYS/keys "$insertKeys" || exit
+(cat $KEYS/keys; echo) | grep "NEWKEY=" | sed -n "s/NEWKEY=//p" | sed "s/^\"\(.*\)\"$/\1/" | tr --delete "\n\"" > $KEYS/barekey
+if test ! -s $KEYS/barekey; then
+	echo Empty key???
+	exit 1
+fi
 TEMPLOC="$(mktemp -d)"
 echo Temporary file location: "$TEMPLOC"
 # TODO consider just using the source tarball.
@@ -126,7 +131,7 @@ echo "DontCompress=true" >> $TEMPFILE
 echo "CompatibilityMode=COMPAT_1416" >> $TEMPFILE
 # Add the actual private URI
 echo -n "URI=" >> $TEMPFILE
-(cat $KEYS/keys; echo) | grep "NEWKEY=" | sed -n "s/NEWKEY=//p" | sed "s/^\"\(.*\)\"$/\1/" | tr --delete "\n\"" >> $TEMPFILE
+cat $KEYS/barekey >> $TEMPFILE
 echo "$URIEND" >> $TEMPFILE
 echo "Identifier=$IDENT" >> $TEMPFILE
 # Keep on retrying the insert until it succeeds.
