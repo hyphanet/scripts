@@ -4,6 +4,8 @@
 source freenet-scripts-common || exit
 readConfig || exit
 
+cd "$fredDir"
+
 DIFF="$(git diff)"
 if [[ ! -z $DIFF ]]; then
     echo "$DIFF"
