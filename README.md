@@ -65,6 +65,10 @@ Performing a release requires:
 * FPI Google Code credentials (in `~/.send2goog.conf.gpg` - see `release-to-googlecode`
 * (Encrypted) auto-update keys at the location set in `insertKeys` in `freenetrc`.
 * A published gpg keypair.
+* Dependencies such as plugins either built or
+[downloaded](https://github.com/freenet/fred-staging/blob/next/src/freenet/pluginmanager/PluginManager.java#L1097),
+(static initialization block listing CHKs) likely into FreenetReleased. Repositories
+using these files can be set up with symlinks.
 * [`send2goog`](https://code.google.com/p/send2goog/) (as included in the repo) on the path.
 * A jarsigner certificate. This can be a self-signed one, though once (or if) one exists for FPI one should use it. See [here](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html). For example: `keytool -genkeypair -keyalg RSA -sigalg SHA256withRSA -keysize 4096 -dname "cn=Robert Releaserson, o=The Freenet Project Inc, c=US" -alias freenet -storepass SomePassphrase -validity 365 -keystore ~/.keystore`
  * Set freenetrc `jarsignerAlias` and `jarsignerPassword` to the alias and store passphrase, respectively.
