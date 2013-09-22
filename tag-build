@@ -79,7 +79,7 @@ require "Tag as $TAG?"
 
 # Tag with the message, and push the tags and changes.
 # TODO: This pushes all tags - would it make more sense to push only the new tag?
-git tag -s "$TAG" -F "$TEMP" || exit 8
+git tag "$gitSign" "$tag" -F "$TEMP" || exit 8
 
 git push --tags origin
 # TODO: Why push this tag explicitly when pushing all tags immeditely thereafter?

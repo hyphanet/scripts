@@ -53,6 +53,10 @@ fcpPort="9481"
 # User to switch to when signing the release. Does not switch if empty.
 signingUser=""
 
+# git tag signing switch. Default uses that associated with the default email.
+# Probably should otherwise be "-u <key id>" to give a specific one.
+gitSign="-s "
+
 # User to build Windows executables as.
 wineUser="freenet-buildwin"
 
