@@ -50,7 +50,7 @@ This will write the changes in the override file to the source file. To write th
 
 ## Releasing Freenet
 
-To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`)in the `www-downloads` group.
+To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`) in the `www-downloads` and `www-freenet-website` groups.
 
 To set up a release environment, set up freenetrc, then (read through and) run
 `setup-release-environment`. This will install required packages (under Debian
