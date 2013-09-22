@@ -39,6 +39,11 @@ if [ ! -d "$wininstallerDir" ]; then
     git clone https://github.com/freenet/wininstaller-official.git "$wininstallerDir" || exit
 fi
 
+if [ ! -d "$websiteOfficialDir" ]; then
+    require "Clone Freenet website into \"$websiteOfficialDir\"?"
+    git clone https://github.com/freenet/website-official.git "$websiteOfficialDir"
+fi
+
 pushd "$fredDir"
 # tag-build assumes fred-staging as the `origin` remote, and fred-official as the `stable` remote.
 git remote add stable git@github.com:freenet/fred-official.git
