@@ -61,7 +61,7 @@ that this should not be at the start of an hour
 
 Performing a release requires:
 * push access to `fred-staging` and `fred-official`
-* SSH access to the FPI webserver. (Osprey)
+* SSH access to the FPI webserver. (Osprey) Take care to set a host `~/.ssh/config` entry if you need a different username.
 * FPI Google Code credentials (in `~/.send2goog.conf.gpg` - see `release-to-googlecode`
 * (Encrypted) auto-update keys at the location set in `insertKeys` in `freenetrc`.
 * A published gpg keypair.
