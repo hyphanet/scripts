@@ -47,16 +47,21 @@ CHANGELOG=$releaseDir/changelog.short.$TAG.txt
 echo Releasing build $TAG
 echo Previous build was $PREVTAG
 
+# Don't overwrite an existing changelog.
+if [ ! -e "$FULLCHANGELOG" ]; then
 echo "Enter developer-facing changelog." > "$FULLCHANGELOG"
+fi
 editor $FULLCHANGELOG || exit 10
+if [ ! -e "CHANGELOG" ]; then
 # TODO: 0.7.5 shouldn't be hardcoded in multiple places.
-cat "$CHANGELOG" <<EOF
+cat > "$CHANGELOG" <<EOF
 Freenet 0.7.5 build $build is now available. [overview]
 
 [enumerate user-facing changes]
 
 Thank you for using Freenet!
 EOF
+fi
 editor $CHANGELOG || exit 11
 
 # Temporary file to hold developer changelog, user-facing changelog, and contributing authors.
