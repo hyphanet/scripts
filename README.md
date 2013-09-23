@@ -63,7 +63,9 @@ Performing a release requires:
 * push access to `fred-staging` and `fred-official`
 * SSH access to the FPI webserver. (Osprey) Take care to set a host `~/.ssh/config` entry if you need a different username.
 * FPI Google Code credentials (in `~/.send2goog.conf.gpg` - see `release-to-googlecode`
-* (Encrypted) auto-update keys at the location set in `insertKeys` in `freenetrc`.
+* (Encrypted) auto-update insert key at the location set in `insertKeys` in `freenetrc`.
+This should contain `NEWKEY=SSK@...,...,...` (bare SSK - no name or trailing
+slash. Surrounding the value with double quotes is optional.)
 * A published gpg keypair.
 * Dependencies such as plugins either built or
 [downloaded](https://github.com/freenet/fred-staging/blob/next/src/freenet/pluginmanager/PluginManager.java#L1097),
@@ -91,10 +93,30 @@ on Google Code.
 `release-wininstaller` assumes locations in `FreenetReleased/` and `FreenetReleased/dependencies`.
 Note that non-L AutoHotKey appears to no longer be hosted, and AutoHotKey-L
 triggers some resource packaging bug in Wine that results in 0-byte files. See
-[here](https://bugs.freenetproject.org/view.php?id=5456#c9812).
+[here](https://bugs.freenetproject.org/view.php?id=5456#c9812). In the case of
+configuration problems or prompts it might be useful to also install `xnest` and
+run `release-wininstaller --dry-run --xnest` first.
 
+The node that updates are inserted on cannot be set to log heavily, lest the
+update insert key be leaked into logs. Currently this means the updates are
+inserted over FCP on port 9482 - the hope being that some development node is
+on 9481 and 9482 will be the testing node without dangerous levels of logging.
+TODO: The more thorough solution to this would be to check that the logging level
+is sufficiently low over FCP.
 
-Run `release-build`. It will run these steps:
+To test auto-updating, useful while setting things up:
+
+1. Set up a node of the previous version. (The new one is the one being deployed currently.)
+2. Set the FCP port to the expected one.
+3. Make the update insert to local storage at higher priority for speed: Include `LocalRequestOnly=true` and the line before `PCLASS` is used set it to 0.
+4. Generate a new SSK keypair.
+5. Set up a configuration file with the insert URI.
+6. Set the node's autoupdate source to `USK@ssk,contents,.../build number`
+7. Restart the node.
+8. Run the insert-update script.
+9. The node should find, download, verify, and apply the update.
+
+The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build`, which automates running these steps:
 
 1. `tag-build [build number]` tags a build and prompts for a changelog.
 
