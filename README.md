@@ -62,7 +62,6 @@ that this should not be at the start of an hour
 Performing a release requires:
 * push access to `fred-staging` and `fred-official`
 * SSH access to the FPI webserver. (Osprey) Take care to set a host `~/.ssh/config` entry if you need a different username.
-* FPI Google Code credentials (in `~/.send2goog.conf.gpg` - see `release-to-googlecode`
 * (Encrypted) auto-update insert key at the location set in `insertKeys` in `freenetrc`.
 This should contain `NEWKEY=SSK@...,...,...` (bare SSK - no name or trailing
 slash. Surrounding the value with double quotes is optional.)
@@ -103,6 +102,9 @@ inserted over FCP on port 9482 - the hope being that some development node is
 on 9481 and 9482 will be the testing node without dangerous levels of logging.
 TODO: The more thorough solution to this would be to check that the logging level
 is sufficiently low over FCP.
+
+Also take care that the unencrypted key is not written to disk - disable
+swap (or have it encrypted with a random key) and mount `/tmp` on `tmpfs`.
 
 To test auto-updating, useful while setting things up:
 
