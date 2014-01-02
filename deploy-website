@@ -158,6 +158,16 @@ fi
 #Determine version information.
 getBuildInfo
 
+#Read links to release files on Google Drive.
+source google_drive_links || exit
+
+if [[ "$linkBuildNumber" -ne "$buildNumber" ]]; then
+    echo "The current build is $buildNumber but the links are for $linkBuildNumber"
+    echo "Please generate them again:"
+    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+    exit 3
+fi
+
 #Generate website.
 cd "$websiteDir"
 ./make-pages.sh
@@ -231,6 +241,15 @@ for file in $(find "$tempSub" -type f)
 do
     if grep -Flq FREENET "$file"
     then
+        replace "FREENET_MAIN_JAR_URL" "$FREENET_MAIN_JAR_URL"\
+                "FREENET_SOURCE_URL" "$FREENET_SOURCE_URL"\
+                "FREENET_INSTALLER_URL" "$FREENET_INSTALLER_URL"\
+                "FREENET_WINDOWS_INSTALLER_URL" "$FREENET_WINDOWS_INSTALLER_URL"\
+                "FREENET_MAIN_JAR_SIG_URL" "$FREENET_MAIN_JAR_SIG_URL"\
+                "FREENET_SOURCE_SIG_URL" "$FREENET_SOURCE_SIG_URL"\
+                "FREENET_INSTALLER_SIG_URL" "$FREENET_INSTALLER_SIG_URL"\
+                "FREENET_WINDOWS_INSTALLER_SIG_URL" "$FREENET_WINDOWS_INSTALLER_SIG_URL"\
+                -- "$file"
        sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
     if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
