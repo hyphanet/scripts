@@ -241,6 +241,7 @@ rsync -ar "$websiteOutputDir/"* "$tempSub"
 echo "Substituting."
 # Substitute the JNLP separately - it requires XML escapes because the URL is
 # Likely to contain &.
+export FREENET_MAIN_JAR_URL "$FREENET_MAIN_JAR_URL"
 escapedJarUrl="$(perl -we 'use XML::Parser::Expat; print XML::Parser::Expat->xml_escape($ENV{FREENET_MAIN_JAR_URL});')" || exit
 perl -pi -e "s/FREENET_MAIN_JAR_URL/\Q$escapedJarUrl\E/g" "$tempSub/jnlp/freenet.jnlp" || exit
 
