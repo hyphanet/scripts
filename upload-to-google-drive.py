@@ -29,11 +29,9 @@ files = [
 ]
 
 # Add a signature for each file.
-signature_files = []
-for filename in files:
-    signature_files.append(filename + ".sig")
+files.extend(map(lambda x: x + '.sig', files))
 
-files.extend(signature_files)
+
 
 # Prefix path to release directory.
 parser.release_directory = abspath(dirname(args.release_directory))
