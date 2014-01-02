@@ -73,12 +73,12 @@ folder = file_listing[0]
 
 print "Uploading:"
 for filename in files:
+    print filename
     new_file = drive.CreateFile()
     new_file.SetContentFile(filename)
     new_file['title'] = basename(filename)
-    # TODO: If descriptions are desirable they would be set here.
-    print filename
     new_file['parents'] = [{'id': folder['id']}]
+    # TODO: If descriptions are desirable they would be set here.
     new_file.Upload()
 
 print "Upload complete."
