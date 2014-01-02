@@ -56,8 +56,8 @@ elif args.auth_type == 'browser':
     # so only try one.
     gauth.LocalWebserverAuth(port_numbers=[8080])
 else:
-    raise RuntimeError('Programming error: nothing to do for auth_type value '
-                       '{0}'.format(args.auth_type))
+    raise AssertionError('Programming error: nothing to do for auth_type value '
+                         '{0}'.format(args.auth_type))
 
 drive = GoogleDrive(gauth)
 
