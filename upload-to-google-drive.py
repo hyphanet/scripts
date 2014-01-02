@@ -1,6 +1,6 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from os.path import exists, dirname, abspath, isfile
+from os.path import exists, dirname, basename, abspath, isfile
 import argparse
 
 description = """This uploads a release to Google Drive: the .jar,
@@ -75,6 +75,7 @@ print "Uploading:"
 for filename in files:
     new_file = drive.CreateFile()
     new_file.SetContentFile(filename)
+    new_file['title'] = basename(filename)
     # TODO: If descriptions are desirable they would be set here.
     print filename
     new_file['parents'] = [{'id': folder['id']}]
