@@ -8,9 +8,15 @@ readConfig || exit
 # For release management: rsync, coreutils, diffutils, gnupg, less, wget, perl, python, pip
 # For building the Windows installer: xvfb, wine, wine-gecko, mono-runtime
 # For avoiding repeated password entry: gnupg-agent openssh-client
+# For Google Drive upload: PyDrive
+# For finding the system certificates: httplib2.ca-certs-locater
 # It would be interesting to have the scripts repo without git, but might as well.
 sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl gnupg-agent openssh-client mono-runtime wine-gecko-1.4 netcat python python-pip || exit
-sudo pip install PyDrive || exit
+# Unlike 'sudo', 'sudo su' sets umask to the default for root, which
+# should be 0022 so that installed files are world-readable.
+# TODO: This doesn't actually seem to be the case when checking the umask explicitly: (sudo|) bash -c umask. Is using sudo su appropriate?
+# See http://stackoverflow.com/questions/11161776/pip-inconsistent-permissions-issues
+sudo su -c 'pip install PyDrive httplib2.ca-certs-locater' || exit
 
 mkdir -p "$releaseDir"
 
