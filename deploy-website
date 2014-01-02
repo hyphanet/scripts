@@ -243,7 +243,7 @@ echo "Substituting."
 # Likely to contain &.
 export FREENET_MAIN_JAR_URL="$FREENET_MAIN_JAR_URL"
 escapedJarUrl="$(perl -we 'use XML::Parser::Expat; print XML::Parser::Expat->xml_escape($ENV{FREENET_MAIN_JAR_URL});')" || exit
-perl -pi -e "s/FREENET_MAIN_JAR_URL/\Q$escapedJarUrl\E/" "$tempSub/jnlp/freenet.jnlp" || exit
+replace "FREENET_MAIN_JAR_URL" "$escapedJarUrl" -- "$tempSub/jnlp/freenet.jnlp" || exit
 
 #Including a trailing slash - assumes mktemp -d does not include one.
 #Used to strip absolute component from path when copying to substitution dir.
