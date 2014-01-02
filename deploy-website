@@ -229,7 +229,7 @@ echo "Substituting."
 tempSubLength=$((${#tempSub}+1))
 for file in $(find "$tempSub" -type f)
 do
-    if grep -Fq -e FREENET "$file"
+    if grep -Flq FREENET "$file"
     then
        sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
