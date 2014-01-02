@@ -12,6 +12,10 @@ parser.add_argument('release_directory', help="Path to the FreenetReleased "
                                               "directory containing the files")
 parser.add_argument('build_number', help="Build number of the release",
                     type=int)
+parser.add_argument('--auth_type', choices=['cmdline', 'browser'],
+                    default='browser',
+                    help="Type of authentication to use. Either cmdline or "
+                         "browser. Defaults to browser.")
 args = parser.parse_args()
 
 args.build_tag = "build{0:05d}".format(args.build_number)
@@ -45,10 +49,15 @@ for filename in files:
         exit(1)
 
 gauth = GoogleAuth()
-gauth.CommandLineAuth()
-# If it tries multiple ports it might not match the registered callback URL,
-# so only try one.
-#gauth.LocalWebserverAuth(port_numbers=[8080])
+if args.auth_type == 'cmdline':
+    gauth.CommandLineAuth()
+elif args.auth_type == 'browser':
+    # If it tries multiple ports it might not match the registered callback URL,
+    # so only try one.
+    gauth.LocalWebserverAuth(port_numbers=[8080])
+else:
+    raise RuntimeError('Programming error: nothing to do for auth_type value '
+                       '{0}'.format(args.auth_type))
 
 drive = GoogleDrive(gauth)
 
