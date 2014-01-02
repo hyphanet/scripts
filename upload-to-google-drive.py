@@ -61,11 +61,23 @@ else:
 
 drive = GoogleDrive(gauth)
 
+folder_name = "Downloads for Freenet"
+query = "title='{0}'and mimeType='application/vnd.google-apps.folder'"\
+    .format(folder_name)
+file_listing = drive.ListFile({'q': query}).GetList()
+
+if len(file_listing) != 1:
+    raise RuntimeError('Could not find unique folder with the title "{0}".'
+                       .format(folder_name))
+folder = file_listing[0]
+
 print "Uploading:"
 for filename in files:
     new_file = drive.CreateFile()
     new_file.SetContentFile(filename)
+    # TODO: If descriptions are desirable they would be set here.
     print filename
+    new_file['parents'] = [{'id': folder['id']}]
     new_file.Upload()
 
 print "Upload complete."
