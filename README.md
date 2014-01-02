@@ -74,8 +74,7 @@ using these files can be set up with symlinks.
   (Already installed by `setup-release-environment`.) Note that this
   requires setting a product name and email address on the "APIs & Auth" > "Consent Screen" page.
   To avoid the application launching a browser as in the authentication directed by the quick start guide,
-  create an "installed application" OAuth client ID and use give
-  `--auth_type cmdline`.
+  create an "installed application" OAuth client ID and change `googleDriveAuth` in `freenetrc` to `"cmdline"`.
 * A jarsigner certificate. This can be a self-signed one, though once (or if) one exists for FPI one should use it. See [here](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html). For example: `keytool -genkeypair -keyalg RSA -sigalg SHA256withRSA -keysize 4096 -dname "cn=Robert Releaserson, o=The Freenet Project Inc, c=US" -alias freenet -storepass SomePassphrase -validity 365 -keystore ~/.keystore`
  * Set freenetrc `jarsignerAlias` and `jarsignerPassword` to the alias and store passphrase, respectively.
 * For the Java installer: [launch4j](http://sourceforge.net/projects/launch4j/)
