@@ -159,6 +159,11 @@ fi
 getBuildInfo
 
 #Read links to release files on Google Drive.
+if [ ! -e google_drive_links ]; then
+    echo "Missing Google Drive links. Please generate them:"
+    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+    exit 3
+fi
 source google_drive_links || exit
 
 if [[ "$linkBuildNumber" -ne "$buildNumber" ]]; then
