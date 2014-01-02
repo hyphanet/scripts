@@ -31,7 +31,7 @@ for filename in files:
 
 files.extend(signature_files)
 
-# Append release directory path release directory.
+# Prefix path to release directory.
 parser.release_directory = abspath(dirname(args.release_directory))
 files = map(lambda x: parser.release_directory + '/' + x, files)
 
