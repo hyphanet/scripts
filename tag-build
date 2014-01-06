@@ -55,7 +55,7 @@ editor $FULLCHANGELOG || exit 10
 if [ ! -e "$CHANGELOG" ]; then
 # TODO: 0.7.5 shouldn't be hardcoded in multiple places.
 cat > "$CHANGELOG" <<EOF
-Freenet 0.7.5 build $build is now available. [overview]
+Freenet 0.7.5 build $BUILD is now available. [overview]
 
 [enumerate user-facing changes]
 
