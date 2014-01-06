@@ -60,6 +60,8 @@ Freenet 0.7.5 build $BUILD is now available. [overview]
 [enumerate user-facing changes]
 
 Thank you for using Freenet!
+
+- Release manager name
 EOF
 fi
 editor $CHANGELOG || exit 11
