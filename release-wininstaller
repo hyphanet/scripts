@@ -49,6 +49,8 @@ wineDebug=""
 branch="master"
 # Whether to use Xnest rather than Xvfb. Useful for debugging.
 xnest="false"
+# Whether to make the release without prompting.
+release="false"
 
 if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
 then
@@ -71,7 +73,7 @@ Configuration file is at $configPath by default.
                   See http://wiki.winehq.org/DebugChannels
 --xnest		  Run Wine in an Xnest window (so you can see the graphical output).
 		  Useful for debugging your wine setup.
-
+--release         Release without prompting for confirmation.
 EOF
             exit 0
             ;;
@@ -95,6 +97,10 @@ EOF
 	    branch="$2"
 	    shift 2
 	    ;;
+        --release)
+            release="true"
+            shift
+            ;;
         --) # End of all options
             shift
             break
@@ -214,12 +220,16 @@ if [[ "$dryRun" = "true" ]]; then
     exit 0
 fi
 
+# If release is specified proceed without prompting.
+if ! $release; then
 echo -n "Perform release [y/N]?"
 read response
 if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
     echo "Aborting release."
     exit 0
 fi
+fi
+exit 20
 
 echo Uploading update scripts
 rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/"
