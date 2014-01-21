@@ -87,6 +87,9 @@ triggers some resource packaging bug in Wine that results in 0-byte files. See
 [here](https://bugs.freenetproject.org/view.php?id=5456#c9812). In the case of
 configuration problems or prompts it might be useful to also install `xnest` and
 run `release-wininstaller --dry-run --xnest` first.
+* The FPI code signing certificate set up as though with
+
+    keytool -importkeystore -srckeystore code-signing.p12  -srcstoretype pkcs12 -srcalias "freenet project inc's comodo ca limited id" -destkeystore ~/.gnupg/freenet/code-signing/code-signing.jks -deststoretype jks -destalias freenet -destkeypass "password"
 
 The node that updates are inserted on cannot be set to log heavily, lest the
 update insert key be leaked into logs. Currently this means the updates are

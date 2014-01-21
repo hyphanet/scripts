@@ -74,6 +74,9 @@ jarsignerStorePassword="password"
 # Jar signer keystore alias
 jarsignerAlias="alias"
 
+# Password for code signing key.
+jarsignerCodeSigningKeyPassword="password"
+
 # Location of IpToCountry.dat
 # Get it from here: http://software77.net/faq.html#automated
 countryDataFile="$freenetRoot/IpToCountry/IpToCountry.dat"

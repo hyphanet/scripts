@@ -12,16 +12,14 @@ TEMPDIR="$(mktemp -d)"
 cd "$TEMPDIR"
 cp -a "$installerDir" build
 cd build
+# Build script uses environment variables.
+export jarsignerStorePassword="$jarsignerStorePassword"
+export jarsignerAlias="$jarsignerAlias"
+export jarsignerCodeSigningKeyPassword="$jarsignerCodeSigningKeyPassword"
 ./build-all.sh || exit 3
 cd ..
 cp build/dist/* .
 
-echo Signing the jars
-# jarsigner* are configured in .freenetrc
-for i in *jar; do
-    # TODO: Instead of storing the jar cert password in freenetrc, have it in a GPG-encrypted file.
-    jarsigner -storepass $jarsignerStorePassword "$i" $jarsignerAlias
-done
 sign-installer-files . || exit 6
 
 # Generate checksums.
