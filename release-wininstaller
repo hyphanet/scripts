@@ -229,7 +229,6 @@ if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
     exit 0
 fi
 fi
-exit 20
 
 echo Uploading update scripts
 rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/"
