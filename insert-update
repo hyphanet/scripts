@@ -124,6 +124,10 @@ if [[ $WHAT == "iptocountryv4" ]]; then
   IDENT=${IDENT}-iptocountryv4
   PCLASS=$((PCLASS+2))
 fi
+if [[ ! -e "$INSERTFILE" ]]; then
+    echo "File $INSERTFILE missing"
+    exit 5
+fi
 echo ClientPut >> $TEMPFILE
 # Turn off compression: Limit possibilities for things breaking
 echo "DontCompress=true" >> $TEMPFILE
