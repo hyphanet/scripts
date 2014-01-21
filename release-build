@@ -23,7 +23,6 @@ if [ "$useSshAgent" == "1" ]; then
     trap stopAgent EXIT
 fi
 
-cd "$fredDir"
 tag-build $BUILD || exit 1
 # Get build info after tagging the new build.
 getBuildInfo
@@ -31,7 +30,7 @@ echo Releasing build $buildNumber
 release-fred --build || exit 2
 release-installer || exit 3
 release-wininstaller --release || exit 4
-python upload-to-google-drive.py "$releaseDir" $buildNumber "$googleDriveAuth" || exit 5
+python upload-to-google-drive.py $buildNumber --release-dir "$releaseDir" --auth-type "$googleDriveAuth" || exit 5
 # TODO Make 9482 configurable here and in insert-update.
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.
