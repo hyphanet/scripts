@@ -116,7 +116,7 @@ To test auto-updating, useful while setting things up:
 Before starting the release script commit a change that updates the build number.
 Ensure the fred, scripts, website, Java installer, and Windows installer repositories are up to
 date before starting the release.
-The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build`, which automates running these steps:
+The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build [build number]`, which automates running these steps:
 
 1. `tag-build [build number]` tags a build and prompts for a changelog.
 
