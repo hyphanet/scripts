@@ -4,14 +4,14 @@ source freenet-scripts-common || exit
 readConfig || exit
 
 # Packages on Debian Wheezy
-# For building Java: openjdk-6-jdk ant
+# For building Java: openjdk-7-jdk ant
 # For release management: rsync, coreutils, diffutils, gnupg, less, wget, perl, python, pip
 # For building the Windows installer: xvfb, wine, wine-gecko, mono-runtime
 # For avoiding repeated password entry: gnupg-agent openssh-client
 # For Google Drive upload: PyDrive
 # For finding the system certificates: httplib2.ca-certs-locater
 # It would be interesting to have the scripts repo without git, but might as well.
-sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl gnupg-agent openssh-client mono-runtime wine-gecko-1.4 netcat python python-pip || exit
+sudo apt-get install git openjdk-7-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl gnupg-agent openssh-client mono-runtime wine-gecko-1.4 netcat python python-pip || exit
 # Unlike 'sudo', 'sudo su' sets umask to the default for root, which
 # should be 0022 so that installed files are world-readable.
 # TODO: This doesn't actually seem to be the case when checking the umask explicitly: (sudo|) bash -c umask. Is using sudo su appropriate?
