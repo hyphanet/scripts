@@ -1,0 +1,51 @@
+#!/bin/bash
+# Pull translation updates from Tranfiex.
+# Even in developer mode the Transifex Client (https://github.com/transifex/transifex-client)
+# includes commented-out untranslated lines, which is not suitable for committing.
+# Set language pattern associations with:
+# tx set --auto-local -r <project.resource> '<expr>' --source-lang en -t MOZILLAPROPERTIES
+# Set exceptions with:
+# tx set -r freenet.<lower-case resource name> -l <language code> <file path>
+# These exceptions will be where Freenet differs from Transifex codes:
+# * zh_CN -> zh-cn
+# * zh_TW -> zh-tw
+# * pt_BR -> pt-br
+# See http://support.transifex.com/customer/portal/articles/996071-setup-and-sync-with-tx
+# for details.
+
+set -o errexit
+source freenet-scripts-common
+readConfig
+
+function filter() {
+    # No files of this type.
+    if [ -z "$(find . -type f -name "$1")" ]
+    then
+        return
+    fi
+    # Remove commented lines
+    sed -i '/^#/d' $1
+    # Remove backslash before :
+    sed -i 's/\\\:/:/g' $1
+    # Remove backslash before !
+    sed -i 's/\\!/!/g' $1
+}
+
+# Takes absolute repo path, resource name, localization path relative to the repo path.
+function pull() {
+    cd "$1"
+    tx pull -r "freenet.$2" --mode=developer --minimum-perc=30 -a -f
+
+    cd "$3"
+    filter '*.properties'
+    filter '*.l10n'
+    filter '*.txt'
+}
+
+pull "$fredDir" master "src/freenet/l10n"
+
+# TODO: Support directories named something other than the repo name
+pull "$freenetRoot/plugin-FlogHelper-staging" floghelper "src/plugins/floghelper/l10n"
+pull "$freenetRoot/plugin-Freemail-staging" freemail "src/org/freenetproject/freemail/l10n"
+pull "$freenetRoot/plugin-KeyExplorer-staging" keyexplorer "src/plugins/KeyUtils/intl"
+pull "$freenetRoot/plugin-WoT-staging" weboftrust "src/plugins/WebOfTrust/l10n"
