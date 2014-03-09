@@ -239,11 +239,6 @@ rsync -ar "$websiteOutputDir/"* "$tempSub"
 
 #Substitute, copying to the money balance substitution directory anything with MONEYBALANCE or MONEYDAYS.
 echo "Substituting."
-# Substitute the JNLP separately - it requires XML escapes because the URL is
-# Likely to contain &.
-export FREENET_INSTALLER_URL="$FREENET_INSTALLER_URL"
-escapedUrl="$(perl -we 'use XML::Parser::Expat; print XML::Parser::Expat->xml_escape($ENV{FREENET_INSTALLER_URL});')" || exit
-replace "FREENET_INSTALLER_URL" "$escapedUrl" -- "$tempSub/jnlp/freenet.jnlp" || exit
 
 #Including a trailing slash - assumes mktemp -d does not include one.
 #Used to strip absolute component from path when copying to substitution dir.
