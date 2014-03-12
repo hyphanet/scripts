@@ -250,6 +250,7 @@ do
         replace "FREENET_MAIN_JAR_URL" "$FREENET_MAIN_JAR_URL"\
                 "FREENET_SOURCE_URL" "$FREENET_SOURCE_URL"\
                 "FREENET_INSTALLER_URL" "$FREENET_INSTALLER_URL"\
+                "FREENET_INSTALLER_REDIRECT_URL" "https://freenetproject.org/jnlp/freenet_installer.jar"\
                 "FREENET_WINDOWS_INSTALLER_URL" "$FREENET_WINDOWS_INSTALLER_URL"\
                 "FREENET_MAIN_JAR_SIG_URL" "$FREENET_MAIN_JAR_SIG_URL"\
                 "FREENET_SOURCE_SIG_URL" "$FREENET_SOURCE_SIG_URL"\
