@@ -110,8 +110,8 @@ if [[ "$target" = "build" ]]; then
     ant javadoc || exit 32
     jarName="freenet-$gitVersion.jar"
 elif [[ "$target" = "snapshot" ]]; then
-# now build it (without api doc)
-ant -f build-clean.xml -Ddoc.skip=true || exit 9
+    # now build it (without api doc)
+    ant -f build-clean.xml -Ddoc.skip=true || exit 9
     jarName="freenet-$gitVersion-snapshot.jar"
 else
     echo "Internal error: Unrecognized target \"$target\"."
