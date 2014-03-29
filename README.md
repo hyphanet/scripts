@@ -48,6 +48,10 @@ The `MergeSFS` utility is in the Fred source tree: `src/freenet/tools/MergeSFS.j
 
 This will write the changes in the override file to the source file. To write the merged values to standard output instead, use `--stdout` as the third argument.
 
+## Releasing plugins
+
+Run `release-plugin [plugin name]`. This requires that there is a repository of that plugin (or a link to one) at `$freenetRoot/plugin-[plugin name]`.
+
 ## Releasing Freenet
 
 To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`) in the `www-downloads` and `www-freenet-website` groups.

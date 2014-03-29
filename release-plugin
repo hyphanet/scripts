@@ -1,45 +1,87 @@
 #!/bin/bash
-PLUGIN=$1
-if [[ $PLUGIN == "WoT" ]]; then PLUGIN=WebOfTrust; fi
+
+#
+# Build a plugin, push it to the webserver, update the URL registry, and insert
+# it to a CHK with the node on port 9481.
+#
+
 # Shared default configuration and utility functions.
 source freenet-scripts-common || exit
 readConfig
-TEMPLOC=`mktemp -d`
-cp -a /usr/src/cvs/eclipse-workspace/plugin-$PLUGIN/ $TEMPLOC
-echo Copied data
-cd $TEMPLOC/plugin-$PLUGIN || exit
-git reset --hard
-ln -s /usr/src/cvs/eclipse-workspace/fred $TEMPLOC/fred
-#export JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
-#export PATH=${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:$PATH
-git reset --hard
-ant clean || exit
+
+if [[ -z "$1" ]]; then
+	cat <<EOF Usage: $0 [plugin name]
+
+Requires that "$freenetRoot/plugin-[plugin name]" contains a repository.
+EOF
+	exit 1
+fi
+
+plugin="$1"
+
+makeBuildDir
+git clone "$freenetRoot/plugin-$plugin" "$buildDir/$plugin" || exit 11
+echo "Clone complete"
+
+pushd "$buildDir"
+ln -s "$fredDir" "fred"
+pushd "$plugin"
+
+ant clean || exit 2
 ant distclean
-ant || exit
-GITVERSION=`git describe --always --abbrev=40`
-JARNAME=`echo $PLUGIN | cut -d "_" -f 1`
-mv dist/${JARNAME}.jar ${PLUGIN}-${GITVERSION}.jar || exit
-sha1sum ${PLUGIN}-${GITVERSION}.jar > ${PLUGIN}-${GITVERSION}.jar.sha1
-eval `ssh-agent -s`
+ant || exit 3
+
+# TODO: Should this always release the current HEAD? Not the latest tag?
+gitVersion="$(git describe --always --abbrev=40)"
+name="$plugin-$gitVersion"
+# For a plugin with underscores in its name (like Freemail_wot) the build
+# product is expected to be named just that before the first underscore.
+distJarName="$(echo $plugin | cut -d "_" -f 1).jar"
+jarName="$name.jar"
+mv "dist/$distJarName" "$jarName" || exit 4
+sha1sum "$jarName" > "$jarName.sha1"
+
+sourceName="$name-source.tar.bz2"
+git archive --format=tar "$gitVersion" | bzip2 -cz > "$sourceName"
+# TODO: Is a source archive checksum desirable?
+
+require "Release $name?"
+
+cp "$jarName" "$releaseDir/$plugin.jar" || exit 5
+
+eval "$(ssh-agent -s)"
 ssh-add
-rsync -vz ${PLUGIN}-${GITVERSION}.jar* ${targetHost}:/var/www/downloads/alpha/plugins/${PLUGIN}/ || exit
-cp ${PLUGIN}-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar || exit
-cp ${PLUGIN}-${GITVERSION}.jar /usr/src/cvs/eclipse-workspace/FreenetReleased/${PLUGIN}.jar || exit
-rm ${PLUGIN}-${GITVERSION}.jar*
-echo Uploaded new snapshot
-echo "http://downloads.freenetproject.org/alpha/plugins/${PLUGIN}/${PLUGIN}-${GITVERSION}.jar" > ../${PLUGIN}.jar.url
-(cd ..; sha1sum ${PLUGIN}.jar.url > ${PLUGIN}.jar.url.sha1)
-rsync -vz ../${PLUGIN}.jar.url* ${targetHost}:/var/www/downloads/alpha/plugins/ || exit
-ssh $targetHost -- "cat /var/www/downloads/alpha/.registry | sed \"s/${PLUGIN}.jar .*$/${PLUGIN}.jar plugins\\/${PLUGIN}\\/${PLUGIN}-${GITVERSION}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry" || exit
-echo Uploaded new pointers
-git clean -dfx
-rm -Rf .git
-cd ..
-mv plugin-$PLUGIN ${PLUGIN}-${GITVERSION}
-tar cjf ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${PLUGIN}-${GITVERSION} || exit
-rsync -vz ${PLUGIN}-${GITVERSION}-source.tar.bz2 ${targetHost}:/var/www/downloads/alpha/plugins/ || exit
+rsync -vz "$jarName"* "${targetHost}:/var/www/downloads/alpha/plugins/$plugin/" || exit 6
+echo Uploaded jar
+rsync -vz "$sourceName" "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 7
 echo Uploaded source
-(echo ClientHello; echo Name=Toad-update-${PLUGIN}; echo ExpectedVersion=2; echo End; echo ClientPut; echo "URI=CHK@"; echo "Identifier=${PLUGIN}-${GITVERSION}.jar"; echo Verbosity=1023; echo MaxRetries=-1; echo UploadFrom=disk; echo "Filename=/usr/src/cvs/eclipse-workspace/app-wininstaller/bin/${PLUGIN}.jar"; echo "TargetFilename=${PLUGIN}.jar"; echo Persistence=forever; echo PriorityClass=2; echo Global=true; echo End) > $TEMPLOC/upload
-cat $TEMPLOC/upload | nc 127.0.0.1 9481
-cat $TEMPLOC/upload | nc 127.0.0.1 19841
-rm -Rf $TEMPLOC
+
+urlName="$plugin.jar.url"
+echo "https://downloads.freenetproject.org/alpha/plugins/$plugin/$jarName" > "$urlName"
+sha1sum "$urlName" > "$urlName.sha1"
+
+rsync -vz "$urlName"* "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 8
+ssh $targetHost -- "sed -i \"s/$plugin.jar .*$/$plugin.jar plugins\\/$plugin\\/$jarName/\" /var/www/downloads/alpha/.registry" || exit 9
+echo Updated registry
+
+cat - "$jarName" <<EOF > upload
+ClientHello
+Name=$jarName-inserter
+ExpectedVersion=2
+End
+ClientPut
+URI=CHK@
+Identifier=$jarName
+Verbosity=1023
+MaxRetries=-1
+UploadFrom=direct
+DataLength=$(ls -l $jarName | cut -d " " -f 5)
+TargetFilename=$plugin.jar
+Persistence=forever
+PriorityClass=2
+Global=true
+End
+EOF
+nc "$fcpHost" "$fcpPort" upload || exit 10
+echo Started insert
+popd
