@@ -67,6 +67,11 @@ gitSign="-s"
 # User to build Windows executables as.
 wineUser="freenet-buildwin"
 
+# TODO: This keystore is not just for the jarsigner - it's for signing other
+# binaries too.
+# jarsigner keystore location.
+jarsignerStoreLocation="$HOME/.gnupg/freenet/code-signing/code-signing.jks"
+
 # Jar signer for installer generator. These need to be signed for JWS IIRC, but it can be a bogus (self signed) cert.
 # Jar signer keystore password
 jarsignerStorePassword="password"

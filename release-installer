@@ -13,6 +13,7 @@ cd "$TEMPDIR"
 cp -a "$installerDir" build
 cd build
 # Build script uses environment variables.
+export jarsignerStoreLocation="$jarsignerStoreLocation"
 export jarsignerStorePassword="$jarsignerStorePassword"
 export jarsignerAlias="$jarsignerAlias"
 export jarsignerCodeSigningKeyPassword="$jarsignerCodeSigningKeyPassword"
