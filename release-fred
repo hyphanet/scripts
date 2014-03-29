@@ -105,6 +105,12 @@ mkdir -p lib/freenet
 cp lib/freenet-ext.jar lib/freenet/ || exit 4
 cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
 
+# Build script uses environment variables.
+export jarsignerStoreLocation="$jarsignerStoreLocation"
+export jarsignerStorePassword="$jarsignerStorePassword"
+export jarsignerAlias="$jarsignerAlias"
+export jarsignerCodeSigningKeyPassword="$jarsignerCodeSigningKeyPassword"
+
 if [[ "$target" = "build" ]]; then
     ant -f build-clean.xml sign || exit 16
     ant javadoc || exit 32
