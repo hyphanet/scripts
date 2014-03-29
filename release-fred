@@ -106,12 +106,12 @@ cp lib/freenet-ext.jar lib/freenet/ || exit 4
 cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
 
 if [[ "$target" = "build" ]]; then
-    ant -f build-clean.xml || exit 16
+    ant -f build-clean.xml sign || exit 16
     ant javadoc || exit 32
     jarName="freenet-$gitVersion.jar"
 elif [[ "$target" = "snapshot" ]]; then
     # now build it (without api doc)
-    ant -f build-clean.xml -Ddoc.skip=true || exit 9
+    ant -f build-clean.xml -Ddoc.skip=true sign || exit 9
     jarName="freenet-$gitVersion-snapshot.jar"
 else
     echo "Internal error: Unrecognized target \"$target\"."
