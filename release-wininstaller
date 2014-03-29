@@ -119,17 +119,7 @@ readConfig
 
 # Make temporary build directory to hold installer source, dependencies,
 # and Wine prefix. This will be wiped on exit.
-# TODO: Common function.
-buildDir=$(mktemp -d) || exit
-
-function rmTemp {
-    popd
-    echo "Removing temporary build directory."
-    rm -rf "$buildDir"
-    echo "Done."
-}
-
-trap rmTemp EXIT
+makeBuildDir
 
 # The Wine user will need access too, and non-root users cannot chown.
 # This assumes the Wine user is in a group of the same name along with

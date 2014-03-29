@@ -79,3 +79,17 @@ function require {
     fi
 }
 
+# Create a temporary directory, set it to $buildDir, and set a trap to remove it
+# on exit.
+function makeBuildDir {
+    buildDir="$(mktemp -d)" || exit 2
+
+    function rmTemp {
+        popd
+        echo "Removing temporary build directory."
+        rm -rf "$buildDir"
+        echo "Done."
+    }
+
+    trap rmTemp EXIT
+}
