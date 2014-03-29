@@ -196,6 +196,8 @@ if [ "$xnest" == "true" ]; then
 	DISPLAY="$OLDDISPLAY"
 fi
 cp bin/FreenetInstaller.exe FreenetInstaller-$buildNumber.exe || exit
+java -jar "$releaseDir/dependencies/jsign-1.2.jar" -s "$jarsignerStoreLocation" --storepass "$jarsignerStorePassword" --keypass "$jarsignerCodeSigningKeyPassword" --storetype jks -a "$jarsignerAlias"  -t http://timestamp.comodoca.com/authenticode -n "Freenet 0.7 Installer" -u https://freenetproject.org "FreenetInstaller-$buildNumber.exe"
+
 pushd res/install_node/updater/ || exit
 cp update.cmd update-new.cmd || exit
 sha1sum update-new.cmd > update-new.cmd.sha1 || exit
