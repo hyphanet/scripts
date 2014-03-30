@@ -49,7 +49,16 @@ echo Previous build was $PREVTAG
 
 # Don't overwrite an existing changelog.
 if [ ! -e "$FULLCHANGELOG" ]; then
-echo "Enter developer-facing changelog." > "$FULLCHANGELOG"
+cat - > "$FULLCHANGELOG" <<EOF
+Changes in $BUILD:
+
+[enumerate developer-facing changes]
+
+- Release manager name
+
+Authors:
+$(git log --format="format:%an <%ae>" "$PREVTAG.." | sort | uniq)
+EOF
 fi
 editor $FULLCHANGELOG || exit 10
 if [ ! -e "$CHANGELOG" ]; then
@@ -80,8 +89,6 @@ echo >> "$TEMP"
 echo "Developer changelog:" >> "$TEMP"
 echo >> "$TEMP"
 cat "$FULLCHANGELOG" >> "$TEMP"
-echo "Authors:" >> "$TEMP"
-git log --format="format:%an <%ae>" "$PREVTAG.." | sort | uniq >> "$TEMP" || exit 9
 
 echo
 echo Combined changelog as will be tagged:
