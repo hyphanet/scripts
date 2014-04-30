@@ -11,7 +11,7 @@
 # After the build the executables are signed, and then there is a confirmation
 # prompt for release.
 #
-# The following files should be in the RELEASE_DIRECTORY:
+# The following files should be in the releaseDirectory:
 #
 # * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
 # * dependencies/Ahk2Exe.exe
@@ -25,7 +25,7 @@
 # * UPnP.jar                            -   https://downloads.freenetproject.org/alpha/plugins/UPnP/UPnP-r26690.jar
 #
 # Though URLs are provided for convenience, building them or acquiring them over
-# Freenet is of course also possible.
+# Freenet is preferable.
 #
 # Requirements:
 #   Build:
@@ -71,8 +71,7 @@ Configuration file is at $configPath by default.
 --dry-run         Do not release. Build and sign the installer, then exit.
 --wine-debug      Run Wine with the given WINEDEBUG environment variable value.
                   See http://wiki.winehq.org/DebugChannels
---xnest		  Run Wine in an Xnest window (so you can see the graphical output).
-		  Useful for debugging your wine setup.
+--xnest           Run Wine in an Xnest window to display the graphical output.
 --release         Release without prompting for confirmation.
 EOF
             exit 0
@@ -85,18 +84,18 @@ EOF
             dryRun="true"
             shift
             ;;
-	--xnest)
-	    xnest="true"
-	    shift
-	    ;;
+        --xnest)
+            xnest="true"
+            shift
+            ;;
         --wine-debug)
             wineDebug="$2"
             shift 2
             ;;
-	--branch)
-	    branch="$2"
-	    shift 2
-	    ;;
+        --branch)
+            branch="$2"
+            shift 2
+            ;;
         --release)
             release="true"
             shift
