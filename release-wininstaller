@@ -186,7 +186,7 @@ if [ "$xnest" == "true" ]; then
 	DISPLAY="$OLDDISPLAY"
 fi
 cp bin/FreenetInstaller.exe FreenetInstaller-$buildNumber.exe || exit
-java -jar "$releaseDir/dependencies/jsign-1.2.jar" -s "$jarsignerStoreLocation" --storepass "$jarsignerStorePassword" --keypass "$jarsignerCodeSigningKeyPassword" --storetype jks -a "$jarsignerAlias"  -t http://timestamp.comodoca.com/authenticode -n "Freenet 0.7 Installer" -u https://freenetproject.org "FreenetInstaller-$buildNumber.exe"
+java -jar "$releaseDir/dependencies/jsign-1.2.jar" -s "$jarsignerStoreLocation" --storepass "$jarsignerStorePassword" --keypass "$jarsignerCodeSigningKeyPassword" --storetype jks -a "$jarsignerAlias"  -t http://timestamp.comodoca.com/authenticode -n "Freenet 0.7 Installer" -u https://freenetproject.org "FreenetInstaller-$buildNumber.exe" || exit
 
 pushd res/install_node/updater/ || exit
 cp update.cmd update-new.cmd || exit
@@ -206,7 +206,7 @@ fi
 
 echo "Fred git version is $gitVersion"
 echo "Fred commit ID is $commitID"
-cp FreenetInstaller-$buildNumber.exe* $releaseDir
+cp FreenetInstaller-$buildNumber.exe* $releaseDir || exit
 if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     exit 0
@@ -231,8 +231,8 @@ sha1sum wrapper.conf.windows > wrapper.conf.windows.sha1 || exit 7
 rsync wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
 
 echo Uploading to webserver
-rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/"
-ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry"
+rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
+ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry" || exit
 
 # We need access both to delete it on a clean exit and to copy wrapper files.
 $ssh -n $wineUser@localhost "chmod -R 770 $buildDir"
@@ -251,9 +251,9 @@ for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlaunche
 
     mv $name $name.$gitVersion
     sha1sum $name.$gitVersion > $name.$gitVersion.sha1
-    rsync -v $name.$gitVersion* $targetHost:/var/www/downloads/alpha/installer/
+    rsync -v $name.$gitVersion* $targetHost:/var/www/downloads/alpha/installer/ || exit
 
-    ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry"
+    ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry" || exit
 
 done
 
