@@ -15,8 +15,8 @@
 #
 # * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
 # * dependencies/is-unicode.exe         -   http://www.jrsoftware.org/download.php/is-unicode.exe
-# * dependencies/Ahk2Exe.exe            -   http://ahkscript.org/download/1.0/
-# * dependencies/AutoHotkeySC.bin
+# * dependencies/Ahk2Exe.exe            -   http://ahkscript.org/download/ahk2exe.zip
+# * dependencies/Unicode 32-bit.bin
 # * dependencies/jsign-1.2.jar          -   http://people.apache.org/~ebourg/jsign/jsign-1.2.jar
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
@@ -159,7 +159,7 @@ cp "$releaseDir/dependencies/is-unicode.exe"         .                          
 compilerDir="AutoHotKey_files/tools/ahk/Compiler"
 mkdir -p "$compilerDir"
 cp "$releaseDir/dependencies/Ahk2Exe.exe"            "$compilerDir"                 || exit
-cp "$releaseDir/dependencies/AutoHotkeySC.bin"       "$compilerDir"                 || exit
+cp "$releaseDir/dependencies/Unicode 32-bit.bin"     "$compilerDir"                 || exit
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
