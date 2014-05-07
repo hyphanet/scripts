@@ -23,7 +23,7 @@ websiteOfficialDir="$freenetRoot/website-official"
 # Path to the website-staging repository. Used when deploying to the testing website.
 websiteStagingDir="$freenetRoot/website-staging"
 
-# Windows installer source location.
+# Windows InnoSetup installer source location.
 wininstallerDir="$freenetRoot/wininstaller"
 
 # Java (Mac, Linux) installer source location

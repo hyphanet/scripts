@@ -14,8 +14,10 @@
 # The following files should be in the releaseDirectory:
 #
 # * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
+# * dependencies/is-unicode.exe         -   http://www.jrsoftware.org/download.php/is-unicode.exe
 # * dependencies/Ahk2Exe.exe            -   http://ahkscript.org/download/1.0/
 # * dependencies/AutoHotkeySC.bin
+# * dependencies/jsign-1.2.jar          -   http://people.apache.org/~ebourg/jsign/jsign-1.2.jar
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
 # * KeyUtils.jar                        -   https://downloads.freenetproject.org/alpha/plugins/KeyUtils/
@@ -144,21 +146,24 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 # Copy files
 
-cp "$releaseDir/freenet.jar"                         "res/install_node/"                || exit
-cp "$freenetExtPath"                                 "res/install_node/freenet-ext.jar" || exit
-cp "$releaseDir/dependencies/bcprov-jdk15on-149.jar" "res/install_node/"                || exit
-cp "$releaseDir/seednodes.fref"                      "res/install_node/"                || exit
-# TODO: Is this an appropriate place to have a bundled plugin list? 
+cp "$releaseDir/freenet.jar"                         "install_node/"                || exit
+cp "$freenetExtPath"                                 "install_node/freenet-ext.jar" || exit
+cp "$releaseDir/dependencies/bcprov-jdk15on-149.jar" "install_node/"                || exit
+cp "$releaseDir/seednodes.fref"                      "install_node/"                || exit
+# TODO: Create plugin directory in the build dir instead of assuming it's part of the repo.
+# TODO: Is this an appropriate place to have a bundled plugin list?
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
-  cp "$releaseDir/${x}.jar"                          "res/install_node/plugins/"        || exit
+  cp "$releaseDir/${x}.jar"                          "install_node/plugins/"        || exit
 done
-cp "$releaseDir/dependencies/Ahk2Exe.exe"            "res/tool_ahk/"                    || exit
-cp "$releaseDir/dependencies/AutoHotkeySC.bin"       "res/tool_ahk/"                    || exit
+cp "$releaseDir/dependencies/is-unicode.exe"                      .                              || exit
+compilerDir="AutoHotKey_files/tools/ahk/Compiler"
+mkdir -p "$compilerDir"
+cp "$releaseDir/dependencies/Ahk2Exe.exe"            "$compilerDir"                 || exit
+cp "$releaseDir/dependencies/AutoHotkeySC.bin"       "$compilerDir"                 || exit
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
-echo Fred build is \#$buildNumber. Updating build.
-sed -i "s/_Inc_FreenetBuild = \#[0-9]\\+/_Inc_FreenetBuild = \#$buildNumber/" src/freenetinstaller/FreenetInstaller_Include_Info.inc
+sed -ri "s/^#define AppVersion .*$/#define AppVersion \"0.7.5 build $buildNumber\"/" "FreenetInstall_InnoSetup.iss" || exit
 
 echo "Setting permissions."
 chmod -R 770 . || exit
@@ -169,8 +174,8 @@ echo Running the build
 # The Wine user must create the prefix directory. If the directory is missing
 # Wine will refuse to create it if the directory that would contain it is not
 # owned by the user.
-xvfbrun="xvfb-run"
-ssh="ssh -n "
+xvfbrun="xvfb-run --auto-servernum"
+ssh="ssh"
 if [ "$xnest" == "true" ]; then
 	xvfbrun=""
 	Xnest :10 -ac &
@@ -179,16 +184,34 @@ if [ "$xnest" == "true" ]; then
 	export DISPLAY
 	ssh="$ssh -X"
 fi
-$ssh -n $wineUser@localhost "cd $buildDir; mkdir .wine; WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine $xvfbrun wine cmd /c build.cmd; /usr/lib/i386-linux-gnu/wine/wineserver -k; chmod -R 770 .wine bin"
+
+# wineDebug as set in the script arguments.
+# WINEPREFIX to set up Wine in the temporary directory.
+# WINEDLLOVERRIDES to prevent prompts about Gecko and Mono as they are not needed.
+# See https://wiki.archlinux.org/index.php/Wine_PKGBUILD_Guidelines#Gecko
+$ssh $wineUser@localhost <<EOF
+cd $buildDir;
+mkdir .wine;
+export WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine WINEDLLOVERRIDES="mscoree,mshtml=";
+$xvfbrun wine is-unicode.exe /SILENT;
+pushd AutoHotKey_files;
+$xvfbrun wine cmd /c build_AHK_binaries.cmd;
+popd;
+# "Program Files (x86)" is for Windows 7 - later versions of Wine.
+# XP is still the default for 1.4.1, which is packaged in Wheezy.
+wine "C:\Program Files\Inno Setup 5\ISCC.exe" "FreenetInstall_InnoSetup.iss";
+wineserver -k;
+chmod -R 770 .wine Output;
+EOF
 
 if [ "$xnest" == "true" ]; then
 	killall Xnest
 	DISPLAY="$OLDDISPLAY"
 fi
-cp bin/FreenetInstaller.exe FreenetInstaller-$buildNumber.exe || exit
+cp "Output/FreenetInstaller.exe" "FreenetInstaller-$buildNumber.exe" || exit
 java -jar "$releaseDir/dependencies/jsign-1.2.jar" -s "$jarsignerStoreLocation" --storepass "$jarsignerStorePassword" --keypass "$jarsignerCodeSigningKeyPassword" --storetype jks -a "$jarsignerAlias"  -t http://timestamp.comodoca.com/authenticode -n "Freenet 0.7 Installer" -u https://freenetproject.org "FreenetInstaller-$buildNumber.exe" || exit
 
-pushd res/install_node/updater/ || exit
+pushd "install_node/updater/" || exit
 cp update.cmd update-new.cmd || exit
 sha1sum update-new.cmd > update-new.cmd.sha1 || exit
 sha1sum update.cmd > update.cmd.sha1 || exit
@@ -223,12 +246,12 @@ fi
 fi
 
 echo Uploading update scripts
-rsync res/install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/"
+rsync install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/" || exit
 
 echo Uploading wrapper.conf
-cp res/install_node/wrapper/wrapper.conf wrapper.conf.windows || exit 7
-sha1sum wrapper.conf.windows > wrapper.conf.windows.sha1 || exit 7
-rsync wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
+cp install_node/wrapper/wrapper.conf wrapper.conf.windows || exit
+sha1sum wrapper.conf.windows > wrapper.conf.windows.sha1 || exit
+rsync wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit
 
 echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
@@ -237,13 +260,11 @@ ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe ins
 # We need access both to delete it on a clean exit and to copy wrapper files.
 $ssh -n $wineUser@localhost "chmod -R 770 $buildDir"
 
-pushd bin
+cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
 
-cp "$buildDir/res/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
+cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
 
-cp "$buildDir/res/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
-
-mv freenetlauncher.exe freenetlauncher-new.exe
+cp "$buildDir/install_node/FreenetLauncher.exe" freenetlauncher-new.exe || exit
 
 for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
 
@@ -256,6 +277,3 @@ for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlaunche
     ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry" || exit
 
 done
-
-popd
-
