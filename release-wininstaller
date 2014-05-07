@@ -155,7 +155,7 @@ cp "$releaseDir/seednodes.fref"                      "install_node/"            
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "install_node/plugins/"        || exit
 done
-cp "$releaseDir/dependencies/is-unicode.exe"                      .                              || exit
+cp "$releaseDir/dependencies/is-unicode.exe"         .                              || exit
 compilerDir="AutoHotKey_files/tools/ahk/Compiler"
 mkdir -p "$compilerDir"
 cp "$releaseDir/dependencies/Ahk2Exe.exe"            "$compilerDir"                 || exit
