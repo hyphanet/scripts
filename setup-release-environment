@@ -32,7 +32,6 @@ wget software77.net/geo-ip/?DL=4 -O "$countryDataFile"
 if [ ! -d "$fredDir" ]; then
     require "Clone Freenet repository into \"$fredDir\"?"
     git clone git@github.com:freenet/fred-staging.git "$fredDir" || exit
-    git remote add stable git@github.com:freenet/fred-official.git
 else
     # TODO: Check that fred-staging is the origin.
     echo "Assuming origin is official fred-staging and stable is official fred-official."
