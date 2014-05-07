@@ -17,12 +17,12 @@
 # * dependencies/Ahk2Exe.exe
 # * dependencies/AutoHotkeySC.bin
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
-# * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/JSTUN-v3.jar
-# * KeyUtils.jar                        -   https://downloads.freenetproject.org/alpha/plugins/KeyUtils/KeyUtils-v5018.jar
-# * Library.jar                         -   https://downloads.freenetproject.org/alpha/plugins/Library/Library-v26.jar
+# * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
+# * KeyUtils.jar                        -   https://downloads.freenetproject.org/alpha/plugins/KeyUtils/
+# * Library.jar                         -   https://downloads.freenetproject.org/alpha/plugins/Library/
 # * seednodes.fref                      -   https://downloads.freenetproject.org/alpha/opennet/seednodes.fref
-# * ThawIndexBrowser.jar                -   https://downloads.freenetproject.org/alpha/plugins/ThawIndexBrowser/ThawIndexBrowser-v5.jar
-# * UPnP.jar                            -   https://downloads.freenetproject.org/alpha/plugins/UPnP/UPnP-r26690.jar
+# * ThawIndexBrowser.jar                -   https://downloads.freenetproject.org/alpha/plugins/ThawIndexBrowser/
+# * UPnP.jar                            -   https://downloads.freenetproject.org/alpha/plugins/UPnP/
 #
 # Though URLs are provided for convenience, building them or acquiring them over
 # Freenet is preferable.
