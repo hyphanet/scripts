@@ -14,7 +14,7 @@
 # The following files should be in the releaseDirectory:
 #
 # * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
-# * dependencies/Ahk2Exe.exe
+# * dependencies/Ahk2Exe.exe            -   http://ahkscript.org/download/1.0/
 # * dependencies/AutoHotkeySC.bin
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
