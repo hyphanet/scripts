@@ -257,9 +257,6 @@ echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry" || exit
 
-# We need access both to delete it on a clean exit and to copy wrapper files.
-$ssh -n $wineUser@localhost "chmod -R 770 $buildDir"
-
 cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
 
 cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
