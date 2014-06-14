@@ -64,7 +64,8 @@ rsync -vz "$urlName"* "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 
 ssh $targetHost -- "sed -i \"s/$plugin.jar .*$/$plugin.jar plugins\\/$plugin\\/$jarName/\" /var/www/downloads/alpha/.registry" || exit 9
 echo Updated registry
 
-cat - "$jarName" <<EOF > upload
+echo Started insert
+nc "$fcpHost" "$fcpPort" - <<EOF
 ClientHello
 Name=$jarName-inserter
 ExpectedVersion=2
@@ -74,7 +75,8 @@ URI=CHK@
 Identifier=$jarName
 Verbosity=1023
 MaxRetries=-1
-UploadFrom=direct
+UploadFrom=disk
+Filename=$releaseDir/$plugin.jar
 DataLength=$(ls -l $jarName | cut -d " " -f 5)
 TargetFilename=$plugin.jar
 Persistence=forever
@@ -82,6 +84,4 @@ PriorityClass=2
 Global=true
 End
 EOF
-nc "$fcpHost" "$fcpPort" upload || exit 10
-echo Started insert
 popd
