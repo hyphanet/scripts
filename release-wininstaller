@@ -261,7 +261,7 @@ cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.e
 
 cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
 
-cp "$buildDir/install_node/FreenetLauncher.exe" freenetlauncher-new.exe || exit
+cp "$buildDir/install_node/freenetlauncher.exe" freenetlauncher-new.exe || exit
 
 for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
 
