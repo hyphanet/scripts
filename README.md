@@ -96,9 +96,9 @@ run `release-wininstaller --dry-run --xnest` first.
     keytool -importkeystore -srckeystore code-signing.p12  -srcstoretype pkcs12 -srcalias "freenet project inc's comodo ca limited id" -destkeystore ~/.gnupg/freenet/code-signing/code-signing.jks -deststoretype jks -destalias freenet -destkeypass "password"
 
 The node that updates are inserted on cannot be set to log heavily, lest the
-update insert key be leaked into logs. Currently this means the updates are
-inserted over FCP on port 9482 - the hope being that some development node is
-on 9481 and 9482 will be the testing node without dangerous levels of logging.
+update insert key be leaked into logs. freenetrc defaults to using port 9481
+for inserting updates under the assumption that the newly installed testing node
+is on the port. If it is a node with heavy logging, change fcpUpdatePort.
 TODO: The more thorough solution to this would be to check that the logging level
 is sufficiently low over FCP.
 
@@ -140,6 +140,7 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 
 7. `deploy-website`, when run from osprey, updates the website to point to the latest version as defined by the given `fred-official` repository. The script's `-u` switch updates both `fred-offical` and `website-staging`, so if one wants to avoid pulling in website changes as well it may be preferable to manually update the `fred-official` repository only. For extra security check that the HEAD object ID matches between that on osprey and a local copy of the repository.
 
-8. `insert-update` inserts the jars over FCP via a node on port 9482. This is intended to be the test node which was installed by testing the installer as above. This is so that a development node which may have heavy logging does not leak the keys into the logs.
+8. `insert-update` inserts the jars over FCP. This is intended to be the test node which was installed by testing the installer as above. This is so that a development node which may have heavy logging does not leak the keys into the logs.
+
 
 9. Once the inserts have completed announce the release.
