@@ -64,7 +64,7 @@ rsync -vz "$urlName"* "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 
 ssh $targetHost -- "sed -i \"s/$plugin.jar .*$/$plugin.jar plugins\\/$plugin\\/$jarName/\" /var/www/downloads/alpha/.registry" || exit 9
 echo Updated registry
 
-echo Started insert
+echo "Started insert (assuming FCP > Assume that upload DDA is allowed? is set to True)"
 nc "$fcpHost" "$fcpPort" - <<EOF
 ClientHello
 Name=$jarName-inserter
