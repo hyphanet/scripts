@@ -76,8 +76,7 @@ if [[ "$target" = "snapshot" ]]; then
     releaseDir="$releaseDir/pre"
 fi
 
-buildDir=$(mktemp -d)
-echo "Created temporary directory $buildDir."
+makeBuildDir
 git clone "$fredDir" "$buildDir" || exit 2
 cd "$fredDir"
 
@@ -165,23 +164,13 @@ if [[ "$target" = "build" ]]; then
     compareL10n $buildNumber || exit 33
 fi
 
-clean_up() {
-    rm -Rf "$buildDir"
-}
-
 echo "Built $gitVersion as a $target release."
 echo "Commit ID is $commitID"
 if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
-    clean_up
     exit 0
 else
-    echo -n "Perform release [y/N]?"
-    read response
-    if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
-        echo "Aborting release."
-        exit 0
-    fi
+    require "Perform release?"
 fi
 
 echo "Performing release."
@@ -204,8 +193,6 @@ if [[ "$target" = "build" ]]; then
     rsync -vvzP freenet-testing-latest.jar.url "$targetHost:/var/www/downloads/alpha/freenet-stable-latest.jar.url" || exit 26
     rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
 fi
-
-clean_up
 
 # upload snapshot binary and signature to freenet
 if [[ "$target" = "snapshot" ]]; then

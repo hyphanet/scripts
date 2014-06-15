@@ -237,12 +237,7 @@ fi
 
 # If release is specified proceed without prompting.
 if ! $release; then
-echo -n "Perform release [y/N]?"
-read response
-if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
-    echo "Aborting release."
-    exit 0
-fi
+    require "Perform release?"
 fi
 
 echo Uploading update scripts
