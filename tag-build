@@ -7,7 +7,7 @@ readConfig || exit
 cd "$fredDir"
 
 DIFF="$(git diff)"
-if [[ ! -z $DIFF ]]; then
+if [[ -n "$DIFF" ]]; then
     echo "$DIFF"
     echo There are modified files. Please commit or stash them.
     exit 1
