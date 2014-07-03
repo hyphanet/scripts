@@ -65,7 +65,7 @@ ssh $targetHost -- "sed -i \"s/$plugin.jar .*$/$plugin.jar plugins\\/$plugin\\/$
 echo Updated registry
 
 echo "Started insert (assuming FCP > Assume that upload DDA is allowed? is set to True)"
-nc "$fcpHost" "$fcpPort" - <<EOF
+nc "$fcpHost" "$fcpPort" <<EOF
 ClientHello
 Name=$jarName-inserter
 ExpectedVersion=2

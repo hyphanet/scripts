@@ -197,38 +197,38 @@ fi
 # upload snapshot binary and signature to freenet
 if [[ "$target" = "snapshot" ]]; then
     echo "Inserting snapshot into Freenet."
-    (
-    echo ClientHello;
-    echo Name=Toad-update-$gitVersion;
-    echo ExpectedVersion=2;
-    echo End;
+    nc "$fcpHost" "$fcpPort" <<EOF
+ClientHello
+Name=Toad-update-$gitVersion
+ExpectedVersion=2
+End
 
-    echo ClientPut;
-    echo "URI=CHK@";
-    echo "Identifier=$jarName";
-    echo Verbosity=1023;
-    echo MaxRetries=-1;
-    echo UploadFrom=disk;
-    echo "Filename=$releaseDir/$jarName";
-    echo "TargetFilename=$jarName";
-    echo Persistence=forever;
-    echo PriorityClass=1;
-    echo Global=true;
-    echo End;
+ClientPut
+URI=CHK@
+Identifier=$jarName
+Verbosity=1023
+MaxRetries=-1
+UploadFrom=disk
+Filename=$releaseDir/$jarName
+TargetFilename=$jarName
+Persistence=forever
+PriorityClass=1
+Global=true
+End
 
-    echo ClientPut;
-    echo "URI=CHK@";
-    echo "Identifier=$jarName.sig";
-    echo Verbosity=1023;
-    echo MaxRetries=-1;
-    echo UploadFrom=disk;
-    echo "Filename=$releaseDir/$jarName.sig";
-    echo "TargetFilename=$jarName.sig";
-    echo Persistence=forever;
-    echo PriorityClass=1;
-    echo Global=true;
-    echo End
-    ) | nc "$fcpHost" "$fcpPort"
+ClientPut
+URI=CHK@
+Identifier=$jarName.sig
+Verbosity=1023
+MaxRetries=-1
+UploadFrom=disk
+Filename=$releaseDir/$jarName.sig
+TargetFilename=$jarName.sig
+Persistence=forever
+PriorityClass=1
+Global=true
+End
+EOF
 else
     echo "Not inserting build into Freenet. insert-update does that as part of release-build."
 fi
