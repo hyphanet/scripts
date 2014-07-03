@@ -1,0 +1,16 @@
+#!/bin/bash
+set -o errexit
+
+source freenet-scripts-common
+readConfig
+
+bookmarkPath="$fredDir/src/freenet/clients/http/staticfiles/defaultbookmarks.dat"
+
+python update-bookmarks.py --verbose --host=$fcpHost --port=$fcpPort "$bookmarkPath"
+
+# Commit updated bookmarks if any changes are made.
+cd "$fredDir"
+if [[ -n "$(git diff "$bookmarkPath")" ]]
+then
+    git commit -m "Update default bookmark editions" "$bookmarkPath"
+fi

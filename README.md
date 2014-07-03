@@ -125,6 +125,8 @@ date before starting the release. Ensure the bundled plugins in the `FreenetRele
 
 The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build [build number]`, which automates running these steps:
 
+0. `update-bookmarks` updates the default bookmark editions and commits if any changes have been made.
+
 1. `tag-build [build number]` tags a build and prompts for a changelog.
 
 2. `release-fred` builds the Fred jar and source archive, signs them, creates l10n diffs, and uploads all to osprey.
