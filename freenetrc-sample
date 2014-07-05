@@ -95,8 +95,5 @@ countryDataFile="$freenetRoot/IpToCountry/IpToCountry.dat"
 # Where are the (encrypted) auto-update insert keys stored?
 insertKeys="~/.freenet.insertKeys.gpg"
 
-# Command run before the script to remotely deploy the website.
-remoteDeployPrefixCommand="cd scripts/; "
-
-# Path prefix to `deploy-website` after running the prefix command.
-remoteDeployPrefix="./"
+# Path to directory with `deploy-website` relative to home directory.
+remoteDeployPrefix="scripts"

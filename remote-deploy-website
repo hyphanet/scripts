@@ -12,4 +12,4 @@ websiteID=$(cd "$websiteOfficialDir"; git rev-parse --verify master)
 echo Fred ID "$commitID"
 echo Website ID "$websiteID"
 scp google_drive_links "$targetHost:$remoteDeployPrefix"
-ssh $targetHost -- "$remoteDeployPrefixCommand ${remoteDeployPrefix}deploy-website -u --force-website-id $websiteID --force-fred-id $commitID"
+ssh $targetHost -- "cd $remoteDeployPrefix; ./deploy-website -u --force-website-id $websiteID --force-fred-id $commitID"
