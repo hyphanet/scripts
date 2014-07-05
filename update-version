@@ -1,0 +1,16 @@
+#!/bin/bash
+set -o errexit
+
+source freenet-scripts-common
+readConfig
+
+versionPath="$fredDir/src/freenet/node/Version.java"
+
+python update-version.py "$1" "$versionPath"
+
+cd "$fredDir"
+# Ensure it still builds.
+echo "Checking that the modified code builds."
+ant clean
+ant -Dtest.skip=true -Ddoc.skip=true
+git commit -m "Build $1" -m "" -m "See tag for changelog." "$versionPath"

@@ -16,7 +16,7 @@ sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less 
 # should be 0022 so that installed files are world-readable.
 # TODO: This doesn't actually seem to be the case when checking the umask explicitly: (sudo|) bash -c umask. Is using sudo su appropriate?
 # See http://stackoverflow.com/questions/11161776/pip-inconsistent-permissions-issues
-sudo su -c 'pip install PyDrive httplib2.ca-certs-locater' || exit
+sudo su -c 'pip install PyDrive httplib2.ca-certs-locater timeparser' || exit
 
 mkdir -p "$releaseDir/dependencies"
 wget "https://people.apache.org/~ebourg/jsign/jsign-1.2.jar" -O "$releaseDir/dependencies/jsign-1.2.jar"

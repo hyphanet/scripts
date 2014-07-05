@@ -24,6 +24,7 @@ if [ "$useSshAgent" == "1" ]; then
 fi
 
 update-bookmarks || exit
+update-version $BUILD || exit
 tag-build $BUILD || exit 1
 # Get build info after tagging the new build.
 getBuildInfo

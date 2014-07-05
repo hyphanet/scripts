@@ -28,9 +28,6 @@ if [[ -z $BUILD ]]; then
 	exit 3
 fi
 
-# Committing is a manual process, and doing it this way reduces the chances of the user deploying the wrong build.
-# Plus we might need to make the build mandatory.
-# TODO But we could automate it more, while still being robust, if we really wanted to ...
 if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then
     echo src/freenet/node/Version.java does not contain the requested build number.
     echo Please update the build number, as well as - if desired - the mandatory date.

@@ -117,8 +117,6 @@ To test auto-updating, useful while setting things up:
 8. Run the insert-update script.
 9. The node should find, download, verify, and apply the update.
 
-Before starting the release script commit a change that updates the build number.
-
 Ensure the fred, scripts, website, Java installer, and Windows installer repositories are up to
 date before starting the release. Ensure the bundled plugins in the `FreenetReleased`
 (or equivalent) directory are up to date as well.
@@ -126,6 +124,8 @@ date before starting the release. Ensure the bundled plugins in the `FreenetRele
 The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build [build number]`, which automates running these steps:
 
 0. `update-bookmarks` updates the default bookmark editions and commits if any changes have been made.
+
+0. `update-version` updates the version number, and prompts for and updates the mandatory dates if applicable.
 
 1. `tag-build [build number]` tags a build and prompts for a changelog.
 
