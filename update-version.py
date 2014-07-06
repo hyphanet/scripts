@@ -71,33 +71,33 @@ while True:
     except ValueError as e:
         print(e)
 
-if not old_match.search(version_contents):
-    print("Cannot find oldLastGoodBuild")
-    exit(1)
+
+def replace(match, value):
+    contents, replacements = match.subn(value, version_contents)
+    if replacements != 1:
+        print("Cannot substitute '{}'".format(value))
+        exit(1)
+    return contents
 
 previous_new = new_match.search(version_contents)
 if not previous_new:
     print("Cannot find newLastGoodBuild")
     exit(1)
 
-if not mandatory_match.search(version_contents):
-    print("Cannot find previous mandatory")
-    exit(1)
-
 previous_new = previous_new.group(1)
 # Previous newLastGoodBuild becomes current oldLastGoodBuild
 current_old = old_line.format(previous_new)
-version_contents = old_match.sub(current_old, version_contents)
+version_contents = replace(old_match, current_old)
 
 # Current build becomes newLastGoodBuild
 current_new = new_line.format(args.build)
-version_contents = new_match.sub(current_new, version_contents)
+version_contents = replace(new_match, current_new)
 
 current_mandatory = mandatory_line.format(
     mandatory_date.year,
     calendar.month_name[mandatory_date.month].upper(),
     mandatory_date.day
 )
-version_contents = mandatory_match.sub(current_mandatory, version_contents)
+version_contents = replace(mandatory_match, current_mandatory)
 
 write_version()
