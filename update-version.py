@@ -56,7 +56,7 @@ if not prompt("Will this build be mandatory?"):
     write_version()
     exit()
 
-print("Durations can be things like '1 week' or '48 hours'.")
+print("Durations can be things like '1 week' or '5 days'.")
 today = datetime.datetime.now().date()
 while True:
     try:
