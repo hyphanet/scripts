@@ -34,7 +34,7 @@ function filter() {
 # Takes absolute repo path, resource name, localization path relative to the repo path.
 function pull() {
     cd "$1"
-    tx pull -r "freenet.$2" --mode=developer --minimum-perc=30 -a -f
+    tx pull -r "freenet.$2" --mode=default --minimum-perc=30 -a -f
 
     cd "$3"
     filter '*.properties'
