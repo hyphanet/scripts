@@ -47,6 +47,8 @@ echo Previous build was $PREVTAG
 # Don't overwrite an existing changelog.
 if [ ! -e "$FULLCHANGELOG" ]; then
 cat - > "$FULLCHANGELOG" <<EOF
+$(date '+%F')
+
 Changes in $BUILD:
 
 [enumerate developer-facing changes]
@@ -61,6 +63,8 @@ editor $FULLCHANGELOG || exit 10
 if [ ! -e "$CHANGELOG" ]; then
 # TODO: 0.7.5 shouldn't be hardcoded in multiple places.
 cat > "$CHANGELOG" <<EOF
+$(date '+%F')
+
 Freenet 0.7.5 build $BUILD is now available. [overview]
 
 [enumerate user-facing changes]
