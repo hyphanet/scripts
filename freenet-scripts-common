@@ -93,3 +93,5 @@ function makeBuildDir {
 
     trap rmTemp EXIT
 }
+
+readConfig

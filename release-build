@@ -4,9 +4,11 @@
 # Usage is "release-build 9999" for build 9999. 
 # TODO Add --help etc.
 # TODO Add --snapshot to proxy to release-fred --snapshot ???
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
 BUILD=$1
-source freenet-scripts-common || exit 1
-readConfig || exit 1
 
 # Set up agents at the beginning of this script, but not the individual scripts.
 # TODO We could put this in freenet-scripts-common but only if it doesn't get re-run in every script we call.

@@ -1,8 +1,8 @@
 #!/bin/bash
 set -o errexit
 
-source freenet-scripts-common
-readConfig
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
 
 versionPath="$fredDir/src/freenet/node/Version.java"
 

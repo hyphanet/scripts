@@ -5,9 +5,8 @@
 # Uses lib-pyFreenet to fetch the in-Freenet JAR over FCP,
 # and so requires Python and lib-pyFreenet. (fcpget)
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
-readConfig
 
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers

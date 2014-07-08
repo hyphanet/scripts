@@ -3,8 +3,9 @@
 
 # Deploy the website on the webserver using locally-reviewed commit IDs.
 
-source freenet-scripts-common
-readConfig
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
 getBuildInfo
 websiteID=$(cd "$websiteOfficialDir"; git rev-parse --verify master)
 

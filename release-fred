@@ -4,7 +4,7 @@
 # these variables are probably different for everybody
 # so create $HOME/.freenetrc and override those with your desired values.
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 # What to build / release. Possible values: "build", "snapshot"
@@ -62,8 +62,6 @@ EOF
             ;;
     esac
 done
-
-readConfig
 
 # Target should be set.
 if [[ -z "$target" ]]; then

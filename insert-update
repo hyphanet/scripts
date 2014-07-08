@@ -2,9 +2,9 @@
 # User should put the real keys in $insertKeys (see ~/.freenetrc)
 # Format of keys file: NEWKEY=[SSK private URI]
 # We used to also include OLDKEY, but this is not used any more, since the transition version is the last build inserted on the old key and the first inserted on the new key.
-# Load the shared utility functions.
+
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
-readConfig
 
 SEEDNODESFILE="$releaseDir/seednodes.fref"
 

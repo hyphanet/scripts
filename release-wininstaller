@@ -40,7 +40,7 @@
 #   Release:
 #       rsync
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 # Whether to exit before releasing.
@@ -116,8 +116,6 @@ EOF
             ;;
     esac
 done
-
-readConfig
 
 # Make temporary build directory to hold installer source, dependencies,
 # and Wine prefix. This will be wiped on exit.

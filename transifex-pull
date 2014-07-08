@@ -1,4 +1,6 @@
 #!/bin/bash
+set -o errexit
+
 # Pull translation updates from Tranfiex.
 # Even in developer mode the Transifex Client (https://github.com/transifex/transifex-client)
 # includes commented-out untranslated lines, which is not suitable for committing.
@@ -13,9 +15,8 @@
 # See http://support.transifex.com/customer/portal/articles/996071-setup-and-sync-with-tx
 # for details.
 
-set -o errexit
-source freenet-scripts-common
-readConfig
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
 
 # TODO: Move to freenet-scripts-common?
 starting_directory="$(readlink -e "$(dirname "$0")")"

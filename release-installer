@@ -1,7 +1,8 @@
 #!/bin/bash
-# Shared default configuration and utility functions.
-source freenet-scripts-common || exit 1
-readConfig || exit 2
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
 getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber

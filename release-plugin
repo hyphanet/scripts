@@ -5,9 +5,8 @@
 # it to a CHK with the node on port 9481.
 #
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
-readConfig
 
 if [[ -z "$1" ]]; then
 	cat <<EOF Usage: $0 [plugin name]

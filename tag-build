@@ -1,8 +1,9 @@
 #!/bin/bash
 # Requires remotes: "origin" = fred-staging, "stable" = fred-official
 # TODO Test for this?
+
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
-readConfig || exit
 
 cd "$fredDir"
 
