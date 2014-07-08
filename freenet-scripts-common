@@ -60,11 +60,10 @@ function getTagInfo {
 # Read configuration file if it exists.
 function readConfig {
     if [ -f "$configPath" ]; then
-        echo "Reading configuration at \"$configPath\"."
         source "$configPath" || exit
     else
         echo Config file does not exist: "$configPath"
-        exit
+        exit 1
     fi
 }
 
