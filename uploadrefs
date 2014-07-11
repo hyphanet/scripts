@@ -1,11 +1,35 @@
 #!/bin/bash
-cd ~toad
-(cd seedrefs; ls | (while read x; do cat "$x"; echo; done)) > seednodes.fref
-#cat seedrefs/* > seednodes.fref # above is more robust
-if (grep -i "priv" seednodes.fref); then echo Corrupt file; exit; fi
-if (egrep "^End" seednodes.fref | egrep -v "^End$"); then echo Corrupt file; exit; fi
-sha1sum seednodes.fref > seednodes.fref.sha1
-rm ~toad/seednodes.fref.gpg
-su - toad -c "gpg --sign ~toad/seednodes.fref"
-rsync -v seednodes.fref seednodes.fref.sha1 seednodes.fref.gpg osprey.vm.bytemark.co.uk:/var/www/downloads/alpha/opennet/
-cp ~toad/seednodes.fref ~toad/seednodes.fref.gpg /usr/src/cvs/eclipse-workspace/FreenetReleased
+
+source freenet-scripts-common || exit
+
+cd "$seedrefsDir" || exit
+
+rm -f "$seedrefsPath"
+
+for ref in *
+do
+    cat "$ref" >> "$seedrefsPath" || exit
+    # Newline in case a reference is missing one on the last line.
+    echo >> "$seedrefsPath" || exit
+done
+
+if grep -i "priv" "$seedrefsPath"
+then
+    echo Found private noderef.
+    exit 1
+fi
+
+if egrep "^End" "$seedrefsPath" | egrep -v "^End$"
+then
+    echo Missing newline on End.
+    exit 1
+fi
+
+# TODO: sha256/512
+sha1sum "$seedrefsPath" > "$seedrefsPath.sha1" || exit
+
+# gpg will prompt before overwriting, which is not desirable here.
+rm -f "$seedrefsPath.gpg"
+gpg -o "$seedrefsPath.gpg" --sign "$seedrefsPath" || exit
+
+rsync -v "$seedrefsPath" "$seedrefsPath.sha1" "$seedrefsPath.gpg" "$targetHost:/var/www/downloads/alpha/opennet/"

@@ -70,6 +70,7 @@ Performing a release requires:
 This should contain `NEWKEY=SSK@...,...,...` (bare SSK - no name or trailing
 slash. Surrounding the value with double quotes is optional.)
 * A published gpg keypair.
+* A copy of the `seedrefs` directory from another release manager. (If updating seednodes.fref)
 * Dependencies such as plugins either built or
 [downloaded](https://github.com/freenet/fred-staging/blob/next/src/freenet/pluginmanager/PluginManager.java#L1097),
 (static initialization block listing CHKs) likely into FreenetReleased. Repositories

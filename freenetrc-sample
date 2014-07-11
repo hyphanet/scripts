@@ -17,6 +17,9 @@ websiteDeployTestingDir="/var/www/freenet-website-testing"
 # Target directory for generated files.
 releaseDir="$freenetRoot/FreenetReleased"
 
+# Path to seednodes.fref
+seedrefsPath="$releaseDir/seednodes.fref"
+
 # Path to the website-official repository. Used when deploying to the live website.
 websiteOfficialDir="$freenetRoot/website-official"
 
@@ -97,3 +100,6 @@ insertKeys="~/.freenet.insertKeys.gpg"
 
 # Path to directory with `deploy-website` relative to home directory.
 remoteDeployPrefix="scripts"
+
+# Path to individual seed node reference directory.
+seedrefsDir="$freenetRoot/seedrefs"
