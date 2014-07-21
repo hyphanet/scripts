@@ -57,14 +57,12 @@ googleDriveAuth="browser"
 # FCP host hostname / IP.
 fcpHost="127.0.0.1"
 
-# FCP host port.
+# FCP host port. This is used to update the default bookmark editions.
 fcpPort="9481"
 
 # FCP port for inserting updates. This cannot be a node with heavy logging
-# lest information about the update keys leak. If you run a development node
-# on the same machine and want to insert on an installation of the new version
-# 9482 would make sense here.
-fcpUpdatePort="9481"
+# lest information about the update keys leak.
+fcpUpdatePort="9482"
 
 # User to switch to when signing the release. Does not switch if empty.
 signingUser=""
