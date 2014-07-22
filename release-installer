@@ -6,11 +6,9 @@ source freenet-scripts-common || exit
 getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
-
 # Set up build directory
-# TODO: Common temp dir creation and cleanup.
-TEMPDIR="$(mktemp -d)"
-cd "$TEMPDIR"
+makeBuildDir
+cd "$buildDir"
 cp -a "$installerDir" build
 cd build
 # Build script uses environment variables.
@@ -49,6 +47,3 @@ OLDVERSION=$[$buildNumber-15]
 echo Deleting old version ${OLDVERSION}
 ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
 ssh $targetHost -- "cp /var/www/downloads/alpha/.registry .; cat /var/www/downloads/alpha/.registry | sed \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" > new-registry ; cat new-registry > /var/www/downloads/alpha/.registry"
-
-cd
-rm -Rf "$TEMPDIR"
