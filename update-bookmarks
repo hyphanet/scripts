@@ -6,7 +6,7 @@ source freenet-scripts-common || exit
 
 bookmarkPath="$fredDir/src/freenet/clients/http/staticfiles/defaultbookmarks.dat"
 
-python update-bookmarks.py --verbose --host=$fcpHost --port=$fcpPort "$bookmarkPath"
+update-bookmarks.py --verbose --host=$fcpHost --port=$fcpPort "$bookmarkPath"
 
 # Commit updated bookmarks if any changes are made.
 cd "$fredDir"
