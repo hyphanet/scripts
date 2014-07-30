@@ -22,8 +22,8 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
 
     # apt-get install git-core python sun-java6-jdk ant unzip
     $ git clone git://github.com/freenet/scripts.git
-    $ git clone git://github.com/freenet/fred-official.git
-    $ git clone git://github.com/freenet/lib-pyFreenet-staging.git
+    $ git clone git://github.com/freenet/fred.git
+    $ git clone git://github.com/freenet/lib-pyFreenet.git
     $ cp scripts/freenetrc-sample ~/.freenetrc
     $ scripts/set-freenetrc-base
     $ mkdir FreenetReleased
@@ -31,7 +31,7 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar -O FreenetReleased/bcprov.jar
     $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
     $ gpg --import toad.gpg
-    $ cd lib-pyFreenet-staging
+    $ cd lib-pyFreenet
     # python setup.py install
 
 Now everything should be installed and sufficiently configured. Make sure a Freenet node is accessible by FCP.
@@ -64,7 +64,7 @@ that this should not be at the start of an hour
 [lest their server be overwhelmed](http://software77.net/faq.html#automated).
 
 Performing a release requires:
-* push access to `fred-staging` and `fred-official`
+* push access to `fred`
 * SSH access to the FPI webserver. (Osprey) Take care to set a host `~/.ssh/config` entry if you need a different username.
 * (Encrypted) auto-update insert key at the location set in `insertKeys` in `freenetrc`.
 This should contain `NEWKEY=SSK@...,...,...` (bare SSK - no name or trailing
@@ -72,9 +72,8 @@ slash. Surrounding the value with double quotes is optional.)
 * A published gpg keypair.
 * A copy of the `seedrefs` directory from another release manager. (If updating seednodes.fref)
 * Dependencies such as plugins either built or
-[downloaded](https://github.com/freenet/fred-staging/blob/next/src/freenet/pluginmanager/PluginManager.java#L1097),
-(static initialization block listing CHKs) likely into FreenetReleased. Repositories
-using these files can be set up with symlinks.
+[downloaded](https://github.com/freenet/fred/blob/next/src/freenet/pluginmanager/OfficialPlugins.java#L23),
+(listing of loadedFrom() CHKs) into FreenetReleased. Repositories using these files can be set up with symlinks.
 * That pyDrive is [set up](http://pythonhosted.org/PyDrive/quickstart.html#authentication).
   (Already installed by `setup-release-environment`.) Note that this
   requires setting a product name and email address on the "APIs & Auth" > "Consent Screen" page.
@@ -141,7 +140,7 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 
 6. `upload-to-google-drive.py` uploads the jars and installers to Google Drive which serves the majority of downloads.
 
-7. `deploy-website`, when run from osprey, updates the website to point to the latest version as defined by the given `fred-official` repository. The script's `-u` switch updates both `fred-offical` and `website-staging`, so if one wants to avoid pulling in website changes as well it may be preferable to manually update the `fred-official` repository only. For extra security check that the HEAD object ID matches between that on osprey and a local copy of the repository.
+7. `deploy-website`, when run from osprey, updates the website to point to the latest version as defined by the given `fred` repository. The script's `-u` switch updates both `fred` and `website`, so if one wants to avoid pulling in website changes as well it may be preferable to manually update the `fred` repository only, or use the `--force-*-id` options.
 
 8. `insert-update` inserts the jars over FCP. This is intended to be the test node which was installed by testing the installer as above. This is so that a development node which may have heavy logging does not leak the keys into the logs.
 

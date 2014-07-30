@@ -7,7 +7,7 @@
 source freenet-scripts-common || exit
 
 getBuildInfo
-websiteID=$(cd "$websiteOfficialDir"; git rev-parse --verify master)
+websiteID=$(cd "$websiteDir"; git rev-parse --verify master)
 
 # Both git describe and git rev-parse --verify will give a tag if it exists.
 echo Fred ID "$commitID"

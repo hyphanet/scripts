@@ -1,6 +1,4 @@
 #!/bin/bash
-# Requires remotes: "origin" = fred-staging, "stable" = fred-official
-# TODO Test for this?
 
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
@@ -101,15 +99,9 @@ echo
 require "Tag as $TAG?"
 
 # Tag with the message, and push the tags and changes.
-# TODO: This pushes all tags - would it make more sense to push only the new tag?
 git tag "$gitSign" "$TAG" -F "$TEMP" || exit 8
 
-git push --tags origin
-# TODO: Why push this tag explicitly when pushing all tags immeditely thereafter?
-git push stable "$TAG"
-git push origin
-git push stable
-git push --tags stable
+git push origin "$TAG"
 
 echo "$TAG" > "$releaseDir/freenet.tag" || exit 6
 echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
@@ -148,7 +140,5 @@ fi
 # Push changes and end on next.
 git push origin next
 git push origin master
-git push stable master
-git push stable next
 
 git checkout next

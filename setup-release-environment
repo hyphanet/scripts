@@ -35,27 +35,21 @@ wget software77.net/geo-ip/?DL=4 -O "$countryDataFile"
 # Clone if not set up already.
 if [ ! -d "$fredDir" ]; then
     require "Clone Freenet repository into \"$fredDir\"?"
-    git clone git@github.com:freenet/fred-staging.git "$fredDir" || exit
-else
-    # TODO: Check that fred-staging is the origin.
-    echo "Assuming origin is official fred-staging and stable is official fred-official."
+    git clone git@github.com:freenet/fred.git "$fredDir" || exit
 fi
 
 if [ ! -d "$installerDir" ]; then
     require "Clone Freenet installer into \"$installerDir\"?"
-    git clone https://github.com/freenet/java_installer-official.git "$installerDir" || exit
+    git clone https://github.com/freenet/java_installer.git "$installerDir" || exit
 fi
 
 if [ ! -d "$wininstallerDir" ]; then
     require "Clone Freenet Windows installer into \"$wininstallerDir\"?"
-    git clone https://github.com/freenet/wininstaller-official.git "$wininstallerDir" || exit
+    git clone https://github.com/freenet/wininstaller.git "$wininstallerDir" || exit
 fi
 
-if [ ! -d "$websiteOfficialDir" ]; then
-    require "Clone Freenet website into \"$websiteOfficialDir\"?"
-    git clone https://github.com/freenet/website-official.git "$websiteOfficialDir"
+if [ ! -d "$websiteDir" ]; then
+    require "Clone Freenet website into \"$websiteDir\"?"
+    git clone https://github.com/freenet/website.git "$websiteDir"
 fi
 
-pushd "$fredDir"
-# tag-build assumes fred-staging as the `origin` remote, and fred-official as the `stable` remote.
-git remote add stable git@github.com:freenet/fred-official.git

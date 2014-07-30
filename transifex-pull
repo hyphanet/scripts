@@ -48,7 +48,7 @@ function pull() {
 pull "$fredDir" master "src/freenet/l10n/freenet.l10n.en.properties" "freenet.l10n.*.properties"
 
 # TODO: Support directories named something other than the repo name
-pull "$freenetRoot/plugin-FlogHelper-staging" floghelper "src/plugins/floghelper/l10n/UI_en.l10n" "UI_.*.l10n"
-pull "$freenetRoot/plugin-Freemail-staging" freemail "src/org/freenetproject/freemail/l10n/lang_en.l10n" "lang_.*.l10n"
-pull "$freenetRoot/plugin-KeyExplorer-staging" keyexplorer "src/plugins/KeyUtils/intl/en.txt" ".*.txt"
-pull "$freenetRoot/plugin-WoT-staging" weboftrust "src/plugins/WebOfTrust/l10n/lang_en.l10n" "lang_.*.l10n"
+pull "$freenetRoot/plugin-FlogHelper" floghelper "src/plugins/floghelper/l10n/UI_en.l10n" "UI_.*.l10n"
+pull "$freenetRoot/plugin-Freemail" freemail "src/org/freenetproject/freemail/l10n/lang_en.l10n" "lang_.*.l10n"
+pull "$freenetRoot/plugin-KeyExplorer" keyexplorer "src/plugins/KeyUtils/intl/en.txt" ".*.txt"
+pull "$freenetRoot/plugin-WoT" weboftrust "src/plugins/WebOfTrust/l10n/lang_en.l10n" "lang_.*.l10n"

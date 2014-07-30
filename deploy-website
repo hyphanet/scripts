@@ -28,16 +28,16 @@ OPTIONS
     -d, --dry-run   Generate the website, but pause to allow inspection of the
                     output instead of deploying or updating the money totals.
 
-    -t, --testing   Deploy the staging repository to the testing subdomain, and
+    -t, --testing   Deploy the "next" branch to the testing subdomain, and
                     do not update the money totals."
 
-    --force-website-id Checkout and verify the given git ID for the website. 
+    --force-website-id Checkout and verify the given git ID for the website.
                        Only if -u.
 
     --force-fred-id    Checkout and verify the given git ID for fred.
                        Only if -u.
 
-The fred-offical repo is used to determine the version and build tag
+The fred repo is used to determine the version and build tag
 for substitution. The version is regex'd from Version.java, and the
 build tag is last git tag listed matching '^build[0-9]{5}'.
 
@@ -97,10 +97,11 @@ do
 done
 
 if $testing; then
-    websiteDir="$websiteStagingDir"
+    branch="next"
 else
-    websiteDir="$websiteOfficialDir"
+    branch="master"
 fi
+
 websiteOutputDir="$websiteDir/output"
 
 # Discard any local changes, update remote branches and tags, and
@@ -109,7 +110,7 @@ git_update() {
     #To update tags and branches.
     git remote update
     git clean -dfx
-    git reset --hard origin/master
+    git reset --hard "origin/$branch"
 }
 
 function checkGitID {
@@ -123,7 +124,6 @@ function checkGitID {
     if ! actualID=$(git rev-parse --verify HEAD)
     then
         echo Failed to verify "$checkID"
-        git checkout master
         exit 5
     fi
     if ! [[ "$actualID" = "$checkID" ]]
@@ -136,7 +136,7 @@ function checkGitID {
 
 #If requested, perform update before gathering information from repos.
 if $update; then
-    echo "Updating fred-official."
+    echo "Updating fred repo."
     cd "$fredDir"
     git_update
     if ! [[ "$forceFredID" = "" ]]

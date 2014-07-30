@@ -20,11 +20,8 @@ releaseDir="$freenetRoot/FreenetReleased"
 # Path to seednodes.fref
 seedrefsPath="$releaseDir/seednodes.fref"
 
-# Path to the website-official repository. Used when deploying to the live website.
-websiteOfficialDir="$freenetRoot/website-official"
-
-# Path to the website-staging repository. Used when deploying to the testing website.
-websiteStagingDir="$freenetRoot/website-staging"
+# Path to the website repository.
+websiteDir="$freenetRoot/website"
 
 # Windows InnoSetup installer source location.
 wininstallerDir="$freenetRoot/wininstaller"
