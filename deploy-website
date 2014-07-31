@@ -9,7 +9,6 @@ startingDir=$(pwd)
 update=false
 dryRun=false
 testing=false
-websiteDir=""
 forceWebsiteID=""
 forceFredID=""
 
