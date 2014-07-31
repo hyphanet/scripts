@@ -21,8 +21,6 @@ for the latest version of Fred in the repository.
 
 OPTIONS
     -u, --update    Update the website and fred repos before deploying.
-                    This removes any local modifications and updates to the
-                    remote master branch.
 
     -d, --dry-run   Generate the website, but pause to allow inspection of the
                     output instead of deploying or updating the money totals.
@@ -103,15 +101,6 @@ fi
 
 websiteOutputDir="$websiteDir/output"
 
-# Discard any local changes, update remote branches and tags, and
-# check out to the latest master branch.
-git_update() {
-    #To update tags and branches.
-    git remote update
-    git clean -dfx
-    git reset --hard "origin/$branch"
-}
-
 function checkGitID {
     checkID=$1
     echo Checking git ID is "$checkID"
@@ -137,20 +126,24 @@ function checkGitID {
 if $update; then
     echo "Updating fred repo."
     cd "$fredDir"
-    git_update
+    git remote update
     if ! [[ "$forceFredID" = "" ]]
     then
         checkGitID "$forceFredID"
     fi
     echo "Updating website repo."
     cd "$websiteDir"
-    git_update
+    git remote update
     if ! [[ "$forceWebsiteID" = "" ]]
     then
         checkGitID "$forceWebsiteID"
     fi
     cd "$startingDir"
 fi
+
+pushd "$websiteDir"
+git checkout "origin/$branch"
+popd
 
 #Determine version information.
 getBuildInfo
