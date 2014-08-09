@@ -155,7 +155,9 @@ mkdir -p "$releaseDir"
 cp "$jarName"* "$releaseDir"
 cp "$archiveName"* "$releaseDir"
 rm "$releaseDir/freenet.jar"
-ln -s "$releaseDir/$jarName" "$releaseDir/freenet.jar"
+pushd "$releaseDir"
+ln -s "$jarName" "freenet.jar"
+popd
 
 # Localization comparison for build.
 if [[ "$target" = "build" ]]; then
