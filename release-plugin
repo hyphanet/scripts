@@ -2,7 +2,7 @@
 
 #
 # Build a plugin, push it to the webserver, update the URL registry, and insert
-# it to a CHK with the node on port 9481.
+# it to a CHK with the node on $fcpPort.
 #
 
 # Load configuration and utility functions.
