@@ -8,7 +8,7 @@ fi
 cd "$1"
 
 # Historically this was separate from release-installer so that they can run under different users.
-for x in new_installer.jar new_installer_offline.jar sha1test.jar wrapper_Darwin.zip wrapper_Linux.zip wrapper_windows.zip; do
+for x in new_installer_offline.jar sha1test.jar wrapper_Darwin.zip wrapper_Linux.zip; do
     echo Signing ${x}
     rm -f "${x}.sig"
     # TODO: Binary sha512sum.
