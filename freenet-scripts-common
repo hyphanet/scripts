@@ -34,9 +34,9 @@ function getBuildInfo {
     # Get highest build number, sorted numerically.
     # Git tag includes only those tags starting with "build", and the awk
     # substring excludes the first 5 characters, which are "build".
-    buildNumber=$(git tag -l 'build*' | awk '{print substr($0, 6)}' | sort --numeric-sort | tail -n1)
+    buildNumber=$(git tag -l 'build[0-9]*' | awk '{print substr($0, 6)}' | grep "^[0-9]*$" | sort --numeric-sort | tail -n1)
     # Get tag with highest build number.
-    gitVersion=$(git tag -l 'build*' | grep "$buildNumber$")
+    gitVersion=$(git tag -l 'build[0-9]*' | grep "$buildNumber$")
     getTagInfo $gitVersion
     popd
 }
@@ -60,11 +60,37 @@ function getTagInfo {
 # Read configuration file if it exists.
 function readConfig {
     if [ -f "$configPath" ]; then
-        echo "Reading configuration at \"$configPath\"."
         source "$configPath" || exit
     else
         echo Config file does not exist: "$configPath"
-        exit
+        exit 1
     fi
 }
 
+# Reads a case insensitive y/n response to the question given in the argument.
+# Prints "Aborting." and exits if it is not y.
+function require {
+    echo -n "$1 [y/N]"
+    read response
+    if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
+       echo "Aborting."
+       exit 1
+    fi
+}
+
+# Create a temporary directory, set it to $buildDir, and set a trap to remove it
+# on exit.
+function makeBuildDir {
+    buildDir="$(mktemp -d)" || exit 2
+
+    function rmTemp {
+        popd
+        echo "Removing temporary build directory."
+        rm -rf "$buildDir"
+        echo "Done."
+    }
+
+    trap rmTemp EXIT
+}
+
+readConfig

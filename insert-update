@@ -1,59 +1,74 @@
 #!/bin/bash
-# Put the real keys in ~/bin/insert-update-keys
-# Shared default configuration and utility functions.
-source freenet-scripts-common || exit
-readConfig
+# User should put the real keys in $insertKeys (see ~/.freenetrc)
+# Format of keys file: NEWKEY=[SSK private URI]
+# We used to also include OLDKEY, but this is not used any more, since the transition version is the last build inserted on the old key and the first inserted on the new key.
 
-SEEDNODESFILE=$releaseDir/seednodes.fref
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
+SEEDNODESFILE="$releaseDir/seednodes.fref"
 
 getBuildInfo
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 echo Build number $buildNumber git tag $gitVersion
 
-KEYS=`mktemp -d -p /tmp temp.XXXXXXXX`
+# The auto-update keys should never, EVER be written to disk in plaintext.
+# /tmp is a tmpfs on encrypted swap, right?
+# PARANOIA: Maybe we should check :)
+KEYS="$(mktemp -d -p /tmp temp.XXXXXXXX)"
 if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country data; fi
-gpg -o $KEYS/keys ~/bin/insert-update-keys.gpg || exit
-source $KEYS/keys || exit
-TEMPLOC=`mktemp -d`
-echo Temporary file location: $TEMPLOC
-git clone $fredDir $TEMPLOC || exit
+# Decrypt the keys.
+gpg -o $KEYS/keys "$insertKeys" || exit
+(cat $KEYS/keys; echo) | grep "NEWKEY=" | sed -n "s/NEWKEY=//p" | sed "s/^\"\(.*\)\"$/\1/" | tr --delete "\n\"" > $KEYS/barekey
+if test ! -s $KEYS/barekey; then
+	echo Empty key???
+	exit 1
+fi
+TEMPLOC="$(mktemp -d)"
+echo Temporary file location: "$TEMPLOC"
+# TODO consider just using the source tarball.
+# TODO We need to know the version and the gitVersion but that's stored somewhere IIRC.
+git clone "$fredDir" "$TEMPLOC" || exit
 cd $TEMPLOC
 git reset --hard
-git checkout $gitVersion || exit
-cp $freenetExtPath lib/freenet-ext.jar || exit
+git checkout "$gitVersion" || exit
+cp "$freenetExtPath" lib/freenet-ext.jar || exit
 ant clean
-cp $releaseDir/freenet-$gitVersion.jar lib/freenet-cvs-snapshot.jar
-FILENAME=$releaseDir/freenet-$gitVersion.jar
-SOURCENAME=$releaseDir/freenet-$gitVersion-source.tar.bz2
-if [[ ! -e $FILENAME ]]; then echo Jar not found; exit; fi
-if [[ ! -e $SOURCENAME ]]; then echo Source not found; exit; fi
+FILENAME="$releaseDir/freenet-$gitVersion.jar"
+SOURCENAME="$releaseDir/freenet-$gitVersion-source.tar.bz2"
+if [[ ! -e "$FILENAME" ]]; then echo Jar not found; exit; fi
+if [[ ! -e "$SOURCENAME" ]]; then echo Source not found; exit; fi
 echo Inserting update for build number $buildNumber
-set -m
 
 # SECURITY: Insert via secondary testing node, NOT VIA MAIN NODE
 # This avoids the insert keys ever being known to the main node.
-for PORT in 9482; do
+# REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
+PORT="$fcpUpdatePort"
 
-TEMPFILE1=`mktemp /tmp/insert.temp.XXXXXXXXXX`
-echo Temp file $TEMPFILE1
-echo ClientHello > $TEMPFILE1
-echo "Name=Toad-update-$buildNumber" >> $TEMPFILE1
-echo ExpectedVersion=2 >> $TEMPFILE1
-echo End >> $TEMPFILE1
-echo >> $TEMPFILE1
+TEMPFILE="$(mktemp /tmp/insert.temp.XXXXXXXXXX)"
+# TODO Consider not using a tempfile.
+# Obvious way to do this is (.....) | nc ...
+# The error messages would need to be echo Blah >&2, which they are not now.
+# However, we need to be able to exit the whole script from within the parentheses...
+echo Temp file $TEMPFILE
+echo ClientHello > $TEMPFILE
+echo "Name=Toad-update-$buildNumber" >> $TEMPFILE
+echo ExpectedVersion=2 >> $TEMPFILE
+echo End >> $TEMPFILE
+echo >> $TEMPFILE
 
 INSTALLERFILE=$releaseDir/new_installer_offline_$buildNumber.jar
 WININSTALLERFILE=$releaseDir/FreenetInstaller-$buildNumber.exe
 
-if [[ ! -f $INSTALLERFILE ]]
+if [[ ! -f "$INSTALLERFILE" ]]
 then
-  echo Installer file does not exist: $INSTALLERFILE
+  echo Installer file does not exist: "$INSTALLERFILE"
   exit
 else
-  if [[ ! -f $WININSTALLERFILE ]]
+  if [[ ! -f "$WININSTALLERFILE" ]]
   then
-    echo Windows installer file does not exist: $WININSTALLERFILE
+    echo Windows installer file does not exist: "$WININSTALLERFILE"
     exit
   fi
 fi
@@ -61,92 +76,88 @@ fi
 for WHAT in binary source installer wininstaller seednodes changelog fullchangelog iptocountryv4; do
 
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
+# Of course, you should run this against the testing node which should already be running the new version, so won't restart.
 PCLASS=0
-URI=NEWKEY
 IDENT=update-new-$buildNumber
 if [[ $WHAT == "source" ]]; then
   INSERTFILE=$SOURCENAME
   PCLASS=$((PCLASS+3))
-  URI=${URI}/update-source-$buildNumber
+  URIEND=/update-source-$buildNumber
   IDENT=${IDENT}-source
 fi
 if [[ $WHAT == "installer" ]]; then
   INSERTFILE=$INSTALLERFILE
-  URI=${URI}/installer-$buildNumber
+  URIEND=/installer-$buildNumber
   IDENT=${IDENT}-installer
   PCLASS=$((PCLASS+2))
 fi
 if [[ $WHAT == "wininstaller" ]]; then
   INSERTFILE=$WININSTALLERFILE
-  URI=${URI}/wininstaller-${buildNumber}
+  URIEND=/wininstaller-${buildNumber}
   IDENT=${IDENT}-wininstaller
   PCLASS=$((PCLASS+2))
 fi
 if [[ $WHAT == "binary" ]]; then
   INSERTFILE=$FILENAME
-  URI=${URI}/jar-$buildNumber
+  URIEND=/jar-$buildNumber
   PCLASS=$((PCLASS))
 fi
 if [[ $WHAT == "seednodes" ]]; then
   INSERTFILE=$SEEDNODESFILE
-  URI=${URI}/seednodes-$buildNumber
+  URIEND=/seednodes-$buildNumber
   IDENT=${IDENT}-seednodes
 fi
 if [[ $WHAT == "changelog" ]]; then
   INSERTFILE=$releaseDir/changelog.short.$gitVersion.txt
-  URI=${URI}/changelog-$buildNumber
+  URIEND=/changelog-$buildNumber
   IDENT=${IDENT}-changelog
 fi
 if [[ $WHAT == "fullchangelog" ]]; then
   INSERTFILE=$releaseDir/changelog.full.$gitVersion.txt
-  URI=${URI}/fullchangelog-$buildNumber
+  URIEND=/fullchangelog-$buildNumber
   IDENT=${IDENT}-fullchangelog
 fi
 if [[ $WHAT == "iptocountryv4" ]]; then
   INSERTFILE=$countryDataFile
-  URI=${URI}/iptocountryv4-$buildNumber
+  URIEND=/iptocountryv4-$buildNumber
   IDENT=${IDENT}-iptocountryv4
   PCLASS=$((PCLASS+2))
 fi
-TEMPFILE=`mktemp /tmp/insert.temp.XXXXXXXXXX`
+if [[ ! -e "$INSERTFILE" ]]; then
+    echo "File $INSERTFILE missing"
+    exit 5
+fi
 echo ClientPut >> $TEMPFILE
+# Turn off compression: Limit possibilities for things breaking
 echo "DontCompress=true" >> $TEMPFILE
-echo "CompatibilityMode=COMPAT_1250_EXACT" >> $TEMPFILE
-echo "URI=$URI" >> $TEMPFILE
+# Force a specific compatibility mode. This should be whatever was current at the time of the last transition build.
+echo "CompatibilityMode=COMPAT_1416" >> $TEMPFILE
+# Add the actual private URI
+echo -n "URI=" >> $TEMPFILE
+cat $KEYS/barekey >> $TEMPFILE
+echo "$URIEND" >> $TEMPFILE
 echo "Identifier=$IDENT" >> $TEMPFILE
-echo Verbosity=1023 >> $TEMPFILE
+# Keep on retrying the insert until it succeeds.
 echo MaxRetries=-1 >> $TEMPFILE
 echo UploadFrom=direct >> $TEMPFILE
-echo DataLength=`ls -l $INSERTFILE | cut -d " " -f 5` >> $TEMPFILE
+# TODO: wc -c instead of relying on the ls -l format?
+echo DataLength=$(ls -l $INSERTFILE | cut -d " " -f 5) >> $TEMPFILE
 # SECURITY: Persistence=reboot so the keys are never written to disk
 echo Persistence=reboot >> $TEMPFILE
 echo PriorityClass=$PCLASS >> $TEMPFILE
 echo Global=true >> $TEMPFILE
 echo End >> $TEMPFILE
-
-SCRIPT=$KEYS/script
-echo -n "s/NEWKEY/" > $SCRIPT
-cat $KEYS/keys | sed -n "s/NEWKEY=\"\(.*\)\"/\1/p" >> $SCRIPT
-cat $SCRIPT | tr --delete "\n" > ${SCRIPT}.1 && mv ${SCRIPT}.1 $SCRIPT
-echo "/" >> $SCRIPT
-cat $TEMPFILE | sed -f $SCRIPT > $TEMPFILE.1
-mv $TEMPFILE.1 $TEMPFILE
-
-cat $TEMPFILE >> $TEMPFILE1
-cat $INSERTFILE >> $TEMPFILE1
-rm $TEMPFILE
+# Send the data after the message
+cat $INSERTFILE >> $TEMPFILE
 
 done
 
 SCRIPT=$KEYS/script
 
-#cat $TEMPFILE1 | nc 127.0.0.1 $PORT | sed "/^URI=/d" &
-cat $TEMPFILE1 | nc 127.0.0.1 $PORT | sed "/^URI=/d"
-
-done
+cat $TEMPFILE | nc 127.0.0.1 $PORT | sed "/^URI=/d"
 
 rm -Rf $KEYS
-rm -Rf $TEMPFILE1
+rm -Rf $TEMPFILE
 
 #jobs
 #wait %1

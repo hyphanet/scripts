@@ -2,6 +2,9 @@
 # Should be saved to ~/.freenetrc
 # Paths should be absolute.
 
+# Absolute path to base directory. Used for convenience in setting other paths.
+freenetRoot="/home/freenet"
+
 # Webserver directory for updating project money balance.
 moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
 
@@ -12,22 +15,22 @@ websiteDeployLiveDir="/var/www/freenet-website"
 websiteDeployTestingDir="/var/www/freenet-website-testing"
 
 # Target directory for generated files.
-releaseDir="../FreenetReleased"
+releaseDir="$freenetRoot/FreenetReleased"
 
-# Path to the website-official repository. Used when deploying to the live website.
-websiteOfficialDir="../website-official"
+# Path to seednodes.fref
+seedrefsPath="$releaseDir/seednodes.fref"
 
-# Path to the website-staging repository. Used when deploying to the testing website.
-websiteStagingDir="../website-staging"
+# Path to the website repository.
+websiteDir="$freenetRoot/website"
 
-# Windows installer source location.
-wininstallerDir="../wininstaller-staging"
+# Windows InnoSetup installer source location.
+wininstallerDir="$freenetRoot/wininstaller"
 
 # Java (Mac, Linux) installer source location
-installerDir="../app-new_installer
+installerDir="$freenetRoot/java_installer"
 
 # Path to Fred repository.
-fredDir="../fred-official"
+fredDir="$freenetRoot/fred"
 
 # Path to freenet-ext.jar.
 freenetExtPath="$releaseDir/freenet-ext.jar"
@@ -41,17 +44,37 @@ useSshAgent="1"
 # Hostname to send updates to.
 targetHost="osprey.vm.bytemark.co.uk"
 
+# Google Drive upload authentication method.
+# "cmdline": print the URL of a page to be manually opened. This page
+#            gives a code to type/copy in.
+# "browser": open a browser with a URL that allows logging in. This
+#            avoids having to type in the code.
+googleDriveAuth="browser"
+
 # FCP host hostname / IP.
 fcpHost="127.0.0.1"
 
-# FCP host port.
+# FCP host port. This is used to update the default bookmark editions.
 fcpPort="9481"
+
+# FCP port for inserting updates. This cannot be a node with heavy logging
+# lest information about the update keys leak.
+fcpUpdatePort="9482"
 
 # User to switch to when signing the release. Does not switch if empty.
 signingUser=""
 
+# git tag signing switch. Default uses that associated with the default email.
+# Probably should otherwise be "-u <key id>" to give a specific one.
+gitSign="-s"
+
 # User to build Windows executables as.
 wineUser="freenet-buildwin"
+
+# TODO: This keystore is not just for the jarsigner - it's for signing other
+# binaries too.
+# jarsigner keystore location.
+jarsignerStoreLocation="$HOME/.gnupg/freenet/code-signing/code-signing.jks"
 
 # Jar signer for installer generator. These need to be signed for JWS IIRC, but it can be a bogus (self signed) cert.
 # Jar signer keystore password
@@ -60,6 +83,18 @@ jarsignerStorePassword="password"
 # Jar signer keystore alias
 jarsignerAlias="alias"
 
+# Password for code signing key.
+jarsignerCodeSigningKeyPassword="password"
+
 # Location of IpToCountry.dat
 # Get it from here: http://software77.net/faq.html#automated
-countryDataFile="../IpToCountry/IpToCountry.dat"
+countryDataFile="$freenetRoot/IpToCountry/IpToCountry.dat"
+
+# Where are the (encrypted) auto-update insert keys stored?
+insertKeys="~/.freenet.insertKeys.gpg"
+
+# Path to directory with `deploy-website` relative to home directory.
+remoteDeployPrefix="scripts"
+
+# Path to individual seed node reference directory.
+seedrefsDir="$freenetRoot/seedrefs"

@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
-
-readConfig
 
 buildDir=$(mktemp -d)
 git clone "$fredDir" "$buildDir" || exit 1

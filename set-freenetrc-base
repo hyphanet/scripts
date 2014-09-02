@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Goal: Configure absolute base path to point to parent directory.
+# Purpose: It is easier to run the script than paste / type a path. This is also
+#          intended for use with a "one click" setup script.
+
+# First get absolute path to freenet installation that is 1-level up form location of this script (../)
+this_script_filename="$(readlink -e "$0")"
+this_script_dir="$(dirname "$this_script_filename")"
+freenet_dir="$(readlink -e "$this_script_dir/../")" # 1 dir above
+
+if [ -z "$freenet_dir" ] ; then
+	echo "ERROR: Unable to find out the freenet_dir from reading our location $0"
+	exit 1;
+fi
+
+echo "Setting base directory to \"$freenet_dir\""
+
+# Escape for sed string. Replace "/" with "\/". But "\\/" because sed-escaped
+freenet_dir_escaped="$(echo "$freenet_dir" | sed -e 's|/|\\/|g')"
+
+script_error() {
+	echo "ERROR: This script had an error - read messages above, exiting"
+	exit 1;
+}
+
+# Replace the entire line with a modified one.
+sed -ie "s/^freenetRoot=.*$/freenetRoot=\"$freenet_dir_escaped\"/" ~/.freenetrc || script_error
+
+echo "Configuration updated."

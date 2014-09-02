@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o errexit
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 cd $(dirname $0)
@@ -9,7 +9,6 @@ startingDir=$(pwd)
 update=false
 dryRun=false
 testing=false
-websiteDir=""
 forceWebsiteID=""
 forceFredID=""
 
@@ -22,22 +21,20 @@ for the latest version of Fred in the repository.
 
 OPTIONS
     -u, --update    Update the website and fred repos before deploying.
-                    This removes any local modifications and updates to the
-                    remote master branch.
 
     -d, --dry-run   Generate the website, but pause to allow inspection of the
                     output instead of deploying or updating the money totals.
 
-    -t, --testing   Deploy the staging repository to the testing subdomain, and
+    -t, --testing   Deploy the "next" branch to the testing subdomain, and
                     do not update the money totals."
 
-    --force-website-id Checkout and verify the given git ID for the website. 
+    --force-website-id Checkout and verify the given git ID for the website.
                        Only if -u.
 
     --force-fred-id    Checkout and verify the given git ID for fred.
                        Only if -u.
 
-The fred-offical repo is used to determine the version and build tag
+The fred repo is used to determine the version and build tag
 for substitution. The version is regex'd from Version.java, and the
 build tag is last git tag listed matching '^build[0-9]{5}'.
 
@@ -96,23 +93,13 @@ do
     esac
 done
 
-readConfig
-
 if $testing; then
-    websiteDir="$websiteStagingDir"
+    branch="next"
 else
-    websiteDir="$websiteOfficialDir"
+    branch="master"
 fi
-websiteOutputDir="$websiteDir/output"
 
-# Discard any local changes, update remote branches and tags, and
-# check out to the latest master branch.
-git_update() {
-    #To update tags and branches.
-    git remote update
-    git clean -dfx
-    git reset --hard origin/master
-}
+websiteOutputDir="$websiteDir/output"
 
 function checkGitID {
     checkID=$1
@@ -125,7 +112,6 @@ function checkGitID {
     if ! actualID=$(git rev-parse --verify HEAD)
     then
         echo Failed to verify "$checkID"
-        git checkout master
         exit 5
     fi
     if ! [[ "$actualID" = "$checkID" ]]
@@ -138,16 +124,16 @@ function checkGitID {
 
 #If requested, perform update before gathering information from repos.
 if $update; then
-    echo "Updating fred-official."
+    echo "Updating fred repo."
     cd "$fredDir"
-    git_update
+    git remote update
     if ! [[ "$forceFredID" = "" ]]
     then
         checkGitID "$forceFredID"
     fi
     echo "Updating website repo."
     cd "$websiteDir"
-    git_update
+    git remote update
     if ! [[ "$forceWebsiteID" = "" ]]
     then
         checkGitID "$forceWebsiteID"
@@ -155,8 +141,27 @@ if $update; then
     cd "$startingDir"
 fi
 
+pushd "$websiteDir"
+git checkout "origin/$branch"
+popd
+
 #Determine version information.
 getBuildInfo
+
+#Read links to release files on Google Drive.
+if [ ! -e google_drive_links ]; then
+    echo "Missing Google Drive links. Please generate them:"
+    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+    exit 3
+fi
+source google_drive_links || exit
+
+if [[ "$linkBuildNumber" -ne "$buildNumber" ]]; then
+    echo "The current build is $buildNumber but the links are for $linkBuildNumber"
+    echo "Please generate them again:"
+    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+    exit 3
+fi
 
 #Generate website.
 cd "$websiteDir"
@@ -164,14 +169,7 @@ cd "$websiteDir"
 
 #Determine which languages are present.
 presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
-cd "$startingDir"
 
-cat <<EOF
-Using FREENETVERSION "$buildNumber"
-Using FREENETTAG "$gitVersion"
-Website contains languages: $presentLangs
-Using website repo in: "$websiteDir"
-EOF
 cd "$fredDir"
 if ! git tag -v "$gitVersion"
 then
@@ -179,6 +177,14 @@ then
 	echo Please ensure you have all relevant gpg keys, and check the fingerprints.
 	exit 3
 fi
+
+cat <<EOF
+Using FREENETVERSION "$buildNumber"
+Using FREENETTAG "$gitVersion"
+Website contains languages: $presentLangs
+Using website repo in: "$websiteDir"
+EOF
+
 cd "$websiteDir"
 echo "Website commit ID is $(git rev-parse --verify HEAD)"
 cd "$startingDir"
@@ -223,13 +229,24 @@ rsync -ar "$websiteOutputDir/"* "$tempSub"
 
 #Substitute, copying to the money balance substitution directory anything with MONEYBALANCE or MONEYDAYS.
 echo "Substituting."
+
 #Including a trailing slash - assumes mktemp -d does not include one.
 #Used to strip absolute component from path when copying to substitution dir.
 tempSubLength=$((${#tempSub}+1))
 for file in $(find "$tempSub" -type f)
 do
-    if grep -Fq -e FREENET "$file"
+    if grep -Flq FREENET "$file"
     then
+        replace "FREENET_MAIN_JAR_URL" "$FREENET_MAIN_JAR_URL"\
+                "FREENET_SOURCE_URL" "$FREENET_SOURCE_URL"\
+                "FREENET_INSTALLER_URL" "$FREENET_INSTALLER_URL"\
+                "FREENET_INSTALLER_REDIRECT_URL" "https://freenetproject.org/jnlp/freenet_installer.jar"\
+                "FREENET_WINDOWS_INSTALLER_URL" "$FREENET_WINDOWS_INSTALLER_URL"\
+                "FREENET_MAIN_JAR_SIG_URL" "$FREENET_MAIN_JAR_SIG_URL"\
+                "FREENET_SOURCE_SIG_URL" "$FREENET_SOURCE_SIG_URL"\
+                "FREENET_INSTALLER_SIG_URL" "$FREENET_INSTALLER_SIG_URL"\
+                "FREENET_WINDOWS_INSTALLER_SIG_URL" "$FREENET_WINDOWS_INSTALLER_SIG_URL"\
+                -- "$file"
        sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
     if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"

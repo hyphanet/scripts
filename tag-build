@@ -1,55 +1,123 @@
 #!/bin/bash
-DIFF=`git diff`
-if [[ ! -z $DIFF ]]; then
-        echo You did not commit the files!
-        echo "$DIFF"
-        exit
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
+cd "$fredDir"
+
+DIFF="$(git diff)"
+if [[ -n "$DIFF" ]]; then
+    echo "$DIFF"
+    echo There are modified files. Please commit or stash them.
+    exit 1
 fi
-DIFF=
-if grep TESTNET src/freenet/node/Version.java ; then echo TRYING TO RELEASE A TESTNET BUILD AS A REAL BUILD ; exit; fi
+
+# Testnet is a separate source repository, so we need to check for it.
+# TODO we should have --testnet switches on the scripts.
+if grep TESTNET src/freenet/node/Version.java ; then
+    echo This appears to be a testnet build because freenet.node.Version contains "TESTNET".
+    echo Testnet builds are not suitable for release as a normal build.
+    exit 2
+fi
+
 BUILD=$1
-if [[ -z $BUILD ]]; then exit; fi
-if ! grep "buildNumber = $BUILD" src/freenet/node/Version.java ; then echo YOU MUST UPDATE src/freenet/node/Version.java; exit; fi
-TAG=build0$BUILD
+if [[ -z $BUILD ]]; then
+	echo Usage: tag-build 1234
+	echo 1234 is the build number.
+	exit 3
+fi
+
+if ! grep "buildNumber = $BUILD;" src/freenet/node/Version.java ; then
+    echo src/freenet/node/Version.java does not contain the requested build number.
+    echo Please update the build number, as well as - if desired - the mandatory date.
+    exit 4
+fi
+
+TAG=$(printf 'build%05d' "$BUILD")
+PREVBUILD=$(($BUILD-1))
+PREVTAG=$(printf 'build%05d' "$PREVBUILD")
+
+FULLCHANGELOG=$releaseDir/changelog.full.$TAG.txt
+CHANGELOG=$releaseDir/changelog.short.$TAG.txt
+
 echo Releasing build $TAG
-echo Please enter developer changelog:
-cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt
-echo Please enter end-user-friendly changelog:
-cat > /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt
-TEMP=`mktemp`
-cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.short.${TAG}.txt > $TEMP
-echo >> $TEMP
-echo "Developer changelog:" >> $TEMP
-echo >> $TEMP
-cat /usr/src/cvs/eclipse-workspace/FreenetReleased/changelog.full.${TAG}.txt >> $TEMP
-echo
+echo Previous build was $PREVTAG
+
+# Don't overwrite an existing changelog.
+if [ ! -e "$FULLCHANGELOG" ]; then
+cat - > "$FULLCHANGELOG" <<EOF
+$(date '+%F')
+
+Changes in $BUILD:
+
+[enumerate developer-facing changes]
+
+- Release manager name
+
+Authors:
+$(git log --format="format:%an <%ae>" "$PREVTAG.." | sort | uniq)
+EOF
+fi
+editor $FULLCHANGELOG || exit 10
+if [ ! -e "$CHANGELOG" ]; then
+# TODO: 0.7.5 shouldn't be hardcoded in multiple places.
+cat > "$CHANGELOG" <<EOF
+$(date '+%F')
+
+Freenet 0.7.5 build $BUILD is now available. [overview]
+
+[enumerate user-facing changes]
+
+Thank you for using Freenet!
+
+- Release manager name
+EOF
+fi
+editor $CHANGELOG || exit 11
+
+# Temporary file to hold developer changelog, user-facing changelog, and contributing authors.
+TEMP="$(mktemp)"
+
+# Remove temporary file on exit.
+function cleanup {
+    rm "$TEMP"
+}
+trap cleanup EXIT
+
+cat "$CHANGELOG" > "$TEMP"
+echo >> "$TEMP"
+echo "Developer changelog:" >> "$TEMP"
+echo >> "$TEMP"
+cat "$FULLCHANGELOG" >> "$TEMP"
+
 echo
 echo Combined changelog as will be tagged:
 echo
-cat $TEMP
+cat "$TEMP"
 echo
-echo Confirm release of $TAG? y/n
-read x
-if [[ $x != "y" ]]; then
-	rm $TEMP
-	git tag -d $TAG
-	echo FAILED
-	exit
-fi
-git tag -s $TAG -F $TEMP
-git push --tags origin
-git push stable $TAG
-git push origin
-git push stable
-git push --tags stable
-echo $TAG > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.tag || exit
-echo $BUILD > /usr/src/cvs/eclipse-workspace/FreenetReleased/freenet.build
-BRANCH=`git branch | grep "^*" | cut -b 3-`
+
+require "Tag as $TAG?"
+
+# Tag with the message, and push the tags and changes.
+git tag "$gitSign" "$TAG" -F "$TEMP" || exit 8
+
+git push origin "$TAG"
+
+echo "$TAG" > "$releaseDir/freenet.tag" || exit 6
+echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
+
+# TODO: test vs. [ ] or [[ ]]?
+# Get the name of the active branch. TODO: More idiomatic?
+BRANCH="$(git branch | grep "^\*" | cut -b 3-)"
+
 if test $BRANCH != "master" && test $BRANCH != "next"; then
-	echo Merging back into master
+	# Common case: Releasing from a branch, e.g. stable-9999, fixes
+	echo "Merging active branch $BRANCH back into master."
 	git checkout master
-	git merge $TAG || exit
-	echo Delete branch $BRANCH? y/n
+	git merge --ff-only $TAG || exit 7
+
+	# Then offer to delete it.
+	echo "Delete branch $BRANCH? [y/N]"
 	read x
 	if [[ $x == "y" ]]; then
 		git branch -d $BRANCH
@@ -58,12 +126,19 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	else
 		git checkout $BRANCH
 	fi
+
+	# Merge master into next.
 	git checkout next
 	git merge master
-	git push origin next
-	git push origin master
-	git push stable master
-	git push stable next
-	git checkout next
+elif test $BRANCH == "next"; then
+	# Releasing from next.
+	# Merge next into master.
+	git checkout master
+	git merge next
 fi
-rm $TEMP
+
+# Push changes and end on next.
+git push origin next
+git push origin master
+
+git checkout next

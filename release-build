@@ -1,0 +1,52 @@
+#!/bin/bash
+# Release a Freenet build.
+# Everything here can be safely re-run except for tag-build. If you get a failure after that, comment out tag-build before running this script again.
+# Usage is "release-build 9999" for build 9999. 
+# TODO Add --help etc.
+# TODO Add --snapshot to proxy to release-fred --snapshot ???
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
+BUILD=$1
+
+# Set up agents at the beginning of this script, but not the individual scripts.
+# TODO We could put this in freenet-scripts-common but only if it doesn't get re-run in every script we call.
+#eval `gpg-agent --daemon`
+
+if [ "$useSshAgent" == "1" ]; then
+    eval $(ssh-agent -s)
+    ssh-add
+
+    function stopAgent() {
+        ssh-agent -k
+    }
+
+    trap stopAgent EXIT
+fi
+
+update-bookmarks || exit
+update-version $BUILD || exit
+tag-build $BUILD || exit 1
+# Get build info after tagging the new build.
+getBuildInfo
+echo Releasing build $buildNumber
+release-fred --build || exit 2
+release-installer || exit 3
+release-wininstaller --release || exit 4
+python upload-to-google-drive.py $buildNumber --release_directory "$releaseDir" --auth_type "$googleDriveAuth" || exit 5
+# REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
+echo Now please test the new build.
+echo Deploy the build only when:
+echo 1: You have tested the new build and are satisfied that it works, and
+echo 2: You have a node running on FCP port $fcpUpdatePort, without excessive logging - this should NOT be your normal development node.
+echo The test node you just installed will do fine.
+java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
+require "Perform release?"
+echo Performing final release.
+remote-deploy-website
+require "Final chance: Deploy to auto-update?"
+insert-update || exit 9
+#killall gpg-agent
+# TODO How to terminate our gpg-agent and no others?
+echo All done.

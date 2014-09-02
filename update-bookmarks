@@ -1,0 +1,36 @@
+#!/bin/bash
+set -o errexit
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
+bookmarkPath="$fredDir/src/freenet/clients/http/staticfiles/defaultbookmarks.dat"
+
+pushd "$fredDir"
+
+while [[ -n "$(git diff "$bookmarkPath")" ]]
+do
+    cat <<EOF
+There are already other changes to the bookmarks file.
+Please commit them separately or discard them.
+
+Press enter to check again.
+EOF
+    read
+done
+
+if [[ -n "$(git diff)" ]]
+then
+    require "Commit bookmark changes before pending ones?"
+fi
+
+popd
+
+update-bookmarks.py --verbose --host=$fcpHost --port=$fcpPort "$bookmarkPath"
+
+# Commit updated bookmarks if any changes are made.
+cd "$fredDir"
+if [[ -n "$(git diff "$bookmarkPath")" ]]
+then
+    git commit -m "Update default bookmark editions" "$bookmarkPath"
+fi

@@ -1,13 +1,16 @@
 #!/bin/bash
 # FIXME clean up, give --help etc.
-source freenet-scripts-common
-remoteDeployPrefixCommand=
-remoteDeployPrefix=
-readConfig
+
+# Deploy the website on the webserver using locally-reviewed commit IDs.
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
 getBuildInfo
-websiteID=$(cd $websiteDir; git rev-parse --verify master)
-# FIXME ideally we'd like to verify the ID of fred as well as the tag.
+websiteID=$(cd "$websiteDir"; git rev-parse --verify master)
+
 # Both git describe and git rev-parse --verify will give a tag if it exists.
 echo Fred ID "$commitID"
 echo Website ID "$websiteID"
-ssh $targetHost -- "$remoteDeployPrefixCommand ${remoteDeployPrefix}deploy-website -u --force-website-id $websiteID --force-fred-id $commitID"
+scp google_drive_links "$targetHost:$remoteDeployPrefix"
+ssh $targetHost -- "cd $remoteDeployPrefix; ./deploy-website -u --force-website-id $websiteID --force-fred-id $commitID"

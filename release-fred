@@ -4,7 +4,7 @@
 # these variables are probably different for everybody
 # so create $HOME/.freenetrc and override those with your desired values.
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 # What to build / release. Possible values: "build", "snapshot"
@@ -22,6 +22,7 @@ Prompts for confirmation before releasing.
 Configuration file is at $configPath by default.
 Requires --snapshot or --build.
 
+# TODO: Is this a reasonable argument? My initial impression is no.
 --config CONFIG   Path to freenetrc
 --dry-run         If present, builds packages and skips releasing.
 --build           If present packages the highest-numbered build tag.
@@ -62,8 +63,6 @@ EOF
     esac
 done
 
-readConfig
-
 # Target should be set.
 if [[ -z "$target" ]]; then
     echo "Target not set. Please specify --build or --snapshot."
@@ -75,22 +74,26 @@ if [[ "$target" = "snapshot" ]]; then
     releaseDir="$releaseDir/pre"
 fi
 
-buildDir=$(mktemp -d)
-echo "Created temporary directory $buildDir."
+makeBuildDir
 git clone "$fredDir" "$buildDir" || exit 2
-pushd "$buildDir"
+cd "$fredDir"
 
 # Function in freenet-scripts-common - sets $gitVersion, $buildNumber, and $commitID.
 getBuildInfo
 # If releasing a stable build checkout the latest build tag.
 if [[ "$target" = "build" ]]; then
-    git checkout "$gitVersion" || exit 12
+    echo "Building release."
 elif [[ "$target" = "snapshot" ]]; then
+    echo "Building snapshot."
     gitVersion=$(git describe --always --abbrev=40)
+    commitID=$(git rev-parse HEAD)
 else
-    echo "Unrecognized internal target of \"$target\"."
+    echo "Internal error: unrecognized target \"$target\"."
     exit 14
 fi
+
+cd "$buildDir"
+git checkout "$gitVersion" || exit 12
 
 # copy freenet-ext.jar
 mkdir -p lib 2>/dev/null
@@ -99,20 +102,22 @@ mkdir -p lib/freenet
 cp lib/freenet-ext.jar lib/freenet/ || exit 4
 cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
 
-# clean
-ant clean || exit 5
-git reset --hard || exit 6
+# Build script uses environment variables.
+export jarsignerStoreLocation="$jarsignerStoreLocation"
+export jarsignerStorePassword="$jarsignerStorePassword"
+export jarsignerAlias="$jarsignerAlias"
+export jarsignerCodeSigningKeyPassword="$jarsignerCodeSigningKeyPassword"
 
 if [[ "$target" = "build" ]]; then
     ant -f build-clean.xml || exit 16
     ant javadoc || exit 32
     jarName="freenet-$gitVersion.jar"
 elif [[ "$target" = "snapshot" ]]; then
-# now build it (without api doc)
-ant -f build-clean.xml -Ddoc.skip=true || exit 9
+    # now build it (without api doc)
+    ant -f build-clean.xml -Ddoc.skip=true || exit 9
     jarName="freenet-$gitVersion-snapshot.jar"
 else
-    echo "Unrecognized internal target of \"$target\"."
+    echo "Internal error: Unrecognized target \"$target\"."
     exit 15
 fi
 
@@ -125,6 +130,7 @@ mv dist/freenet.jar "$jarName" || exit 10
 git archive --format=tar HEAD --prefix="freenet-$gitVersion/" | bzip2 -v9 > "$archiveName" || exit 11
 
 # Generate checksums and signatures for the jar and source archive.
+# TODO: Binary sha512sum instead of sha1sum. Note that this will require changes to the installer and update scripts, we probably want to keep the .sha1's as well as .sha512/.sha256.
 sha1sum "$jarName" > "$jarName.sha1"
 sha1sum "$archiveName" > "$archiveName.sha1"
 if [ -n "$signingUser" ]; then
@@ -145,36 +151,26 @@ fi
 
 # make sure release directory exists
 mkdir -p "$releaseDir"
-# copy files and signatures to local release directory
+# Copy files, checksums, and signatures to local release directory
 cp "$jarName"* "$releaseDir"
 cp "$archiveName"* "$releaseDir"
 rm "$releaseDir/freenet.jar"
-ln -s "$releaseDir/$jarName" "$releaseDir/freenet.jar"
+pushd "$releaseDir"
+ln -s "$jarName" "freenet.jar"
+popd
 
 # Localization comparison for build.
 if [[ "$target" = "build" ]]; then
     compareL10n $buildNumber || exit 33
 fi
 
-clean_up() {
-    # Return to starting directory and remove temporary.
-    popd
-    rm -Rf $buildDir
-}
-
 echo "Built $gitVersion as a $target release."
 echo "Commit ID is $commitID"
 if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
-    clean_up
     exit 0
 else
-    echo -n "Perform release [y/N]?"
-    read response
-    if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]; then
-        echo "Aborting release."
-        exit 0
-    fi
+    require "Perform release?"
 fi
 
 echo "Performing release."
@@ -188,12 +184,6 @@ if [[ "$target" = "build" ]]; then
     sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
 fi
 
-# start ssh agent and collect password
-if [ "$useSshAgent" == "1" ]; then
-    eval $(ssh-agent -s)
-    ssh-add
-fi
-
 # upload all files
 rsync -vvzP "$jarName"* freenet-testing-latest.jar.url .registry "$archiveName"* "$targetHost:/var/www/downloads/alpha/" || exit 24
 
@@ -204,51 +194,43 @@ if [[ "$target" = "build" ]]; then
     rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
 fi
 
-# shut down the ssh agent
-if [ "$useSshAgent" == "1" ]; then
-    ssh-agent -k
-fi
-
-# Return to starting directory and remove temporary.
-clean_up
-
 # upload snapshot binary and signature to freenet
 if [[ "$target" = "snapshot" ]]; then
     echo "Inserting snapshot into Freenet."
-    (
-    echo ClientHello;
-    echo Name=Toad-update-$gitVersion;
-    echo ExpectedVersion=2;
-    echo End;
+    nc "$fcpHost" "$fcpPort" <<EOF
+ClientHello
+Name=Toad-update-$gitVersion
+ExpectedVersion=2
+End
 
-    echo ClientPut;
-    echo "URI=CHK@";
-    echo "Identifier=$jarName";
-    echo Verbosity=1023;
-    echo MaxRetries=-1;
-    echo UploadFrom=disk;
-    echo "Filename=$releaseDir/$jarName";
-    echo "TargetFilename=$jarName";
-    echo Persistence=forever;
-    echo PriorityClass=1;
-    echo Global=true;
-    echo End;
+ClientPut
+URI=CHK@
+Identifier=$jarName
+Verbosity=1023
+MaxRetries=-1
+UploadFrom=disk
+Filename=$releaseDir/$jarName
+TargetFilename=$jarName
+Persistence=forever
+PriorityClass=1
+Global=true
+End
 
-    echo ClientPut;
-    echo "URI=CHK@";
-    echo "Identifier=$jarName.sig";
-    echo Verbosity=1023;
-    echo MaxRetries=-1;
-    echo UploadFrom=disk;
-    echo "Filename=$releaseDir/$jarName.sig";
-    echo "TargetFilename=$jarName.sig";
-    echo Persistence=forever;
-    echo PriorityClass=1;
-    echo Global=true;
-    echo End
-    ) | nc "$fcpHost" "$fcpPort"
+ClientPut
+URI=CHK@
+Identifier=$jarName.sig
+Verbosity=1023
+MaxRetries=-1
+UploadFrom=disk
+Filename=$releaseDir/$jarName.sig
+TargetFilename=$jarName.sig
+Persistence=forever
+PriorityClass=1
+Global=true
+End
+EOF
 else
-    echo "Not inserting build into Freenet."
+    echo "Not inserting build into Freenet. insert-update does that as part of release-build."
 fi
 
 echo "Release complete."

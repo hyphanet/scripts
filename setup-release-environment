@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Load configuration and utility functions.
+source freenet-scripts-common || exit
+
+# Packages on Debian Wheezy
+# For building Java: openjdk-6-jdk ant
+# For release management: rsync, coreutils, diffutils, gnupg, less, wget, perl, python, pip
+# For building the Windows installer: xvfb, wine, wine-gecko, mono-runtime
+# For avoiding repeated password entry: gnupg-agent openssh-client
+# For Google Drive upload: PyDrive
+# For finding the system certificates: httplib2.ca-certs-locater
+# For prompting for things like "2 weeks" in update-version.py: timeparser
+# It would be interesting to have the scripts repo without git, but might as well.
+sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl gnupg-agent openssh-client mono-runtime wine-gecko-1.4 netcat python python-pip || exit
+# Unlike 'sudo', 'sudo su' sets umask to the default for root, which
+# should be 0022 so that installed files are world-readable.
+# TODO: This doesn't actually seem to be the case when checking the umask explicitly: (sudo|) bash -c umask. Is using sudo su appropriate?
+# See http://stackoverflow.com/questions/11161776/pip-inconsistent-permissions-issues
+sudo su -c 'pip install PyDrive httplib2.ca-certs-locater timeparser' || exit
+
+mkdir -p "$releaseDir/dependencies"
+wget "https://people.apache.org/~ebourg/jsign/jsign-1.2.jar" -O "$releaseDir/dependencies/jsign-1.2.jar"
+
+wget "http://ahkscript.org/download/ahk2exe.zip" -O "$releaseDir/dependencies/ahk2exe.zip"
+unzip "$releaseDir/dependencies/ahk2exe.zip" -d "$releaseDir/dependencies/"
+
+# countryDataFile might have a directory that doesn't exist (it is very likely
+# to by default) so create it.
+# NOTE: Beware of downloading this file multiple times per day. Those who host
+# it are apparently very happy to add to their blacklist.
+mkdir -p $(dirname "$countryDataFile")
+wget software77.net/geo-ip/?DL=4 -O "$countryDataFile"
+
+# Clone if not set up already.
+if [ ! -d "$fredDir" ]; then
+    require "Clone Freenet repository into \"$fredDir\"?"
+    git clone git@github.com:freenet/fred.git "$fredDir" || exit
+fi
+
+if [ ! -d "$installerDir" ]; then
+    require "Clone Freenet installer into \"$installerDir\"?"
+    git clone https://github.com/freenet/java_installer.git "$installerDir" || exit
+fi
+
+if [ ! -d "$wininstallerDir" ]; then
+    require "Clone Freenet Windows installer into \"$wininstallerDir\"?"
+    git clone https://github.com/freenet/wininstaller.git "$wininstallerDir" || exit
+fi
+
+if [ ! -d "$websiteDir" ]; then
+    require "Clone Freenet website into \"$websiteDir\"?"
+    git clone https://github.com/freenet/website.git "$websiteDir"
+fi
+

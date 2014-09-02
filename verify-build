@@ -5,9 +5,8 @@
 # Uses lib-pyFreenet to fetch the in-Freenet JAR over FCP,
 # and so requires Python and lib-pyFreenet. (fcpget)
 
-# Shared default configuration and utility functions.
+# Load configuration and utility functions.
 source freenet-scripts-common || exit
-readConfig
 
 ## TODO MAJOR: Get the latest build number from somewhere other than the repository, e.g. Freenet, announcements, etc.
 ## TODO MAJOR: Verify the installers
@@ -18,6 +17,9 @@ readConfig
 ## TODO: Detect who released it and complain if not the same compiler? Or even install several copies?
 ## TODO: Allow choosing Freenet jar sources: at least one of website, freenet.
 ## TODO: Also verify consistency of source archives.
+
+# Avoid specifying this message multiple places. TODO: This may make more sense as a function?
+failureWarning="FAILED TO VERIFY. If you determine that this failure is not due to build environent differences, then the source files used to build the published version of Freenet are different from the published source files. The build has been compromised. Take care to only run version of Freenet with published, reviewable source code, as compromised versions of Freenet could easily contain back doors."
 
 # Exit with an error if freenet-ext does not exist.
 if [[ ! -e "$freenetExtPath" ]]; then
@@ -138,19 +140,32 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config
-fcpget --fcpHost="$fcpHost" --fcpPort="$fcpPort" "SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber" inserted-freenet.jar
+key="SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber"
+echo "" ; echo "Downloading from freenet - this can take a moment... key: $key"
+fcpget --verbose --fcpHost="$fcpHost" --fcpPort="$fcpPort" "$key" inserted-freenet.jar
 if [ ! -e "inserted-freenet.jar" ]; then
     echo "Unable to fetch freenet.jar from Freenet."
     exit 12
 fi
+echo "Downloaded file: "
+sha512sum inserted-freenet.jar
+
+echo "Comparing: "
 if ! cmp freenet.jar inserted-freenet.jar; then
+    echo ""
+    echo ""
+    echo "ERROR - VERIFICATION FAILED"
     echo FAILED TO VERIFY: The freenet.jar from the website and the
     echo freenet.jar fetched from Freenet are different.
     echo "Website jar SHA512: $(sha512sum freenet.jar)"
     echo "Inserted jar SHA512: $(sha512sum inserted-freenet.jar)"
+    echo ""
+    echo "$failureWarning"
     exit 11
 else
+    echo ""
     echo freenet.jar from the website and fetched from Freenet are the same.
+    echo "So far OK..."
 fi
 
 mkdir unpacked-official
@@ -167,6 +182,8 @@ if ! cmp unpacked-official.list unpacked-built.list; then
     echo Files in official but not in built are marked as +
     echo Files in built but not in official are marked with -
     diff -u unpacked-built.list unpacked-official.list
+    echo ""
+    echo "$failureWarning"
     exit 9
 fi
 
@@ -194,6 +211,8 @@ if [[ -s "differences" ]]; then
     echo VERIFY FAILED: FILES ARE DIFFERENT:
     cat differences
     summary
+    echo ""
+    echo "$failureWarning"
     exit 10
 fi
 echo "Verification successful."

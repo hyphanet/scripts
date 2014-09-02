@@ -1,0 +1,4 @@
+# Google Drive API credentials
+/client_secrets.json
+# Generated links go Google Drive files. (upload-to-google-drive.py script)
+/google_drive_links

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Argument must be a folder
+if [[ -z $1 ]]; then
+	echo Usage: sign-installer-files /some/dir/containing/jars
+	exit 1
+fi
+cd "$1"
+
+# Historically this was separate from release-installer so that they can run under different users.
+for x in new_installer_offline.jar sha1test.jar wrapper_Darwin.zip wrapper_Linux.zip; do
+    echo Signing ${x}
+    rm -f "${x}.sig"
+    # TODO: Binary sha512sum.
+    sha1sum "${x}" > "${x}.sha1"
+    gpg --sign --detach-sign "${x}"
+    # In case it generates an invalid signature. This happened before.
+    gpg --verify "${x}.sig" || exit 1
+done
