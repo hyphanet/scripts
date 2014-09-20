@@ -16,11 +16,9 @@ You will also need ssh access to osprey.
 
 ## Verifying Fred builds
 
-Currently the official builds are made using Debian Squeeze, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
+Currently the official builds are made using Debian Wheezy, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
 
-Enable non-free repositories so that Oracle's Java package is available. Add `non-free` to the end of the main repository line. (Ex. `deb http://ftp.us.debian.org/debian squeeze main`.) Then `apt-get update` to apply those changes. Of course the following is just one way to do things.
-
-    # apt-get install git-core python sun-java6-jdk ant unzip
+    # apt-get install git-core python openjdk-6-jdk ant unzip
     $ git clone git://github.com/freenet/scripts.git
     $ git clone git://github.com/freenet/fred.git
     $ git clone git://github.com/freenet/lib-pyFreenet.git
@@ -31,6 +29,7 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar -O FreenetReleased/bcprov.jar
     $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
     $ gpg --import toad.gpg
+    $ gpg --recv-key 0x7EDBA5E0
     $ cd lib-pyFreenet
     # python setup.py install
 
