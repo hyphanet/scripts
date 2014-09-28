@@ -54,8 +54,8 @@ Changes in $BUILD:
 
 - Release manager name
 
-Authors:
-$(git log --format="format:%an <%ae>" "$PREVTAG.." | sort | uniq)
+---
+$(git shortlog --no-merges "$PREVTAG..")
 EOF
 fi
 editor $FULLCHANGELOG || exit 10
