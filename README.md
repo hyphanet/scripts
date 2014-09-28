@@ -73,11 +73,7 @@ slash. Surrounding the value with double quotes is optional.)
 * Dependencies such as plugins either built or
 [downloaded](https://github.com/freenet/fred/blob/next/src/freenet/pluginmanager/OfficialPlugins.java#L23),
 (listing of loadedFrom() CHKs) into FreenetReleased. Repositories using these files can be set up with symlinks.
-* That pyDrive is [set up](http://pythonhosted.org/PyDrive/quickstart.html#authentication).
-  (Already installed by `setup-release-environment`.) Note that this
-  requires setting a product name and email address on the "APIs & Auth" > "Consent Screen" page.
-  To avoid the application launching a browser as in the authentication directed by the quick start guide,
-  create an "installed application" OAuth client ID and change `googleDriveAuth` in `freenetrc` to `"cmdline"`.
+* A GitHub OAuth token with `public_repo` access set in `~/.freenetrc` under `gitHubOAuthToken`.
 * A jarsigner certificate. This can be a self-signed one, though once (or if) one exists for FPI one should use it. See [here](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html). For example: `keytool -genkeypair -keyalg RSA -sigalg SHA256withRSA -keysize 4096 -dname "cn=Robert Releaserson, o=The Freenet Project Inc, c=US" -alias freenet -storepass SomePassphrase -validity 365 -keystore ~/.keystore`
  * Set freenetrc `jarsignerAlias` and `jarsignerPassword` to the alias and store passphrase, respectively.
 * For the Java installer: [launch4j](http://sourceforge.net/projects/launch4j/)
@@ -137,7 +133,7 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 
 5. `java -jar [location of released jars]/new_installer_offline_[buildnumber].jar` runs an installer. The release manager should test installing a node both with the Linux / OS X installer and the Windows one. It should be able to bootstrap successfully, access FProxy, and otherwise have no obvious problems.
 
-6. `upload-to-google-drive.py` uploads the jars and installers to Google Drive which serves the majority of downloads.
+6. `upload-assets` uploads the jars and installers to GitHub which serves the majority of downloads.
 
 7. `deploy-website`, when run from osprey, updates the website to point to the latest version as defined by the given `fred` repository. The script's `-u` switch updates both `fred` and `website`, so if one wants to avoid pulling in website changes as well it may be preferable to manually update the `fred` repository only, or use the `--force-*-id` options.
 

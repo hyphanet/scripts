@@ -44,12 +44,8 @@ useSshAgent="1"
 # Hostname to send updates to.
 targetHost="osprey.vm.bytemark.co.uk"
 
-# Google Drive upload authentication method.
-# "cmdline": print the URL of a page to be manually opened. This page
-#            gives a code to type/copy in.
-# "browser": open a browser with a URL that allows logging in. This
-#            avoids having to type in the code.
-googleDriveAuth="browser"
+# GitHub OAuth token with repo access for uploading assets.
+gitHubOAuthToken="token"
 
 # FCP host hostname / IP.
 fcpHost="127.0.0.1"

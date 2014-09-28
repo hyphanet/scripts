@@ -12,5 +12,5 @@ websiteID=$(cd "$websiteDir"; git rev-parse --verify master)
 # Both git describe and git rev-parse --verify will give a tag if it exists.
 echo Fred ID "$commitID"
 echo Website ID "$websiteID"
-scp google_drive_links "$targetHost:$remoteDeployPrefix"
+scp asset_urls "$targetHost:$remoteDeployPrefix"
 ssh $targetHost -- "cd $remoteDeployPrefix; ./deploy-website -u --force-website-id $websiteID --force-fred-id $commitID"

@@ -148,18 +148,18 @@ popd
 #Determine version information.
 getBuildInfo
 
-#Read links to release files on Google Drive.
-if [ ! -e google_drive_links ]; then
-    echo "Missing Google Drive links. Please generate them:"
-    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+# Read URLs of release files.
+if [ ! -e asset_urls ]; then
+    echo "Missing asset URLs. Please generate them:"
+    echo "./upload-assets $buildNumber"
     exit 3
 fi
-source google_drive_links || exit
+source asset_urls || exit
 
-if [[ "$linkBuildNumber" -ne "$buildNumber" ]]; then
-    echo "The current build is $buildNumber but the links are for $linkBuildNumber"
-    echo "Please generate them again:"
-    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+if [[ "$assetBuildNumber" -ne "$buildNumber" ]]; then
+    echo "The current build is $buildNumber but the URLs are for $assetBuildNumber"
+    echo "Please generate them:"
+    echo "./upload-assets $buildNumber"
     exit 3
 fi
 

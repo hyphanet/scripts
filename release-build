@@ -34,7 +34,7 @@ echo Releasing build $buildNumber
 release-fred --build || exit 2
 release-installer || exit 3
 release-wininstaller --release || exit 4
-python upload-to-google-drive.py $buildNumber --release_directory "$releaseDir" --auth_type "$googleDriveAuth" || exit 5
+env GITHUB_OAUTH="$gitHubOAuthToken" upload-assets $buildNumber "$releaseDir" || exit
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.
 echo Deploy the build only when:
