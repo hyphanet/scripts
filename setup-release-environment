@@ -8,10 +8,10 @@ source freenet-scripts-common || exit
 # For release management: rsync, coreutils, diffutils, gnupg, less, wget, perl, python, pip
 # For building the Windows installer: xvfb, wine, wine-gecko, mono-runtime
 # For avoiding repeated password entry: gnupg-agent openssh-client
-# For finding the system certificates: httplib2.ca-certs-locater
 # For prompting for things like "2 weeks" in update-version.py: timeparser
 # It would be interesting to have the scripts repo without git, but might as well.
 sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less wget xvfb wine perl gnupg-agent openssh-client mono-runtime wine-gecko-1.4 netcat python python3 || exit
+# TODO: Bundle timeparser? Use pip?
 
 mkdir -p "$releaseDir/dependencies"
 wget "https://people.apache.org/~ebourg/jsign/jsign-1.2.jar" -O "$releaseDir/dependencies/jsign-1.2.jar"
