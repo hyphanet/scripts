@@ -13,15 +13,15 @@ do
     echo >> "$seedrefsPath" || exit
 done
 
-if grep -i "priv" "$seedrefsPath"
+if grep -ni "priv" "$seedrefsPath"
 then
-    echo Found private noderef.
+    echo "Found private noderef at above line in $seedrefsPath"
     exit 1
 fi
 
-if egrep "^End" "$seedrefsPath" | egrep -v "^End$"
+if egrep -n "^End" "$seedrefsPath" | egrep -v "End$"
 then
-    echo Missing newline on End.
+    echo "Missing newline after End at above line in $seedrefsPath"
     exit 1
 fi
 
