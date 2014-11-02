@@ -170,10 +170,10 @@ if [[ "$dryRun" = "true" ]]; then
     echo "Dry run - exiting without performing release."
     exit 0
 else
-    require "Perform release?"
+    require "Perform $target release?"
 fi
 
-echo "Performing release."
+echo "Performing $target release."
 
 # create and update pointer files
 echo "https://downloads.freenetproject.org/alpha/$jarName" > freenet-testing-latest.jar.url
@@ -233,4 +233,4 @@ else
     echo "Not inserting build into Freenet. insert-update does that as part of release-build."
 fi
 
-echo "Release complete."
+echo "$target release complete."
