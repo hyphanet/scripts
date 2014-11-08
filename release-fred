@@ -17,19 +17,21 @@ do
     case $1 in
         --help | - | -\?)
             cat <<EOF
+$0 [--config CONFIG] [--dry-run] TARGET
+
 Builds and releases a version of Fred.
 Prompts for confirmation before releasing.
 Configuration file is at $configPath by default.
-Requires --snapshot or --build.
 
-# TODO: Is this a reasonable argument? My initial impression is no.
+TARGET:
+build           If present packages the highest-numbered build tag.
+                Builds documentation.
+snapshot        If present packages the current HEAD.
+                Outputs into a pre/ subdirectory of the release directory.
+                Skips building documentation.
+
 --config CONFIG   Path to freenetrc
 --dry-run         If present, builds packages and skips releasing.
---build           If present packages the highest-numbered build tag.
-                  Builds documentation.
---snapshot        If present packages the current HEAD.
-                  Outputs into a pre/ subdirectory of the release directory.
-                  Skips building documentation.
 EOF
             exit 0
             ;;
@@ -39,14 +41,6 @@ EOF
             ;;
         --dry-run)
             dryRun="true"
-            shift
-            ;;
-        --snapshot)
-            target="snapshot"
-            shift
-            ;;
-        --build)
-            target="build"
             shift
             ;;
         --) # End of all options
@@ -64,15 +58,12 @@ EOF
 done
 
 # Target should be set.
-if [[ -z "$target" ]]; then
-    echo "Target not set. Please specify --build or --snapshot."
+if [[ -z "$1" ]]; then
+    echo "Please specify a target. Options are build and snapshot."
     exit 13
 fi
 
-# If releasing a snapshot it goes into the pre/ subdirectory.
-if [[ "$target" = "snapshot" ]]; then
-    releaseDir="$releaseDir/pre"
-fi
+target="$1"
 
 makeBuildDir
 git clone "$fredDir" "$buildDir" || exit 2
@@ -82,15 +73,18 @@ cd "$fredDir"
 getBuildInfo
 # If releasing a stable build checkout the latest build tag.
 if [[ "$target" = "build" ]]; then
-    echo "Building release."
+    # Recognized; gitVersion is already set by getBuildInfo.
+    echo -n
 elif [[ "$target" = "snapshot" ]]; then
-    echo "Building snapshot."
-    gitVersion=$(git describe --always --abbrev=40)
+    gitVersion=$(git describe --always)
     commitID=$(git rev-parse HEAD)
+    releaseDir="$releaseDir/pre"
 else
-    echo "Internal error: unrecognized target \"$target\"."
+    echo "Unrecognized target \"$target\"."
     exit 14
 fi
+
+echo "Building $target."
 
 cd "$buildDir"
 git checkout "$gitVersion" || exit 12
