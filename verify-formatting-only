@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+
+#import argparse
+# TODO: walk through building; disabling debug; prompt for built jar location
+import zipfile
+import tempfile
+import os.path
+import filecmp
+import subprocess
+
+post_merge = zipfile.ZipFile("post-merge.jar")
+pre_merge = zipfile.ZipFile("pre-merge.jar")
+
+post_merge_names = post_merge.namelist()
+pre_merge_names = pre_merge.namelist()
+
+added_post_merge = set(post_merge_names).difference(pre_merge_names)
+removed_post_merge = set(pre_merge_names).difference(post_merge_names)
+if added_post_merge or removed_post_merge:
+    print("Different files are present after the merge than before.")
+
+    if added_post_merge:
+        print("Elements added in the merge:")
+        for element in added_post_merge:
+            print("  * {}".format(element))
+
+    if removed_post_merge:
+        print("Elements removed in the merge:")
+        for element in removed_post_merge:
+            print("  * {}".format(element))
+
+    print("Verification failed.")
+    exit(1)
+
+differing_files = []
+with tempfile.TemporaryDirectory("post_merge") as post_merge_dir:
+    with tempfile.TemporaryDirectory("pre_merge") as pre_merge_dir:
+        for filename in post_merge_names:
+            post_merge.extract(filename, path=post_merge_dir)
+            pre_merge.extract(filename, path=pre_merge_dir)
+
+            post_merge_path = os.path.join(post_merge_dir, filename)
+            pre_merge_path = os.path.join(pre_merge_dir, filename)
+
+            if os.path.isdir(post_merge_path):
+                continue
+
+            if not filecmp.cmp(post_merge_path, pre_merge_path, shallow=False):
+                if filename == "./META-INF/MANIFEST.MF":
+                    print("Manifest is different; this is expected.")
+                    print("Please review the differences:")
+                    subprocess.call(["diff", pre_merge_path, post_merge_path])
+                else:
+                    print("{} differs.".format(filename))
+                    differing_files.append(filename)
+
+if differing_files:
+    print('Verification failed. Ensure that debug="off" in the javac '
+          'invocation.')
+    exit(1)
+
+print("Verification successful.")
