@@ -36,12 +36,12 @@ conn = github_releases.GitHubReleases(os.environ['GITHUB_OAUTH'],
 try:
     release = conn.create('freenet', 'fred', build_tag)
     release_id = release['id']
-    print('Created release {}'.format(release_id))
+    print('Created release with ID {}'.format(release_id))
 except github_releases.GitHubError as e:
     # TODO: Avoid hardcoding here?
     if e.response['errors'][0]['code'] == 'already_exists':
         release_id = conn.get('freenet', 'fred', build_tag)['id']
-        print('Found release {}'.format(release_id))
+        print('Found existing release with ID {}'.format(release_id))
     else:
         raise
 
