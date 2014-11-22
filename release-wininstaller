@@ -250,6 +250,11 @@ echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry" || exit
 
+# Delete the old version to avoid running out of disk space.
+OLDVERSION=$[$buildNumber-3]
+echo Deleting old version ${OLDVERSION}
+ssh $targetHost rm /var/www/downloads/alpha/installer/FreenetInstaller-${OLDVERSION}.exe
+
 cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
 
 cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
