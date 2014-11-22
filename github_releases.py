@@ -30,7 +30,13 @@ class GitHubReleases(object):
             'User-Agent': user_agent,
         }
 
-        context = ssl.create_default_context()
+        # Python 3.4 adds ssl.create_default_context(), which is preferable, but
+        # Debian Wheezy provides Python 3.2. Except for cipher settings, these
+        # are those used by ssl.create_default_context().
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.set_default_verify_paths()
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
 
         # TODO: Connect once at the start or for each request?
         self.api_host = http.client.HTTPSConnection('api.github.com',
