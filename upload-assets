@@ -61,7 +61,7 @@ if args.release_directory is not None:
         print("Uploading asset {}".format(file))
         result = conn.upload_asset("freenet", "fred", release_id, path)
 
-        urls[name] = result['url']
+        urls[name + '_url'] = result['browser_download_url']
 else:
     result = conn.list_assets("freenet", "fred", release_id)
 
