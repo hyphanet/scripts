@@ -55,7 +55,7 @@ ssh $targetHost -- "cp /var/www/downloads/alpha/installer/new_installer_offline.
 rsync -v new_installer_offline.jar.sig $targetHost:/var/www/downloads/alpha/installer/new_installer_offline_${buildNumber}.jar.sig
 
 # Delete the old version to avoid running out of disk space.
-OLDVERSION=$[$buildNumber-15]
+OLDVERSION=$[$buildNumber-3]
 echo Deleting old version ${OLDVERSION}
 ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
 ssh $targetHost -- "sed -i \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" /var/www/downloads/alpha/.registry"
