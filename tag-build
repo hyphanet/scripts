@@ -54,6 +54,8 @@ Changes in $BUILD:
 
 - Release manager name
 
+[include shortlogs of any installer or plugin changes]
+
 ---
 $(git shortlog --no-merges "$PREVTAG..")
 EOF
