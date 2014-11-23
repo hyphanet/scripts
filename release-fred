@@ -197,6 +197,8 @@ if [[ "$target" = "snapshot" ]]; then
     # explicitly.
     put "$releaseDir/$jarName" "application/x-java-archive"
     put "$releaseDir/$jarName.sig" "application/pgp-signature"
+    put "$releaseDir/$archiveName" "application/x-bzip"
+    put "$releaseDir/$archiveName.sig" "application/pgp-signature"
 else
     echo "Not inserting build into Freenet. insert-update does that as part of release-build."
 fi
