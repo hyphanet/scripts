@@ -93,4 +93,8 @@ function makeBuildDir {
     trap rmTemp EXIT
 }
 
+function put() {
+    fcpput --persistence=forever --global --priority=1 --nowait -H "$fcpHost" -P "$fcpPort" -m "$2" "freenet:CHK@/$(basename "$1")" "$1"
+}
+
 readConfig

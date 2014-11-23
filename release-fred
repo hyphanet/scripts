@@ -190,41 +190,13 @@ if [[ "$target" = "build" ]]; then
     rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
 fi
 
-# upload snapshot binary and signature to freenet
+# Upload snapshot binary, source, and signatures to Freenet.
 if [[ "$target" = "snapshot" ]]; then
     echo "Inserting snapshot into Freenet."
-    nc "$fcpHost" "$fcpPort" <<EOF
-ClientHello
-Name=Toad-update-$gitVersion
-ExpectedVersion=2
-End
-
-ClientPut
-URI=CHK@
-Identifier=$jarName
-Verbosity=1023
-MaxRetries=-1
-UploadFrom=disk
-Filename=$releaseDir/$jarName
-TargetFilename=$jarName
-Persistence=forever
-PriorityClass=1
-Global=true
-End
-
-ClientPut
-URI=CHK@
-Identifier=$jarName.sig
-Verbosity=1023
-MaxRetries=-1
-UploadFrom=disk
-Filename=$releaseDir/$jarName.sig
-TargetFilename=$jarName.sig
-Persistence=forever
-PriorityClass=1
-Global=true
-End
-EOF
+    # fcpput detects MIME types incorrectly as of version 0.2.5, so specify them
+    # explicitly.
+    put "$releaseDir/$jarName" "application/x-java-archive"
+    put "$releaseDir/$jarName.sig" "application/pgp-signature"
 else
     echo "Not inserting build into Freenet. insert-update does that as part of release-build."
 fi
