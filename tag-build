@@ -112,11 +112,14 @@ echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
 # Get the name of the active branch. TODO: More idiomatic?
 BRANCH="$(git branch | grep "^\*" | cut -b 3-)"
 
+# Merges are with --no-ff so that the merge commits can be signed.
+# TODO: Hang on -- next proceeding directly from master is desirable. Does this
+# prevent that? Doesn't seem so. TODO: Test by commenting out external effects.
 if test $BRANCH != "master" && test $BRANCH != "next"; then
 	# Common case: Releasing from a branch, e.g. stable-9999, fixes
 	echo "Merging active branch $BRANCH back into master."
 	git checkout master
-	git merge --ff-only $TAG || exit 7
+	git merge --no-ff $TAG || exit 7
 
 	# Then offer to delete it.
 	echo "Delete branch $BRANCH? [y/N]"
@@ -131,12 +134,12 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 
 	# Merge master into next.
 	git checkout next
-	git merge master
+	git merge --no-ff master
 elif test $BRANCH == "next"; then
 	# Releasing from next.
 	# Merge next into master.
 	git checkout master
-	git merge next
+	git merge --no-ff next
 fi
 
 # Push changes and end on next.
