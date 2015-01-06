@@ -26,9 +26,7 @@ pushd "$buildDir"
 ln -s "$fredDir" "fred"
 pushd "$plugin"
 
-ant clean || exit 2
-ant distclean
-ant || exit 3
+ant || exit
 
 # TODO: Should this always release the current HEAD? Not the latest tag?
 gitVersion="$(git describe --always --abbrev=40)"
