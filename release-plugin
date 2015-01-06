@@ -63,3 +63,4 @@ echo Updated registry
 
 echo "Started insert"
 put "$jarName" "application/x-java-archive"
+put "$sourceName" "application/x-bzip"
