@@ -17,7 +17,7 @@ do
     case $1 in
         --help | - | -\?)
             cat <<EOF
-$0 [--config CONFIG] [--dry-run] TARGET
+$0 [--dry-run] TARGET
 
 Builds and releases a version of Fred.
 Prompts for confirmation before releasing.
@@ -30,7 +30,6 @@ snapshot        If present packages the current HEAD.
                 Outputs into a pre/ subdirectory of the release directory.
                 Skips building documentation.
 
---config CONFIG   Path to freenetrc
 --dry-run         If present, builds packages and skips releasing.
 EOF
             exit 0
