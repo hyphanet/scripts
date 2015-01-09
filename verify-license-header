@@ -1,0 +1,48 @@
+#!/bin/bash
+# /* This code is part of Freenet. It is distributed under the GNU General
+#  * Public License, version 2 (or at your option any later version). See
+#  * http://www.gnu.org/ for further details of the GPL. */
+
+# The above is also the license header which Java files should contain, without the '#'
+
+set -o errexit
+set -o errtrace
+set -o nounset
+set -o pipefail
+shopt -s nullglob
+shopt -s globstar
+
+# The regular "echo" command does not support termination of the parameter list to prevent
+# filenames from being treated as parameters. Thus, we use printf
+safe_echo() {
+    printf '%s\n' "$*"
+}
+
+main() {
+    if [ $# -ne 1 ] ; then
+        echo "Script to check Java source code for whether it contains a GPL license header." >&2
+        echo "" >&2
+        echo "Syntax: $0 DIRECTORY" >&2
+        echo "Stdout: List of files whose first 3 lines do not contain 'GPL'" >&2
+        echo "Stderr: Log" >&2
+        echo "Exit code: Success if all files contain a license header." >&2
+        exit 1
+    fi
+
+    echo "Checking *.java files in $1 for missing license header..." >&2
+    
+    local counter=0
+    local exit_code=0
+    for file in "$1"/**/*.java ; do
+        if ! head -3 -- "$file" | fgrep "GPL" &> /dev/null ; then
+            safe_echo "$file"
+            exit_code=1
+        fi
+        ((++counter))
+    done
+    
+    echo "Checked $counter files for missing license header." >&2
+    exit $exit_code
+}
+
+main "$@"
