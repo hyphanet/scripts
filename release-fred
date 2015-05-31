@@ -93,7 +93,8 @@ mkdir -p lib 2>/dev/null
 cp "$freenetExtPath" lib/freenet-ext.jar || exit 3
 mkdir -p lib/freenet
 cp lib/freenet-ext.jar lib/freenet/ || exit 4
-cp "$fredDir/lib/bcprov.jar" lib/ || exit 30
+# TODO: Avoid specifying bcprov version multiple places; $bcprovPath exists but is for verify-build.
+cp "$fredDir/lib/bcprov-jdk15on-151.jar" lib/ || exit 30
 cp "$fredDir/lib/junit4.jar" lib || exit
 cp "$fredDir/lib/hamcrest-core.jar" lib/ || exit
 
