@@ -49,7 +49,14 @@ This will write the changes in the override file to the source file. To write th
 
 ## Releasing plugins
 
-Run `release-plugin [plugin name]`. This requires that there is a repository of that plugin (or a link to one) at `$freenetRoot/plugin-[plugin name]`. Update the key in the plugin manager, and test that the plugin loads correctly. Do not increment the mandatory version for connection-essential plugins like UPnP: they will not be loaded and the new version cannot be fetched without a connection.
+Ensure that the plugin is at a signed version tag. Run `release-plugin [plugin name]`. This requires that there is a repository of that plugin (or a link to one) at `$freenetRoot/plugin-[plugin name]`. Update the key in the plugin manager, and test that the plugin loads correctly. Do not increment the mandatory version for connection-essential plugins like UPnP: they will not be loaded and the new version cannot be fetched without a connection.
+
+Sign the commit that upates the key (`--gpg-sign`) and mention the tag the
+plugin is built from:
+
+    Update $pluginName to $tag
+    
+    Built from the tag $tag. ...
 
 ## Releasing Freenet
 
