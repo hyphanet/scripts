@@ -15,8 +15,6 @@
 #
 # * dependencies/bcprov-jdk15on-151.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-151.jar
 # * dependencies/is-unicode.exe         -   http://www.jrsoftware.org/download.php/is-unicode.exe
-# * dependencies/Ahk2Exe.exe            -   http://ahkscript.org/download/ahk2exe.zip
-# * dependencies/Unicode 32-bit.bin
 # * dependencies/jsign-1.2.jar          -   http://people.apache.org/~ebourg/jsign/jsign-1.2.jar
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
@@ -154,10 +152,6 @@ for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "install_node/plugins/"        || exit
 done
 cp "$releaseDir/dependencies/is-unicode.exe"         .                              || exit
-compilerDir="AutoHotKey_files/tools/ahk/Compiler"
-mkdir -p "$compilerDir"
-cp "$releaseDir/dependencies/Ahk2Exe.exe"            "$compilerDir"                 || exit
-cp "$releaseDir/dependencies/Unicode 32-bit.bin"     "$compilerDir"                 || exit
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
@@ -192,9 +186,6 @@ cd $buildDir;
 mkdir .wine;
 export WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine WINEDLLOVERRIDES="mscoree,mshtml=";
 $xvfbrun wine is-unicode.exe /SILENT;
-pushd AutoHotKey_files;
-$xvfbrun wine cmd /c build_AHK_binaries.cmd;
-popd;
 # "Program Files (x86)" is for Windows 7 - later versions of Wine.
 # XP is still the default for 1.4.1, which is packaged in Wheezy.
 wine "C:\Program Files\Inno Setup 5\ISCC.exe" "FreenetInstall_InnoSetup.iss";
@@ -259,9 +250,9 @@ cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.e
 
 cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
 
-cp "$buildDir/install_node/freenetlauncher.exe" freenetlauncher-new.exe || exit
+cp "$buildDir/install_node/FreenetTray.exe" FreenetTray.exe || exit
 
-for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
+for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll FreenetTray.exe; do
 
     echo Uploading $name version $gitVersion
 
