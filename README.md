@@ -58,7 +58,14 @@ plugin is built from:
     
     Built from the tag $tag. ...
 
-## Releasing Freenet
+## Releasing testing Freenet builds
+
+Insert the jar to a USK an edition beyond the build number being upgraded from.
+This can mean inserting as an SSK: `SSK@.../testing-jar-editionNumber+1`
+Set the auto-update key in Configuration > Auto-update in advanced mode to
+`USK@.../testing-jar/editionNumber` and restart the node to apply the setting.
+
+## Releasing stable Freenet builds
 
 To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`) in the `www-downloads` and `www-freenet-website` groups.
 
