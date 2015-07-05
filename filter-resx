@@ -9,8 +9,8 @@ and document type declarations too.)""")
 
 parser.add_argument("in_path")
 parser.add_argument("out_path")
-parser.add_argument("filter", nargs="?", help="Additional names to filter.",
-                    default=[])
+parser.add_argument("filter", nargs=argparse.REMAINDER,
+                    help="Additional names to filter.")
 
 args = parser.parse_args()
 
