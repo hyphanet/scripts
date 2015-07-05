@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+import xml.etree.ElementTree as ElementTree
+import argparse
+
+parser = argparse.ArgumentParser(description="""
+Filters non-text data from ResX. (Comments, processing instructions,
+and document type declarations too.)""")
+# See https://docs.python.org/3.4/library/xml.etree.elementtree.html#parsing-xml
+
+parser.add_argument("in_path")
+parser.add_argument("out_path")
+
+args = parser.parse_args()
+
+tree = ElementTree.parse(args.in_path)
+root = tree.getroot()
+
+non_text_elements = []
+
+for element in root.iterfind("data"):
+    if element.get("name") and not element.get("name").endswith(".Text"):
+        non_text_elements.append(element)
+
+for element in non_text_elements:
+    root.remove(element)
+
+tree.write(args.out_path)
