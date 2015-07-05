@@ -9,19 +9,23 @@ and document type declarations too.)""")
 
 parser.add_argument("in_path")
 parser.add_argument("out_path")
+parser.add_argument("filter", nargs="?", help="Additional names to filter.",
+                    default=[])
 
 args = parser.parse_args()
 
 tree = ElementTree.parse(args.in_path)
 root = tree.getroot()
 
-non_text_elements = []
+filtered_data_elements = []
 
 for element in root.iterfind("data"):
-    if element.get("name") and not element.get("name").endswith(".Text"):
-        non_text_elements.append(element)
+    name = element.get("name")
+    if name:
+        if not name.endswith(".Text") or name in args.filter:
+            filtered_data_elements.append(element)
 
-for element in non_text_elements:
+for element in filtered_data_elements:
     root.remove(element)
 
 tree.write(args.out_path)
