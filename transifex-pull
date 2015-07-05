@@ -45,7 +45,7 @@ function pull() {
     python remove-untranslated.py "$1/$3" "$4"
 }
 
-# These expressions are more permissive then they need to be but are sufficient.
+# These expressions are more permissive than they need to be but are sufficient.
 pull "$fredDir" master "src/freenet/l10n/freenet.l10n.en.properties" "freenet.l10n.*.properties"
 
 # TODO: Support directories named something other than the repo name
