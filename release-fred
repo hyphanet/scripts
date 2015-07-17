@@ -94,7 +94,7 @@ cp "$freenetExtPath" lib/freenet-ext.jar || exit 3
 mkdir -p lib/freenet
 cp lib/freenet-ext.jar lib/freenet/ || exit 4
 # TODO: Avoid specifying bcprov version multiple places; $bcprovPath exists but is for verify-build.
-cp "$fredDir/lib/bcprov-jdk15on-151.jar" lib/ || exit 30
+cp "$fredDir/lib/bcprov-jdk15on-152.jar" lib/ || exit 30
 cp "$fredDir/lib/junit4.jar" lib || exit
 cp "$fredDir/lib/hamcrest-core.jar" lib/ || exit
 
@@ -181,6 +181,7 @@ if [[ "$target" = "build" ]]; then
 fi
 
 # upload all files
+chmod a+rX "$jarName"*
 rsync -vvzP "$jarName"* freenet-testing-latest.jar.url .registry "$archiveName"* "$targetHost:/var/www/downloads/alpha/" || exit 24
 
 # Unlike a snapshot, a new build updates the localization diff and the stable-latest.url.

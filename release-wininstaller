@@ -13,7 +13,7 @@
 #
 # The following files should be in the releaseDirectory:
 #
-# * dependencies/bcprov-jdk15on-151.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-151.jar
+# * dependencies/bcprov-jdk15on-152.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-152.jar
 # * dependencies/isetup-5.5.5-unicode.exe -   http://www.jrsoftware.org/download.php/is-unicode.exe
 # * dependencies/jsign-1.2.jar          -   http://people.apache.org/~ebourg/jsign/jsign-1.2.jar
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
@@ -144,7 +144,7 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 cp "$releaseDir/freenet.jar"                         "install_node/"                || exit
 cp "$freenetExtPath"                                 "install_node/freenet-ext.jar" || exit
-cp "$releaseDir/dependencies/bcprov-jdk15on-151.jar" "install_node/"                || exit
+cp "$releaseDir/dependencies/bcprov-jdk15on-152.jar" "install_node/"                || exit
 cp "$releaseDir/seednodes.fref"                      "install_node/"                || exit
 # TODO: Create plugin directory in the build dir instead of assuming it's part of the repo.
 # TODO: Is this an appropriate place to have a bundled plugin list?
