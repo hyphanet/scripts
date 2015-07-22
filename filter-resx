@@ -9,8 +9,10 @@ and document type declarations too.)""")
 
 parser.add_argument("in_path")
 parser.add_argument("out_path")
-parser.add_argument("filter", nargs=argparse.REMAINDER,
-                    help="Additional names to filter.")
+parser.add_argument("--include", action='append', default=[],
+                    help="Additional names to include.")
+parser.add_argument("--exclude", action='append', default=[],
+                    help="Additional names to exclude.")
 
 args = parser.parse_args()
 
@@ -22,7 +24,10 @@ filtered_data_elements = []
 for element in root.iterfind("data"):
     name = element.get("name")
     if name:
-        if not name.endswith(".Text") or name in args.filter:
+        excluded = name in args.exclude
+        included = name.endswith(".Text") or name in args.include
+
+        if excluded or not included:
             filtered_data_elements.append(element)
 
 for element in filtered_data_elements:
