@@ -249,7 +249,7 @@ do
                 -- "$file"
        sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
-    if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
+    if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" -e "MONEYMONTHS" "$file"
     then
         relativePath=${file:$tempSubLength}
         echo "\"$relativePath\" contains money substitutions."
