@@ -37,7 +37,9 @@ code_pages = {
     "nl": 1252,  # Dutch
     "pl": 1250,  # Polish
     "pt_BR": 1252,  # Brazilian Portuguese
+    "pt_PT": 1252,  # Portuguese (Portugal)
     "ru": 1251,  # Russian
+    "sr": 1251,  # Serbian
     "zh_CN": 936,  # Simplified Chinese
 }
 
