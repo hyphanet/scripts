@@ -9,7 +9,8 @@
 source freenet-scripts-common || exit
 
 if [[ -z "$1" ]]; then
-	cat <<EOF Usage: $0 [plugin name]
+	cat <<EOF
+Usage: $0 [plugin name]
 
 Requires that "$freenetRoot/plugin-[plugin name]" contains a repository.
 EOF
