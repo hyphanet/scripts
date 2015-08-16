@@ -14,7 +14,7 @@
 # The following files should be in the releaseDirectory:
 #
 # * dependencies/bcprov-jdk15on-152.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-152.jar
-# * dependencies/isetup-5.5.5-unicode.exe -   http://www.jrsoftware.org/download.php/is-unicode.exe
+# * dependencies/isetup-5.5.6-unicode.exe -   http://www.jrsoftware.org/download.php/is-unicode.exe
 # * dependencies/jsign-1.2.jar          -   http://people.apache.org/~ebourg/jsign/jsign-1.2.jar
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
@@ -151,7 +151,7 @@ cp "$releaseDir/seednodes.fref"                      "install_node/"            
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "install_node/plugins/"        || exit
 done
-cp "$releaseDir/dependencies/isetup-5.5.5-unicode.exe" .                            || exit
+cp "$releaseDir/dependencies/isetup-5.5.6-unicode.exe" .                            || exit
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
@@ -185,7 +185,7 @@ $ssh $wineUser@localhost <<EOF
 cd $buildDir;
 mkdir .wine;
 export WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine WINEDLLOVERRIDES="mscoree,mshtml=";
-$xvfbrun wine isetup-5.5.5-unicode.exe /SILENT;
+$xvfbrun wine isetup-5.5.6-unicode.exe /SILENT;
 # "Program Files (x86)" is for Windows 7 - later versions of Wine.
 # XP is still the default for 1.4.1, which is packaged in Wheezy.
 wine "C:\Program Files\Inno Setup 5\ISCC.exe" "FreenetInstall_InnoSetup.iss";
