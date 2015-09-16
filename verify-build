@@ -114,7 +114,7 @@ if ! cp "$bcprovPath" lib/; then
     echo Unable to copy bcprov.jar from "$bcprovPath"
     exit 12
 fi
-if ! (ant clean && ant package-only); then
+if ! ant package-only; then
     echo Unable to build from repository.
     exit 8
 fi
