@@ -110,7 +110,7 @@ if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
     echo Unable to copy freenet-ext.jar from "$freenetExtPath"
     exit 12
 fi
-if ! cp "$bcprovPath" lib/bcprov.jar; then
+if ! cp "$bcprovPath" lib/; then
     echo Unable to copy bcprov.jar from "$bcprovPath"
     exit 12
 fi
