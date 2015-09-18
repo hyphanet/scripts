@@ -26,7 +26,7 @@ Currently the official builds are made using Debian Wheezy, and verify-build ver
     $ scripts/set-freenetrc-base
     $ mkdir FreenetReleased
     $ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleased/freenet-ext.jar
-    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-152.jar -O FreenetReleased/bcprov.jar
+    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-152.jar -O FreenetReleased/dependencies/bcprov-jdk15on-152.jar
     $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
     $ gpg --import toad.gpg
     $ gpg --recv-key 0x7EDBA5E0
