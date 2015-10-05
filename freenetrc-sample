@@ -6,7 +6,10 @@
 freenetRoot="/home/freenet"
 
 # Webserver directory for updating project money balance.
-moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
+moneyBalanceLiveDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
+
+# Webserver testing directory for updating project money balance.
+moneyBalanceTestingDir="/var/www/freenet-website-testing-not-subbed/money-not-subbed-in"
 
 # Webserver directory for the live website.
 websiteDeployLiveDir="/var/www/freenet-website"

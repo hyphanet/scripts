@@ -43,7 +43,7 @@ FREENETVERSION with the build number. Ex: 1405
 FREENETTAG with the build tag. Ex: build014105
 
 Pages containing MONEYBALANCE or MONEYDAYS are copied to
-\"$moneyBalanceDir\"
+\"$moneyBalanceLiveDir\" (or $moneyBalanceTestingDir")
 so the values can be periodically updated automatically.
 EOF
 }
@@ -199,8 +199,10 @@ if $dryRun; then
 else
     if $testing; then
         echo -n "Deploy to testing site [y/N]?"
+        balanceDir="$moneyBalanceTestingDir"
     else
         echo -n "Deploy to live site [y/N]? "
+        balanceDir="$moneyBalanceLiveDir"
     fi
 fi
 read response
@@ -276,25 +278,33 @@ if $dryRun; then
     read -er -n 1
 elif $testing; then
     echo "Copying to testing target from temporary directories."
-    echo "Testing mode: not updating money totals."
     sudo rsync -ar --owner --group --delete "$tempSub"/ "$websiteDeployTestingDir"
 else
     echo "Copying to live target from temporary directories."
-    sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
     sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
 fi
 
-echo "Removing temporary directories."
-sudo rm -rf "$tempSub"
-sudo rm -rf "$tempBal"
+function removeTemp {
+    echo "Removing temporary directories."
+    sudo rm -rf "$tempSub"
+    sudo rm -rf "$tempBal"
+}
 
 if $dryRun; then
     echo "Dry run complete."
-elif $testing; then
+    removeTemp
+    exit 0
+fi
+
+sudo rsync -ar --owner --group --delete  "$tempBal"/ "$balanceDir"
+echo "Updating money totals."
+sudo /root/bin/fix-money-totals
+
+removeTemp
+
+if $testing; then
     echo "Deploy to testing site complete."
 else
-    echo "Updating money totals."
-    sudo /root/bin/fix-money-totals
     echo "Deploy to live site complete."
 fi
 
