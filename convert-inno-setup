@@ -24,6 +24,7 @@ args = parser.parse_args()
 # 0 is ASCII:
 # See http://www.jrsoftware.org/ishelp/index.php?topic=langoptionssection
 code_pages = {
+    "bg": 1251,  # Bulgarian
     "cs": 1250,  # Czech
     "de": 1252,  # German
     "el": 1253,  # Greek
@@ -31,9 +32,11 @@ code_pages = {
     "es": 1252,  # Spanish
     "fi": 1252,  # Finnish
     "fr": 1252,  # French
+    "hr": 1250,  # Croatian
     "hu": 1250,  # Hungarian
     "id_ID": 0,  # Indonesian
     "it": 1252,  # Italian
+    "ja": 932,   # Japanese
     "nl": 1252,  # Dutch
     "pl": 1250,  # Polish
     "pt_BR": 1252,  # Brazilian Portuguese
@@ -63,7 +66,7 @@ for filename in os.listdir("."):
                   "code_pages.".format(language_code))
             exit(1)
         code_page = code_pages[language_code]
-        encoding = "Windows-{}".format(code_page) if code_page else "ASCII"
+        encoding = "CP{}".format(code_page) if code_page else "ASCII"
 
         # Remove a UTF-8 byte-order mark if present; iconv does not support it.
         temp_file = None
