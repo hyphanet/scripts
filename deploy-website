@@ -182,9 +182,12 @@ Using website repo in: "$websiteDir"
 EOF
 
 cd "$websiteDir"
-echo "Website commit ID is $(git rev-parse --verify HEAD)"
+echo "Website is at"
+git log -1
+cd "$fredDir"
+echo "Fred is at"
+git log -1
 cd "$startingDir"
-echo "Fred commit ID is $commitID"
 for value in "$buildNumber" "$gitVersion"
 do
     if [[ ! "$value" ]]
