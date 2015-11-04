@@ -168,7 +168,7 @@ cd "$websiteDir"
 ./generate
 
 cd "$fredDir"
-if ! git tag -v "$gitVersion"
+if ! git tag -v "$gitVersion" > /dev/null
 then
 	echo Verification of tag "$gitVersion" for fred repository failed
 	echo Please ensure you have all relevant gpg keys, and check the fingerprints.
