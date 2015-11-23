@@ -1,0 +1,96 @@
+#!/usr/bin/env python2
+import argparse
+import fcp
+import tempfile
+import subprocess
+import os
+import glob
+
+# TODO: Check that /tmp is tmpfs.
+# TODO: Check that swap is disabled or encrypted.
+
+temp_dir = "/tmp"
+
+parser = argparse.ArgumentParser(description="""Generates a USK insert key
+encrypted for the given GPG key, as well as the requested configuration of
+Shamir's Secret Sharing shares (also encrypted) to reconstruct the insert key.
+For use in recovering the autoupdate key in case of disaster. Requires
+gfshare, gpg, a running Freenet node, and pyFreenet. Relies on tmpfs {} and
+either disabled or encrypted swap to avoid writing the unencrypted key to
+disk.""".format(temp_dir))
+parser.add_argument("share_count", help="Number of shares to create.",
+                    type=int)
+parser.add_argument("threshold", help="Number of shares needed to recombine.",
+                    type=int)
+parser.add_argument("key_name", help="Name to use in the secret shares.")
+parser.add_argument("gpg_key", help="GPG key to encrypt the insert key to.")
+parser.add_argument("secret_gpg_key", nargs="+",
+                    help="GPG key to encrypt each secret share to. Specify a "
+                         "key multiple times if needed.")
+
+args = parser.parse_args()
+
+if len(args.secret_gpg_key) != args.share_count:
+    print("Expected as many secret share GPG keys as secret shares.")
+    print("Got {} keys for {} shares.".format(len(args.secret_gpg_key),
+                                              args.share_count))
+    exit(1)
+
+# Print versions and by extension ensure gfshare and gpg are installed.
+subprocess.check_call(["gfsplit", "-v"])
+subprocess.check_call(["gpg", "--version"])
+
+# TODO: Also check here that the keys are not expired and can be encrypted to,
+# otherwise that may be encountered while attempting to encrypt after generating
+# the key.
+print("Will encrypt insert key to:")
+subprocess.check_call(["gpg", "--list-key", args.gpg_key])
+
+print("Will encrypt {} shares to:".format(args.share_count))
+for key in args.secret_gpg_key:
+    subprocess.check_call(["gpg", "--list-key", key])
+
+# TODO: Allow non-default node settings.
+fcp_node = fcp.node.FCPNode()
+fetch_key, insert_key = fcp_node.genkey()
+fcp_node.shutdown()
+
+starting_directory = os.getcwd()
+os.chdir(temp_dir)
+
+# Ensure the temporary file is created in the documented directory.
+with tempfile.NamedTemporaryFile(dir=temp_dir) as insert_key_file:
+    insert_key_file.write(insert_key)
+    insert_key_file.flush()
+
+    subprocess.check_call([
+        "gpg",
+        "--output", os.path.join(starting_directory, args.key_name + ".gpg"),
+        "--recipient", args.gpg_key,
+        "--encrypt", insert_key_file.name,
+    ])
+
+    subprocess.check_call([
+        "gfsplit",
+        "-m", str(args.share_count),
+        "-n", str(args.threshold),
+        insert_key_file.name,
+        args.key_name,
+    ])
+
+    share_paths = glob.glob(args.key_name + ".*")
+    assert len(share_paths) == args.share_count
+
+    for path, key in zip(share_paths, args.secret_gpg_key):
+        share_name = os.path.basename(path)
+        subprocess.check_call([
+            "gpg",
+            "--output", os.path.join(starting_directory, share_name + ".gpg"),
+            "--recipient", key,
+            "--encrypt", path,
+        ])
+        os.unlink(path)
+
+    print("Created {} shares with threshold of {}.".format(args.share_count,
+                                                           args.threshold))
+    print("Autoupdate fetch key: {}".format(fetch_key))
