@@ -10,6 +10,7 @@ update=false
 testing=false
 forceWebsiteID=""
 forceFredID=""
+branch="master"
 
 show_help() {
     cat <<EOF
@@ -21,8 +22,10 @@ for the latest version of Fred in the repository.
 OPTIONS
     -u, --update    Update the website and fred repos before deploying.
 
-    -t, --testing   Deploy the "next" branch to the testing subdomain, and
-                    do not update the money totals."
+    -t, --testing [branch]
+
+                    Deploy the optionally specified branch, or "next" branch if
+                    unspecified, to the testing subdomain.
 
     --force-website-id Checkout and verify the given git ID for the website.
                        Only if -u.
@@ -44,7 +47,7 @@ so the values can be periodically updated automatically.
 EOF
 }
 
-args=$(getopt --longoptions help,update,testing,force-website-id:,force-fred-id: --options hcut -- "$@")
+args=$(getopt --longoptions help,update,testing::,force-website-id:,force-fred-id: --options hcut:: -- "$@")
 eval set -- "$args"
 
 while :
@@ -64,7 +67,16 @@ do
             ;;
         -t | --testing)
             testing=true
-            shift
+            case $2 in
+                "")
+                    branch="next"
+                    shift 2
+                    ;;
+                *)
+                    branch="$2"
+                    shift 2
+                    ;;
+            esac
             ;;
         --force-website-id)
             forceWebsiteID="$2"
@@ -84,12 +96,6 @@ do
             ;;
     esac
 done
-
-if $testing; then
-    branch="next"
-else
-    branch="master"
-fi
 
 websiteOutputDir="$websiteDir/output"
 
