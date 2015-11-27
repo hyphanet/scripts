@@ -48,6 +48,9 @@ so the values can be periodically updated automatically.
 EOF
 }
 
+args=$(getopt --longoptions help,update,dry-run,testing,force-website-id:,force-fred-id: --options hcudt -- "$@")
+eval set -- "$args"
+
 while :
 do
     case $1 in
@@ -83,12 +86,9 @@ do
             shift
             break
             ;;
-        -*)
-            echo "Unknown option: $1"
+        *)
+            echo Internal error.
             exit 1
-            ;;
-        *)  # No more options; stop parsing.
-            break
             ;;
     esac
 done
