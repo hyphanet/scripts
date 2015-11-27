@@ -7,7 +7,6 @@ source freenet-scripts-common || exit
 cd $(dirname $0)
 startingDir=$(pwd)
 update=false
-dryRun=false
 testing=false
 forceWebsiteID=""
 forceFredID=""
@@ -21,9 +20,6 @@ for the latest version of Fred in the repository.
 
 OPTIONS
     -u, --update    Update the website and fred repos before deploying.
-
-    -d, --dry-run   Generate the website, but pause to allow inspection of the
-                    output instead of deploying or updating the money totals.
 
     -t, --testing   Deploy the "next" branch to the testing subdomain, and
                     do not update the money totals."
@@ -48,7 +44,7 @@ so the values can be periodically updated automatically.
 EOF
 }
 
-args=$(getopt --longoptions help,update,dry-run,testing,force-website-id:,force-fred-id: --options hcudt -- "$@")
+args=$(getopt --longoptions help,update,testing,force-website-id:,force-fred-id: --options hcut -- "$@")
 eval set -- "$args"
 
 while :
@@ -64,10 +60,6 @@ do
             ;;
         -u | --update)
             update=true
-            shift
-            ;;
-        -d | --dry-run)
-            dryRun=true
             shift
             ;;
         -t | --testing)
@@ -197,9 +189,6 @@ do
     fi
 done
 
-if $dryRun; then
-    echo -n "Continue dry run [y/N]?"
-else
     if $testing; then
         echo -n "Deploy to testing site [y/N]?"
         balanceDir="$moneyBalanceTestingDir"
@@ -207,17 +196,12 @@ else
         echo -n "Deploy to live site [y/N]? "
         balanceDir="$moneyBalanceLiveDir"
     fi
-fi
 read response
 
 #Case insensitive.
 if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]
 then
-    if $dryRun; then
-        echo "User declined to continue dry run. Exiting."
-    else
     echo "User declined to deploy. Exiting."
-    fi
     exit 1
 fi
 
@@ -272,14 +256,7 @@ sudo chown -R www-freenet-website:www-freenet-website "$tempBal"
 sudo chmod 700 "$tempSub"
 sudo chown -R www-freenet-website:www-freenet-website "$tempSub"
 
-if $dryRun; then
-    echo "---Dry run---"
-    echo "If desired, please inspect these temporary directories:"
-    echo " * Would be deployed to balance directory: $tempBal"
-    echo " * Would be deployed to website directory: $tempSub"
-    echo "Waiting - press a key for the temporary directories to be removed."
-    read -er -n 1
-elif $testing; then
+if $testing; then
     echo "Copying to testing target from temporary directories."
     sudo rsync -ar --owner --group --delete "$tempSub"/ "$websiteDeployTestingDir"
 else
@@ -292,12 +269,6 @@ function removeTemp {
     sudo rm -rf "$tempSub"
     sudo rm -rf "$tempBal"
 }
-
-if $dryRun; then
-    echo "Dry run complete."
-    removeTemp
-    exit 0
-fi
 
 sudo rsync -ar --owner --group --delete  "$tempBal"/ "$balanceDir"
 echo "Updating money totals."
