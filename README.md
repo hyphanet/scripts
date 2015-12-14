@@ -95,11 +95,8 @@ slash. Surrounding the value with double quotes is optional.)
 `standalone-compiler.jar` in `lib/`.
 * For the Windows installer: see the list in the header of `build.cmd`, though
 `release-wininstaller` assumes locations in `FreenetReleased/` and `FreenetReleased/dependencies`.
-Note that non-L AutoHotKey appears to no longer be hosted, and AutoHotKey-L
-triggers some resource packaging bug in Wine that results in 0-byte files. See
-[here](https://bugs.freenetproject.org/view.php?id=5456#c9812). In the case of
-configuration problems or prompts it might be useful to also install `xnest` and
-run `release-wininstaller --dry-run --xnest` first.
+In the case of configuration problems or prompts it might be useful to also
+install `xnest` and run `release-wininstaller --dry-run --xnest` first.
 * The FPI code signing certificate set up as though with
 
     keytool -importkeystore -srckeystore code-signing.p12  -srcstoretype pkcs12 -srcalias "freenet project inc's comodo ca limited id" -destkeystore ~/.gnupg/freenet/code-signing/code-signing.jks -deststoretype jks -destalias freenet -destkeypass "password"
