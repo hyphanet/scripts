@@ -36,6 +36,11 @@ if len(args.secret_gpg_key) != args.share_count:
                                               args.share_count))
     exit(1)
 
+if '-' in args.key_name:
+    print("Cannot use given key name: ssss (as of version 0.5) prevents")
+    print("allowing key names with dashes.")
+    exit(1)
+
 # Print versions and by extension ensure ssss and gpg are installed.
 subprocess.check_call(["ssss-split", "-v"])
 subprocess.check_call(["gpg", "--version"])
