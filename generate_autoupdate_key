@@ -4,7 +4,7 @@ import fcp
 import tempfile
 import subprocess
 import os
-import glob
+import re
 
 # TODO: Check that /tmp is tmpfs.
 # TODO: Check that swap is disabled or encrypted.
@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description="""Generates a USK insert key
 encrypted for the given GPG key, as well as the requested configuration of
 Shamir's Secret Sharing shares (also encrypted) to reconstruct the insert key.
 For use in recovering the autoupdate key in case of disaster. Requires
-gfshare, gpg, a running Freenet node, and pyFreenet. Relies on tmpfs {} and
+ssss, gpg, a running Freenet node, and pyFreenet. Relies on tmpfs {} and
 either disabled or encrypted swap to avoid writing the unencrypted key to
 disk.""".format(temp_dir))
 parser.add_argument("share_count", help="Number of shares to create.",
@@ -36,8 +36,8 @@ if len(args.secret_gpg_key) != args.share_count:
                                               args.share_count))
     exit(1)
 
-# Print versions and by extension ensure gfshare and gpg are installed.
-subprocess.check_call(["gfsplit", "-v"])
+# Print versions and by extension ensure ssss and gpg are installed.
+subprocess.check_call(["ssss-split", "-v"])
 subprocess.check_call(["gpg", "--version"])
 
 # TODO: Also check here that the keys are not expired and can be encrypted to,
@@ -70,26 +70,42 @@ with tempfile.NamedTemporaryFile(dir=temp_dir) as insert_key_file:
         "--encrypt", insert_key_file.name,
     ])
 
-    subprocess.check_call([
-        "gfsplit",
-        "-m", str(args.share_count),
-        "-n", str(args.threshold),
-        insert_key_file.name,
-        args.key_name,
-    ])
+    ssss = subprocess.Popen([
+        "ssss-split",
+        "-n", str(args.share_count),
+        "-t", str(args.threshold),
+        "-w", args.key_name,
+        "-q",  # Disable interactive output; only output shares.
+        ],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
 
-    share_paths = glob.glob(args.key_name + ".*")
-    assert len(share_paths) == args.share_count
+    share_lines, _ = ssss.communicate(insert_key)
 
-    for path, key in zip(share_paths, args.secret_gpg_key):
-        share_name = os.path.basename(path)
-        subprocess.check_call([
+    if ssss.returncode:
+        raise subprocess.CalledProcessError(ssss.returncode, "ssss-split")
+
+    shares = share_lines.splitlines(True)
+    assert len(shares) == args.share_count
+
+    # With a name specified share lines are of the format "name-number-secret"
+    share_name_re = re.compile("^{}-[\d]+".format(args.key_name))
+    for share, key in zip(shares, args.secret_gpg_key):
+        share_name = share_name_re.match(share).group()
+        gpg = subprocess.Popen([
             "gpg",
             "--output", os.path.join(starting_directory, share_name + ".gpg"),
             "--recipient", key,
-            "--encrypt", path,
-        ])
-        os.unlink(path)
+            "--encrypt",
+            ],
+            stdin=subprocess.PIPE,
+        )
+
+        gpg.communicate(share)
+
+        if gpg.returncode:
+            raise subprocess.CalledProcessError(gpg.returncode, "gpg")
 
     print("Created {} shares with threshold of {}.".format(args.share_count,
                                                            args.threshold))
