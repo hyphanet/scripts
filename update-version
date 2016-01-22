@@ -6,7 +6,7 @@ source freenet-scripts-common || exit
 
 versionPath="$fredDir/src/freenet/node/Version.java"
 
-python update-version.py "$1" "$versionPath"
+./update-version.py "$1" "$versionPath"
 
 cd "$fredDir"
 # Ensure it still builds.
