@@ -5,24 +5,6 @@ import timeparser
 import datetime
 import calendar
 
-parser = argparse.ArgumentParser(description="""
-Modify Version.java with the given build number, optionally changing the
-mandatory date.
-""")
-parser.add_argument("build", help="Build number to set", type=int)
-parser.add_argument("path", help="Path to Version.java")
-parser.add_argument("--change-mandatory",
-                    help="Change mandatory information. If specified, --date "
-                         "must also be specified.",
-                    action="store_true")
-parser.add_argument("--version-only", help="Change Version.java, but not the "
-                                           "mandatory build.",
-                    action="store_true")
-parser.add_argument("--date", help="Date the current build goes mandatory in "
-                                   "ISO 8601.",
-                    type=lambda s: datetime.datetime.strptime(s, "%Y-%m-%d"))
-args = parser.parse_args()
-
 
 def match_number(line):
     return re.compile(line.format(r"(\d+)"))
@@ -42,6 +24,25 @@ mandatory_match = re.compile(r"_cal\.set\( (\d+), Calendar\.([A-Z]+), (\d+), 0, 
 
 
 def main():
+    parser = argparse.ArgumentParser(description="""
+Modify Version.java with the given build number, optionally changing the
+mandatory date.
+""")
+    parser.add_argument("build", help="Build number to set", type=int)
+    parser.add_argument("path", help="Path to Version.java")
+    parser.add_argument("--change-mandatory",
+                        help="Change mandatory information. If specified, "
+                             "--date must also be specified.",
+                        action="store_true")
+    parser.add_argument("--version-only", help="Change Version.java, but not "
+                                               "the mandatory build.",
+                        action="store_true")
+    parser.add_argument("--date", help="Date the current build goes mandatory "
+                                       "in ISO 8601.",
+                        type=lambda s:
+                        datetime.datetime.strptime(s, "%Y-%m-%d"))
+    args = parser.parse_args()
+
     if args.version_only and args.change_mandatory:
         print("--version-only and --change-mandatory cannot both be specified.")
         exit(1)
