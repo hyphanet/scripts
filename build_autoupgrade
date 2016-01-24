@@ -28,20 +28,19 @@ def main():
     new_fetch, new_insert = node.genkey()
 
     # Node without key transition - its update URI is the old key.
-    # TODO: Avoid hard-coding 1470
-    build("build01470", transition_build, starting_build, False,
-          None, old_fetch, "1470-freenet.jar")
+    build("build0{}".format(starting_build), transition_build, starting_build, False,
+          None, old_fetch, "{}-freenet.jar".format(starting_build))
 
     # First build updated to.
     build("java7-update-key", transition_build, transition_build, False,
-          old_fetch, new_fetch, "1471-freenet.jar")
+          old_fetch, new_fetch, "{}-freenet.jar".format(transition_build))
 
     # Second build updated to; run by node serving updates.
     # Non-mandatory is for updating with the keys; mandatory is for UOM.
     for mandatory in [True, False]:
         build("java7-update-key", transition_build, continuation_build,
               mandatory, old_fetch, new_fetch,
-              "1471-{}mandatory-freenet.jar".format(
+              "{}-{}mandatory-freenet.jar".format(transition_build,
                       "" if mandatory else "not-"))
 
     # Requires inserting +1 to old key; +1 and +2 to new.
