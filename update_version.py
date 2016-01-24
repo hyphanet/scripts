@@ -57,26 +57,27 @@ mandatory date.
     print("Set build number to {}.".format(args.build))
 
     if args.version_only:
-        write_version(version_contents)
+        write_version(version_contents, args.path)
         exit()
 
     if args.change_mandatory:
-        write_version(update_mandatory(version_contents, args.date))
+        write_version(update_mandatory(version_contents, args.date, args.build),
+                      args.path)
         exit()
 
-    write_version(interactive(version_contents))
+    write_version(interactive(version_contents, args.build), args.path)
     exit()
 
 
-def write_version(version_contents):
-    with open(args.path, "w") as version_file:
+def write_version(version_contents, path):
+    with open(path, "w") as version_file:
         version_file.write(version_contents)
 
 
-def interactive(version_contents):
+def interactive(version_contents, build_number):
     if not prompt("Will this build be mandatory?"):
-        write_version(version_contents)
-        exit()
+        # No further modification required.
+        return version_contents
 
     print("Durations can be things like '1 week' or '5 days'.")
     today = datetime.datetime.now().date()
@@ -87,13 +88,12 @@ def interactive(version_contents):
             mandatory_date = today + duration
 
             if prompt("Go mandatory on {}?".format(mandatory_date)):
-                break
+                return update_mandatory(version_contents, mandatory_date,
+                                        build_number)
         except EOFError:
             print("")
         except ValueError as e:
             print(e)
-
-    return update_mandatory(version_contents, mandatory_date)
 
 
 def prompt(message):
@@ -114,7 +114,7 @@ def replace(version_contents, match, value):
     return contents
 
 
-def update_mandatory(version_contents, mandatory_date):
+def update_mandatory(version_contents, mandatory_date, build_number):
     previous_new = new_match.search(version_contents)
     if not previous_new:
         print("Cannot find newLastGoodBuild")
@@ -127,7 +127,7 @@ def update_mandatory(version_contents, mandatory_date):
 
     # Current build becomes newLastGoodBuild
     # TODO: Only when self-mandatory; allow this to be done differently.
-    current_new = new_line.format(args.build)
+    current_new = new_line.format(build_number)
     version_contents = replace(version_contents, new_match, current_new)
 
     current_mandatory = mandatory_line.format(
