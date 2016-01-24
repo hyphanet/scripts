@@ -40,7 +40,7 @@ def main():
     for mandatory in [True, False]:
         build("java7-update-key", transition_build, continuation_build,
               mandatory, old_fetch, new_fetch,
-              "{}-{}mandatory-freenet.jar".format(transition_build,
+              "{}-{}mandatory-freenet.jar".format(continuation_build,
                       "" if mandatory else "not-"))
 
     # Requires inserting +1 to old key; +1 and +2 to new.
