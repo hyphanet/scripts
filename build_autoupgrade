@@ -1,0 +1,107 @@
+#!/usr/bin/env python2
+import fcp
+import subprocess
+import os.path
+import re
+import shutil
+
+# Assumes Fred in ../fred; running node with FCP at 9481.
+
+legacy_uri = 'public final static String LEGACY_UPDATE_URI = "{}"'
+legacy_uri_match = re.compile(legacy_uri.format('[^"]+'))
+
+update_uri = 'public final static String UPDATE_URI = "{}"'
+update_uri_match = re.compile(update_uri.format('[^"]+'))
+
+transition_version = r"public final static int TRANSITION_VERSION = {};"
+transition_match = re.compile(transition_version.format(r"(\d+)"))
+
+update_manager_path = "src/freenet/node/updater/NodeUpdateManager.java"
+
+
+def main():
+    starting_build = 1470
+    transition_build = starting_build + 1
+    continuation_build = starting_build + 2
+    node = fcp.FCPNode()
+    old_fetch, old_insert = node.genkey()
+    new_fetch, new_insert = node.genkey()
+
+    # Node without key transition - its update URI is the old key.
+    # TODO: Avoid hard-coding 1470
+    build("build01470", transition_build, starting_build, False,
+          None, old_fetch, "1470-freenet.jar")
+
+    # First build updated to.
+    build("java7-update-key", transition_build, transition_build, False,
+          old_fetch, new_fetch, "1471-freenet.jar")
+
+    # Second build updated to; run by node serving updates.
+    # Non-mandatory is for updating with the keys; mandatory is for UOM.
+    for mandatory in [True, False]:
+        build("java7-update-key", transition_build, continuation_build,
+              mandatory, old_fetch, new_fetch,
+              "1471-{}mandatory-freenet.jar".format(
+                      "" if mandatory else "not-"))
+
+    # Requires inserting +1 to old key; +1 and +2 to new.
+    # Insert everything into +2 node with local storage of requests enabled.
+    print("Old insert: {}".format(old_insert))
+    print("New insert: {}".format(new_insert))
+
+
+def build(branch, transition_build, build_number, is_self_mandatory,
+          legacy_fetch_key, update_fetch_key, filename):
+    starting_dir = os.getcwd()
+
+    subprocess.check_call([
+        starting_dir + "/update_version.py",
+        str(build_number),
+        "../fred/src/freenet/node/Version.java",
+    ] + ([
+            "--change-mandatory",
+            # The date is in the past; the exact value is arbitrary.
+            "--date", "2016-01-20"] if is_self_mandatory else
+         [
+             "--version-only"
+    ]))
+
+    os.chdir("../fred")
+
+    subprocess.check_call(["git", "checkout", branch])
+
+    if legacy_fetch_key:
+        replace(update_manager_path,
+                legacy_uri_match, legacy_uri.format(legacy_fetch_key + "jar-"))
+
+    replace(update_manager_path,
+            update_uri_match, update_uri.format(
+                update_fetch_key.replace("SSK@", "USK@", 1) + "jar/"))
+
+    replace(update_manager_path,
+            transition_match, transition_version.format(transition_build))
+
+    subprocess.check_call(["ant", "package-only"])
+
+    shutil.copy("dist/freenet.jar", filename)
+
+    subprocess.check_call(["git", "diff"])
+
+    subprocess.check_call(["git", "checkout", "src/"])
+    os.chdir(starting_dir)
+
+
+def replace(path, match, replacement):
+    with open(path, "r") as target:
+        text = "".join(target.readlines())
+
+    text, replacements = match.subn(replacement, text)
+    if replacements != 1:
+        print("Cannot substitute '{}'".format(replacement))
+        exit(1)
+
+    with open(path, "w") as target:
+        target.write(text)
+
+if __name__ == "__main__":
+    main()
