@@ -32,7 +32,7 @@ def build():
     new_fetch, new_insert = node.genkey()
 
     # Node without key transition - its update URI is the old key.
-    build_jar("build0{}".format(starting_build), transition_build,
+    build_jar("build0{}".format(starting_build), None,
               starting_build, False, None, old_fetch,
               "{}-freenet.jar".format(starting_build))
 
@@ -84,8 +84,9 @@ def build_jar(branch, transition_build, build_number, is_self_mandatory,
             update_uri_match, update_uri.format(
                 update_fetch_key.replace("SSK@", "USK@", 1) + "jar/"))
 
-    replace(update_manager_path,
-            transition_match, transition_version.format(transition_build))
+    if transition_build:
+        replace(update_manager_path,
+                transition_match, transition_version.format(transition_build))
 
     subprocess.check_call(["ant", "package-only"])
 
