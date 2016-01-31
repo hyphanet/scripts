@@ -164,8 +164,7 @@ def insert(fcp_port, transition_build, continuation_build, old_insert,
 
 def insert_jar(node, key, build):
     node.put(key + "jar-{}".format(build),
-             file=os.path.abspath("../fred/{}-mandatory-freenet.jar".format(
-                     build)),
+             file=os.path.abspath("../fred/" + jar_name_format.format(build)),
              name="freenet-build0{}.jar".format(build),
              persistence="forever", Global=True, async=True, waituntilsent=True,
              LocalRequestOnly=True,
