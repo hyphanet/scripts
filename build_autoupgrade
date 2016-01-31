@@ -31,17 +31,16 @@ def main():
     build("build0{}".format(starting_build), transition_build, starting_build, False,
           None, old_fetch, "{}-freenet.jar".format(starting_build))
 
+    upstream_branch = "java7-legacy-uom"
     # First build updated to.
-    build("java7-update-key", transition_build, transition_build, False,
-          old_fetch, new_fetch, "{}-freenet.jar".format(transition_build))
+    build(upstream_branch, transition_build, transition_build, True,
+          old_fetch, new_fetch,
+          "{}-mandatory-freenet.jar".format(transition_build))
 
-    # Second build updated to; run by node serving updates.
-    # Non-mandatory is for updating with the keys; mandatory is for UOM.
-    for mandatory in [True, False]:
-        build("java7-update-key", transition_build, continuation_build,
-              mandatory, old_fetch, new_fetch,
-              "{}-{}mandatory-freenet.jar".format(continuation_build,
-                      "" if mandatory else "not-"))
+    # Second build updated to.
+    build(upstream_branch, transition_build, continuation_build, True,
+          old_fetch, new_fetch,
+          "{}-mandatory-freenet.jar".format(continuation_build))
 
     # Requires inserting +1 to old key; +1 and +2 to new.
     # Insert everything into +2 node with local storage of requests enabled.
