@@ -68,6 +68,7 @@ def build(branch, transition_build, build_number, is_self_mandatory,
     os.chdir("../fred")
 
     subprocess.check_call(["git", "checkout", branch])
+    subprocess.check_call(["ant", "clean"])
 
     if legacy_fetch_key:
         replace(update_manager_path,
