@@ -46,7 +46,9 @@ def main():
     # Requires inserting +1 to old key; +1 and +2 to new.
     # Insert everything into +2 node with local storage of requests enabled.
     print("Old insert: {}".format(old_insert))
+    print("Old fetch: {}".format(old_fetch))
     print("New insert: {}".format(new_insert))
+    print("New fetch: {}".format(new_fetch))
 
 
 def build(branch, transition_build, build_number, is_self_mandatory,
