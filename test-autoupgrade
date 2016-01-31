@@ -1,0 +1,230 @@
+#!/usr/bin/env python2
+import fcp
+import subprocess
+import re
+import shutil
+import argparse
+import os
+import time
+
+# Requires:
+#  * Fred in ../fred
+#  * java_installer in ../java_installer
+#  * running node with FCP at 9481
+#  * pyFreenet installed
+
+legacy_uri = 'public final static String LEGACY_UPDATE_URI = "{}"'
+legacy_uri_match = re.compile(legacy_uri.format('[^"]+'))
+
+update_uri = 'public final static String UPDATE_URI = "{}"'
+update_uri_match = re.compile(update_uri.format('[^"]+'))
+
+transition_version = r"public final static int TRANSITION_VERSION = {};"
+transition_match = re.compile(transition_version.format(r"(\d+)"))
+
+update_manager_path = "src/freenet/node/updater/NodeUpdateManager.java"
+jar_name_format = "{}-freenet.jar"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("starting_build", type=int, nargs="?", default=1470)
+    parser.add_argument("nodes_directory", nargs="?",
+                        default=os.path.join(os.environ["HOME"],
+                                             "FreenetNodes"))
+    args = parser.parse_args()
+
+    transition_build = args.starting_build + 1
+    continuation_build = args.starting_build + 2
+
+    node = fcp.FCPNode()
+    old_fetch, old_insert = node.genkey()
+    new_fetch, new_insert = node.genkey()
+    node.shutdown()
+
+    print("Old insert: {}".format(old_insert))
+    print("Old fetch: {}".format(old_fetch))
+    print("New insert: {}".format(new_insert))
+    print("New fetch: {}".format(new_fetch))
+
+    build(
+        args.starting_build,
+        transition_build,
+        continuation_build,
+        old_fetch,
+        new_fetch,
+    )
+
+    upstream_fcp = 9482
+    set_up_node(args.nodes_directory, "Upstream", continuation_build,
+                upstream_fcp, 8889)
+    upgrade_target_fcp = 9483
+    set_up_node(args.nodes_directory, "UpgradeTarget", args.starting_build,
+                upgrade_target_fcp, 8890)
+
+    darknet_connect(upstream_fcp, upgrade_target_fcp)
+
+    insert(upstream_fcp, transition_build, continuation_build, old_insert,
+           new_insert)
+
+
+def build(starting_build, transition_build, continuation_build, old_fetch,
+          new_fetch):
+    # Node without key transition - its update URI is the old key.
+    build_jar("build0{}".format(starting_build), None,
+              starting_build, False, None, old_fetch,
+              jar_name_format.format(starting_build))
+
+    upstream_branch = "java7-legacy-uom"
+    # First build updated to.
+    build_jar(upstream_branch, transition_build, transition_build, True,
+              old_fetch, new_fetch, jar_name_format.format(transition_build))
+
+    # Second build updated to.
+    build_jar(upstream_branch, transition_build, continuation_build, True,
+              old_fetch, new_fetch, jar_name_format.format(continuation_build))
+
+
+def set_up_node(base_path, name, build_number, fcp_port, fproxy_port):
+    path = os.path.join(base_path, name)
+    if os.path.exists(path):
+        shutil.rmtree(path)
+
+    print('Creating "{}" with build {}.'.format(name, build_number))
+    # Requires that the directory does not exist; creates it.
+    shutil.copytree("../java_installer/wrapper_unix/", path)
+    shutil.copy("../java_installer/res/wrapper.conf", path)
+
+    shutil.copy("../fred/" + jar_name_format.format(build_number),
+                os.path.join(path, "freenet.jar"))
+    shutil.copy("../fred/lib/bcprov-jdk15on-152.jar", path)
+    shutil.copy("../fred/lib/freenet/freenet-ext.jar", path)
+
+    with open(os.path.join(path, "freenet.ini"), "w") as ini_file:
+        ini_file.writelines("""\
+fcp.port={}
+fproxy.port={}
+node.name={}
+fproxy.hasCompletedWizard=true
+security-levels.physicalThreatLevel=LOW
+security-levels.networkThreatLevel=HIGH
+End
+""".format(fcp_port, fproxy_port, name).splitlines(True))
+
+    subprocess.check_call([os.path.join(path, "run.sh"), "start"])
+
+    print("Waiting for build {} at FCP port {} to start up.".format(
+        build_number, fcp_port))
+    wait_until_online(fcp_port)
+    print("Started.")
+    node = fcp.FCPNode(port=fcp_port)
+    print("Build is {}".format(node.nodeBuild))
+    assert node.nodeBuild == build_number
+    node.shutdown()
+
+
+def wait_until_online(fcp_port):
+    while True:
+        try:
+            # TODO: pyFreenet shouldn't raise something as broad as Exception.
+            node = fcp.FCPNode(port=fcp_port)
+            node.shutdown()
+            return
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+
+
+def darknet_connect(upstream_fcp, upgrade_target_fcp):
+    # TODO: This could be made to connect more than two by accepting a list.
+    upstream = fcp.FCPNode(port=upstream_fcp)
+    upstream_noderef = upstream.refstats()
+    del upstream_noderef['header']
+
+    upgrade_target = fcp.FCPNode(port=upgrade_target_fcp)
+    upgrade_target_noderef = upgrade_target.refstats()
+    del upgrade_target_noderef['header']
+
+    upstream.addpeer(Trust="HIGH", Visibility="YES",
+                     kwdict=upgrade_target_noderef)
+    upgrade_target.addpeer(Trust="HIGH", Visibility="YES",
+                           kwdict=upstream_noderef)
+
+    upstream.shutdown()
+    upgrade_target.shutdown()
+
+
+def insert(fcp_port, transition_build, continuation_build, old_insert,
+           new_insert):
+    node = fcp.FCPNode(port=fcp_port)
+    insert_jar(node, old_insert, transition_build)
+    insert_jar(node, new_insert, transition_build)
+    insert_jar(node, new_insert, continuation_build)
+
+
+def insert_jar(node, key, build):
+    node.put(key + "jar-{}".format(build),
+             file=os.path.abspath("../fred/{}-mandatory-freenet.jar".format(
+                     build)),
+             name="freenet-build0{}.jar".format(build),
+             persistence="forever", Global=True, async=True, waituntilsent=True,
+             LocalRequestOnly=True,
+             priority=0)
+
+def build_jar(branch, transition_build, build_number, is_self_mandatory,
+              legacy_fetch_key, update_fetch_key, filename):
+    starting_dir = os.getcwd()
+
+    subprocess.check_call([
+        starting_dir + "/update_version.py",
+        str(build_number),
+        "../fred/src/freenet/node/Version.java",
+    ] + ([
+            "--change-mandatory",
+            # The date is in the past; the exact value is arbitrary.
+            "--date", "2016-01-20"] if is_self_mandatory else
+         [
+             "--version-only"
+    ]))
+
+    os.chdir("../fred")
+
+    subprocess.check_call(["git", "checkout", branch])
+    subprocess.check_call(["ant", "clean"])
+
+    if legacy_fetch_key:
+        replace(update_manager_path,
+                legacy_uri_match, legacy_uri.format(legacy_fetch_key + "jar-"))
+
+    replace(update_manager_path,
+            update_uri_match, update_uri.format(
+                update_fetch_key.replace("SSK@", "USK@", 1) + "jar/"))
+
+    if transition_build:
+        replace(update_manager_path,
+                transition_match, transition_version.format(transition_build))
+
+    subprocess.check_call(["ant", "package-only"])
+
+    shutil.copy("dist/freenet.jar", filename)
+
+    subprocess.check_call(["git", "diff"])
+
+    subprocess.check_call(["git", "checkout", "src/"])
+    os.chdir(starting_dir)
+
+
+def replace(path, match, replacement):
+    with open(path, "r") as target:
+        text = "".join(target.readlines())
+
+    text, replacements = match.subn(replacement, text)
+    if replacements != 1:
+        print("Cannot substitute '{}'".format(replacement))
+        exit(1)
+
+    with open(path, "w") as target:
+        target.write(text)
+
+if __name__ == "__main__":
+    main()
