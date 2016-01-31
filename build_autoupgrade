@@ -20,6 +20,10 @@ update_manager_path = "src/freenet/node/updater/NodeUpdateManager.java"
 
 
 def main():
+    build()
+
+
+def build():
     starting_build = 1470
     transition_build = starting_build + 1
     continuation_build = starting_build + 2
@@ -28,19 +32,20 @@ def main():
     new_fetch, new_insert = node.genkey()
 
     # Node without key transition - its update URI is the old key.
-    build("build0{}".format(starting_build), transition_build, starting_build, False,
-          None, old_fetch, "{}-freenet.jar".format(starting_build))
+    build_jar("build0{}".format(starting_build), transition_build,
+              starting_build, False, None, old_fetch,
+              "{}-freenet.jar".format(starting_build))
 
     upstream_branch = "java7-legacy-uom"
     # First build updated to.
-    build(upstream_branch, transition_build, transition_build, True,
-          old_fetch, new_fetch,
-          "{}-mandatory-freenet.jar".format(transition_build))
+    build_jar(upstream_branch, transition_build, transition_build, True,
+              old_fetch, new_fetch,
+              "{}-mandatory-freenet.jar".format(transition_build))
 
     # Second build updated to.
-    build(upstream_branch, transition_build, continuation_build, True,
-          old_fetch, new_fetch,
-          "{}-mandatory-freenet.jar".format(continuation_build))
+    build_jar(upstream_branch, transition_build, continuation_build, True,
+              old_fetch, new_fetch,
+              "{}-mandatory-freenet.jar".format(continuation_build))
 
     # Requires inserting +1 to old key; +1 and +2 to new.
     # Insert everything into +2 node with local storage of requests enabled.
@@ -50,8 +55,8 @@ def main():
     print("New fetch: {}".format(new_fetch))
 
 
-def build(branch, transition_build, build_number, is_self_mandatory,
-          legacy_fetch_key, update_fetch_key, filename):
+def build_jar(branch, transition_build, build_number, is_self_mandatory,
+              legacy_fetch_key, update_fetch_key, filename):
     starting_dir = os.getcwd()
 
     subprocess.check_call([
