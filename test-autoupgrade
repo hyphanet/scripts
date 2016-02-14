@@ -108,6 +108,8 @@ node.name={}
 fproxy.hasCompletedWizard=true
 security-levels.physicalThreatLevel=LOW
 security-levels.networkThreatLevel=HIGH
+logger.priority=ERROR
+logger.priorityDetail=freenet.node.updater:MINOR,freenet.io.xfer.PartiallyReceivedBulk:MINOR,freenet.node.updater.RevocationChecker:ERROR
 End
 """.format(fcp_port, fproxy_port, name).splitlines(True))
 
