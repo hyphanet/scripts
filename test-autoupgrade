@@ -92,8 +92,9 @@ def set_up_node(base_path, name, build_number, fcp_port, fproxy_port):
 
     print('Creating "{}" with build {}.'.format(name, build_number))
     # Requires that the directory does not exist; creates it.
-    shutil.copytree("../java_installer/wrapper_unix/", path)
+    shutil.copytree("../java_installer/res/unix/", path)
     shutil.copy("../java_installer/res/wrapper.conf", path)
+    shutil.copy("../java_installer/bin/wrapper.jar", path)
 
     shutil.copy("../fred/" + jar_name_format.format(build_number),
                 os.path.join(path, "freenet.jar"))
