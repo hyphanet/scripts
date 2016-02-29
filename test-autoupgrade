@@ -140,13 +140,16 @@ def wait_until_online(fcp_port):
 
 def darknet_connect(upstream_fcp, upgrade_target_fcp):
     # TODO: This could be made to connect more than two by accepting a list.
+    print "trying to connect", upstream_fcp, "and", upgrade_target_fcp, "via darknet"
     upstream = fcp.FCPNode(port=upstream_fcp)
     upstream_noderef = upstream.refstats()
     del upstream_noderef['header']
+    print "upstream_noderef", upstream_noderef
 
     upgrade_target = fcp.FCPNode(port=upgrade_target_fcp)
     upgrade_target_noderef = upgrade_target.refstats()
     del upgrade_target_noderef['header']
+    print "upgrade_target_noderef", upgrade_target_noderef
 
     upstream.addpeer(Trust="HIGH", Visibility="YES",
                      kwdict=upgrade_target_noderef)
@@ -155,6 +158,7 @@ def darknet_connect(upstream_fcp, upgrade_target_fcp):
 
     upstream.shutdown()
     upgrade_target.shutdown()
+    print "should have connected", upstream_fcp, "and", upgrade_target_fcp, "via darknet"
 
 
 def insert(fcp_port, transition_build, continuation_build, old_insert,
@@ -210,7 +214,7 @@ def build_jar(branch, transition_build, build_number, is_self_mandatory,
 
     shutil.copy("dist/freenet.jar", filename)
 
-    subprocess.check_call(["git", "diff"])
+    subprocess.check_call(["git", "--no-pager", "diff"])
 
     subprocess.check_call(["git", "checkout", "src/"])
     os.chdir(starting_dir)
