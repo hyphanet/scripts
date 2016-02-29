@@ -169,7 +169,7 @@ def insert_jar(node, key, build):
     node.put(key + "jar-{}".format(build),
              file=os.path.abspath("../fred/" + jar_name_format.format(build)),
              name="freenet-build0{}.jar".format(build),
-             persistence="forever", Global=True, async=True, waituntilsent=True,
+             persistence="forever", Global=True, waituntilsent=True,
              LocalRequestOnly=True,
              priority=0)
 
