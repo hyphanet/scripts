@@ -96,6 +96,14 @@ def set_up_node(base_path, name, build_number, fcp_port, fproxy_port):
     shutil.copy("../java_installer/res/wrapper.conf", path)
     shutil.copy("../java_installer/bin/wrapper.jar", path)
 
+    # TODO: Would it be preferable to take the debug port as a separate
+    # argument?
+    debug_port = fproxy_port - 100
+    with open(os.path.join(path, "wrapper.conf"), "a") as wrapper_conf:
+        wrapper_conf.writelines("""\
+wrapper.java.additional.4=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address={}
+""".format(debug_port))
+
     shutil.copy("../fred/" + jar_name_format.format(build_number),
                 os.path.join(path, "freenet.jar"))
     shutil.copy("../fred/lib/bcprov-jdk15on-152.jar", path)
@@ -118,6 +126,7 @@ End
 
     print("Waiting for build {} at FCP port {} to start up.".format(
         build_number, fcp_port))
+    print("Remote debug on port {}".format(debug_port))
     wait_until_online(fcp_port)
     print("Started.")
     node = fcp.FCPNode(port=fcp_port)
