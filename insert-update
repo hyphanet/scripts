@@ -22,8 +22,12 @@ if [ ! -f "$countryDataFile" ]; then echo WARNING: Inserting without country dat
 gpg -o $KEYS/keys "$insertKeys" || exit
 (cat $KEYS/keys; echo) | grep "NEWKEY=" | sed -n "s/NEWKEY=//p" | sed "s/^\"\(.*\)\"$/\1/" | tr --delete "\n\"" > $KEYS/barekey
 if test ! -s $KEYS/barekey; then
-	echo Empty key???
-	exit 1
+	# May be bare key already.
+	cp $KEYS/keys $KEYS/barekey
+	if test ! -s $KEYS/barekey; then
+		echo Empty key???
+		exit 1
+	fi
 fi
 TEMPLOC="$(mktemp -d)"
 echo Temporary file location: "$TEMPLOC"
