@@ -63,9 +63,6 @@ class GitHubReleases(object):
                               json.dumps(
                                   {
                                       'tag_name': tag,
-                                      'target_commitish': None,
-                                      'name': None,
-                                      'body': None,
                                       'draft': False,
                                       'prerelease': False,
                                   }), self.base_headers)
