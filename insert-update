@@ -29,16 +29,6 @@ if test ! -s $KEYS/barekey; then
 		exit 1
 	fi
 fi
-TEMPLOC="$(mktemp -d)"
-echo Temporary file location: "$TEMPLOC"
-# TODO consider just using the source tarball.
-# TODO We need to know the version and the gitVersion but that's stored somewhere IIRC.
-git clone "$fredDir" "$TEMPLOC" || exit
-cd $TEMPLOC
-git reset --hard
-git checkout "$gitVersion" || exit
-cp "$freenetExtPath" lib/freenet-ext.jar || exit
-ant clean
 FILENAME="$releaseDir/freenet-$gitVersion.jar"
 SOURCENAME="$releaseDir/freenet-$gitVersion-source.tar.bz2"
 if [[ ! -e "$FILENAME" ]]; then echo Jar not found; exit; fi
