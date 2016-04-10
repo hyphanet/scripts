@@ -39,7 +39,7 @@ fredDir="$freenetRoot/fred"
 freenetExtPath="$releaseDir/freenet-ext.jar"
 
 # Path to bcprov.jar.
-bcprovPath="$releaseDir/dependencies/bcprov-jdk15on-152.jar"
+bcprovPath="$releaseDir/dependencies/bcprov-jdk15on-154.jar"
 
 # If "1" starts ssh agent before sending the update to the target host and stops it afterward.
 useSshAgent="1"
