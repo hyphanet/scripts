@@ -16,9 +16,6 @@ sudo apt-get install git openjdk-6-jdk rsync ant coreutils gnupg diffutils less 
 mkdir -p "$releaseDir/dependencies"
 wget "https://people.apache.org/~ebourg/jsign/jsign-1.2.jar" -O "$releaseDir/dependencies/jsign-1.2.jar"
 
-wget "http://ahkscript.org/download/ahk2exe.zip" -O "$releaseDir/dependencies/ahk2exe.zip"
-unzip "$releaseDir/dependencies/ahk2exe.zip" -d "$releaseDir/dependencies/"
-
 # countryDataFile might have a directory that doesn't exist (it is very likely
 # to by default) so create it.
 # NOTE: Beware of downloading this file multiple times per day. Those who host
