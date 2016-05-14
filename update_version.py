@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 import re
 import argparse
-import timeparser
 import datetime
 import calendar
 
@@ -79,13 +78,12 @@ def interactive(version_contents, build_number):
         # No further modification required.
         return version_contents
 
-    print("Durations can be things like '1 week' or '5 days'.")
     today = datetime.datetime.now().date()
     while True:
         try:
-            duration_input = raw_input("How long until until mandatory? ")
-            duration = timeparser.parsetimedelta(duration_input)
-            mandatory_date = today + duration
+            raw_days = raw_input("How many days until it goes mandatory? ")
+            days = int(raw_days)
+            mandatory_date = today + datetime.timedelta(days=days)
 
             if prompt("Go mandatory on {}?".format(mandatory_date)):
                 return update_mandatory(version_contents, mandatory_date,
