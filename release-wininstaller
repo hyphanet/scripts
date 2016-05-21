@@ -198,7 +198,7 @@ if [ "$xnest" == "true" ]; then
 fi
 cp "Output/FreenetInstaller.exe" "FreenetInstaller-$buildNumber.exe" || exit
 pushd $freenetRoot/scripts
-./sign-exe "$buildDir/FreenetInstaller-$buildNumber.exe" "Freenet 0.7 Installer"
+./sign-exe "$buildDir/FreenetInstaller-$buildNumber.exe" "Freenet 0.7 Installer" || exit
 popd
 
 pushd "install_node/updater/" || exit
