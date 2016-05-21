@@ -64,7 +64,7 @@ mandatory date.
                       args.path)
         exit()
 
-    write_version(interactive(version_contents, args.build), args.path)
+    write_version(interactive(version_contents), args.path)
     exit()
 
 
@@ -73,19 +73,31 @@ def write_version(version_contents, path):
         version_file.write(version_contents)
 
 
-def interactive(version_contents, build_number):
-    if not prompt("Will this build be mandatory?"):
+def interactive(version_contents):
+    if not prompt("Will this build change the mandatory build?"):
         # No further modification required.
         return version_contents
+
+    while True:
+        try:
+            raw_build = raw_input("Which build will go mandatory?")
+            build_number = int(raw_build)
+            break
+        except EOFError:
+            print("")
+        except ValueError as e:
+            print(e)
 
     today = datetime.datetime.now().date()
     while True:
         try:
-            raw_days = raw_input("How many days until it goes mandatory? ")
+            raw_days = raw_input("How many days until build {} goes "
+                                 "mandatory? ".format(build_number))
             days = int(raw_days)
             mandatory_date = today + datetime.timedelta(days=days)
 
-            if prompt("Go mandatory on {}?".format(mandatory_date)):
+            if prompt("Build {} goes mandatory on {}?".format(build_number,
+                                                              mandatory_date)):
                 return update_mandatory(version_contents, mandatory_date,
                                         build_number)
         except EOFError:
