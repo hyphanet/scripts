@@ -62,6 +62,11 @@ if args.release_directory is not None:
         result = conn.upload_asset("freenet", "fred", release_id, path)
 
         urls[name + '_url'] = result['browser_download_url']
+
+        print("Uploading signature for {}".format(file))
+        result = conn.upload_asset("freenet", "fred", release_id,
+                                   os.path.join(path, ".sig"),
+                                   "application/pgp-signature")
 else:
     result = conn.list_assets("freenet", "fred", release_id)
 
