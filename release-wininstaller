@@ -189,7 +189,6 @@ $xvfbrun wine isetup-5.5.9-unicode.exe /SILENT;
 # "Program Files (x86)" is for Windows 7 - later versions of Wine.
 # XP is still the default for 1.6.2, which is packaged in Jessie.
 wine "C:\Program Files\Inno Setup 5\ISCC.exe" "FreenetInstall_InnoSetup.iss";
-wineserver -k;
 chmod -R 770 .wine Output;
 EOF
 
