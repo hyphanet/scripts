@@ -18,8 +18,6 @@ args = parser.parse_args()
 # https://wiki.freenetproject.org/FCPv2/GetFailed#Fetch_Error_Codes
 REDIRECT = 27
 
-node = fcp.node.FCPNode(host=args.host, port=args.port)
-
 with open(args.path) as bookmark_file:
     bookmarks = bookmark_file.readlines()
 
@@ -28,6 +26,7 @@ with open(args.path, "w") as bookmark_file:
         if line and line != "End\n":
             key, value = line.split("=", 1)
             if key.endswith("URI"):
+                node = fcp.node.FCPNode(host=args.host, port=args.port)
                 try:
                     # readlines() lines end with a newline.
                     uri = value.rstrip()
