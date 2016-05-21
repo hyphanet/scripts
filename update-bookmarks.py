@@ -36,9 +36,13 @@ with open(args.path, "w") as bookmark_file:
                         print("Fetching {}".format(uri))
 
                     node.get(uri, nodata=True)
-                    # Get succeeded; up to date.
+
+                    if args.verbose:
+                        print("Success - up to date.")
                 except fcp.FCPGetFailed as e:
                     if e.info['Code'] == REDIRECT:
+                        if args.verbose:
+                            print("Updating")
                         uri = e.info['RedirectURI']
                         bookmark_file.write("{}={}\n".format(key, uri))
                         continue
