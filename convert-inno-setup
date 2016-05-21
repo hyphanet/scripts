@@ -44,6 +44,7 @@ code_pages = {
     "ru": 1251,  # Russian
     "sr": 1251,  # Serbian
     "zh_CN": 936,  # Simplified Chinese
+    "zh_TW": 950,  # Traditional Chinese
 }
 
 utf8_encoded = re.compile("Messages_([a-zA-Z_]+)_utf8\.isl")
