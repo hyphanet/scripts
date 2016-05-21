@@ -197,7 +197,9 @@ if [ "$xnest" == "true" ]; then
 	DISPLAY="$OLDDISPLAY"
 fi
 cp "Output/FreenetInstaller.exe" "FreenetInstaller-$buildNumber.exe" || exit
-$freenetRoot/scripts/sign-exe "FreenetInstaller-$buildNumber.exe" "Freenet 0.7 Installer"
+pushd $freenetRoot/scripts
+./sign-exe "$buildDir/FreenetInstaller-$buildNumber.exe" "Freenet 0.7 Installer"
+popd
 
 pushd "install_node/updater/" || exit
 cp update.cmd update-new.cmd || exit
