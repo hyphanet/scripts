@@ -26,7 +26,7 @@ fi
 
 popd
 
-update-bookmarks.py --verbose --host=$fcpHost --port=$fcpPort "$bookmarkPath"
+./update-bookmarks.py --verbose --host=$fcpHost --port=$fcpPort "$bookmarkPath"
 
 # Commit updated bookmarks if any changes are made.
 cd "$fredDir"
