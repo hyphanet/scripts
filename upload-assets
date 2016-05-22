@@ -53,25 +53,33 @@ files = {
 }
 urls = {}
 
+existing_assets = conn.list_assets("freenet", "fred", release_id)
 # Upload if the release directory is specified, otherwise find existing assets.
 if args.release_directory is not None:
-    for name, file in files.items():
+    existing_asset_files = [asset['name'] for asset in existing_assets]
+
+    def upload_asset(release_id, name, file, asset_type=None):
         path = os.path.join(args.release_directory, file)
+        if file not in existing_asset_files:
+            print("Uploading asset {}".format(file))
+            result = conn.upload_asset("freenet", "fred", release_id, path,
+                                       asset_type)
 
-        print("Uploading asset {}".format(file))
-        result = conn.upload_asset("freenet", "fred", release_id, path)
+            urls[name + '_url'] = result['browser_download_url']
+        else:
+            print("Already uploaded {}".format(file))
+            asset = next(asset for asset in existing_assets
+                         if asset['name'] == file)
+            assert asset is not None
+            urls[name + '_url'] = asset['browser_download_url']
 
-        urls[name + '_url'] = result['browser_download_url']
-
-        print("Uploading signature for {}".format(file))
-        result = conn.upload_asset("freenet", "fred", release_id,
-                                   os.path.join(path, ".sig"),
-                                   "application/pgp-signature")
+    for name, file in files.items():
+        upload_asset(release_id, name, file)
+        upload_asset(release_id, name + "_signature", file + ".sig",
+                     "application/pgp-signature")
 else:
-    result = conn.list_assets("freenet", "fred", release_id)
-
     assets = {}
-    for asset in result:
+    for asset in existing_assets:
         assets[asset['name']] = asset['browser_download_url']
 
     for name, file in files.items():
@@ -82,8 +90,8 @@ else:
         print("Found asset {}".format(file))
         urls[name + "_url"] = assets[file]
 
-# Each file must have a URL.
-assert len(files) == len(urls)
+# Each asset and its signature must have a URL.
+assert 2 * len(files) == len(urls)
 
 # Output URLs for use in substitution.
 # TODO: Verbosity vs readability with something like this?
