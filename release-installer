@@ -8,10 +8,10 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
 
 makeBuildDir
-git clone "$installerDir" "$buildDir" || exit
+ln -s $(pwd) "$buildDir/scripts"
+git clone "$installerDir" "$buildDir/java_installer" || exit
 
-pushd "$buildDir"
-
+pushd "$buildDir/java_installer"
 mkdir lib
 
 cp "$freenetExtPath" bin/freenet-ext.jar || exit
@@ -32,7 +32,7 @@ cp res/bin/sha1test.jar . || exit
 
 cp dist/* . || exit
 
-sign-installer-files . || exit
+../scripts/sign-installer-files . || exit
 
 # Generate checksums.
 cp scripts/* .
