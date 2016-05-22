@@ -18,7 +18,7 @@ cp "$freenetExtPath" bin/freenet-ext.jar || exit
 cp "$releaseDir/freenet.jar" bin/freenet.jar || exit
 cp "$seedrefsPath" bin/seednodes.fref || exit
 cp "$bcprovPath" bin/ || exit
-cp "$releaseDir/dependencies/standalone-compiler.jar" lib/standalone-compiler.jar
+cp "$releaseDir/dependencies/standalone-compiler.jar" lib/ || exit
 
 # Build script uses environment variables.
 export jarsignerStoreLocation="$jarsignerStoreLocation"
