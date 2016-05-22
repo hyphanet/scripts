@@ -17,8 +17,7 @@ mkdir lib
 cp "$freenetExtPath" bin/freenet-ext.jar || exit
 cp "$releaseDir/freenet.jar" bin/freenet.jar || exit
 cp "$seedrefsPath" bin/seednodes.fref || exit
-# TODO: Avoid hardcoding bcprov version.
-cp "$releaseDir/dependencies/bcprov-jdk15on-152.jar" bin/bcprov-jdk15on-152.jar
+cp "$bcprovPath" bin/ || exit
 cp "$releaseDir/dependencies/standalone-compiler.jar" lib/standalone-compiler.jar
 
 # Build script uses environment variables.
