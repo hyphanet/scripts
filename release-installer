@@ -8,18 +8,17 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
 
 makeBuildDir
-git clone "$installerDir" "$buildDir" || exit
+ln -s $(pwd) "$buildDir/scripts"
+git clone "$installerDir" "$buildDir/java_installer" || exit
 
-pushd "$buildDir"
-
+pushd "$buildDir/java_installer"
 mkdir lib
 
 cp "$freenetExtPath" bin/freenet-ext.jar || exit
 cp "$releaseDir/freenet.jar" bin/freenet.jar || exit
 cp "$seedrefsPath" bin/seednodes.fref || exit
-# TODO: Avoid hardcoding bcprov version.
-cp "$releaseDir/dependencies/bcprov-jdk15on-149.jar" bin/bcprov-jdk15on-149.jar
-cp "$releaseDir/dependencies/standalone-compiler.jar" lib/standalone-compiler.jar
+cp "$bcprovPath" bin/ || exit
+cp "$releaseDir/dependencies/standalone-compiler.jar" lib/ || exit
 
 # Build script uses environment variables.
 export jarsignerStoreLocation="$jarsignerStoreLocation"
@@ -33,7 +32,7 @@ cp res/bin/sha1test.jar . || exit
 
 cp dist/* . || exit
 
-sign-installer-files . || exit
+../scripts/sign-installer-files . || exit
 
 # Generate checksums.
 cp scripts/* .
@@ -55,7 +54,7 @@ ssh $targetHost -- "cp /var/www/downloads/alpha/installer/new_installer_offline.
 rsync -v new_installer_offline.jar.sig $targetHost:/var/www/downloads/alpha/installer/new_installer_offline_${buildNumber}.jar.sig
 
 # Delete the old version to avoid running out of disk space.
-OLDVERSION=$[$buildNumber-15]
+OLDVERSION=$[$buildNumber-3]
 echo Deleting old version ${OLDVERSION}
 ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
 ssh $targetHost -- "sed -i \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" /var/www/downloads/alpha/.registry"

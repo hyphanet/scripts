@@ -2,14 +2,15 @@
 
 #
 # Build a plugin, push it to the webserver, update the URL registry, and insert
-# it to a CHK with the node on port 9481.
+# it to a CHK with the node on $fcpPort.
 #
 
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 if [[ -z "$1" ]]; then
-	cat <<EOF Usage: $0 [plugin name]
+	cat <<EOF
+Usage: $0 [plugin name]
 
 Requires that "$freenetRoot/plugin-[plugin name]" contains a repository.
 EOF
@@ -26,9 +27,7 @@ pushd "$buildDir"
 ln -s "$fredDir" "fred"
 pushd "$plugin"
 
-ant clean || exit 2
-ant distclean
-ant || exit 3
+ant || exit
 
 # TODO: Should this always release the current HEAD? Not the latest tag?
 gitVersion="$(git describe --always --abbrev=40)"
@@ -63,24 +62,6 @@ rsync -vz "$urlName"* "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 
 ssh $targetHost -- "sed -i \"s/$plugin.jar .*$/$plugin.jar plugins\\/$plugin\\/$jarName/\" /var/www/downloads/alpha/.registry" || exit 9
 echo Updated registry
 
-echo "Started insert (assuming FCP > Assume that upload DDA is allowed? is set to True)"
-nc "$fcpHost" "$fcpPort" <<EOF
-ClientHello
-Name=$jarName-inserter
-ExpectedVersion=2
-End
-ClientPut
-URI=CHK@
-Identifier=$jarName
-Verbosity=1023
-MaxRetries=-1
-UploadFrom=disk
-Filename=$releaseDir/$plugin.jar
-DataLength=$(ls -l $jarName | cut -d " " -f 5)
-TargetFilename=$plugin.jar
-Persistence=forever
-PriorityClass=2
-Global=true
-End
-EOF
-popd
+echo "Started insert"
+put "$jarName" "application/x-java-archive"
+put "$sourceName" "application/x-bzip"

@@ -6,7 +6,10 @@
 freenetRoot="/home/freenet"
 
 # Webserver directory for updating project money balance.
-moneyBalanceDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
+moneyBalanceLiveDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
+
+# Webserver testing directory for updating project money balance.
+moneyBalanceTestingDir="/var/www/freenet-website-testing-not-subbed/money-not-subbed-in"
 
 # Webserver directory for the live website.
 websiteDeployLiveDir="/var/www/freenet-website"
@@ -36,7 +39,7 @@ fredDir="$freenetRoot/fred"
 freenetExtPath="$releaseDir/freenet-ext.jar"
 
 # Path to bcprov.jar.
-bcprovPath="$releaseDir/bcprov.jar"
+bcprovPath="$releaseDir/dependencies/bcprov-jdk15on-154.jar"
 
 # If "1" starts ssh agent before sending the update to the target host and stops it afterward.
 useSshAgent="1"
@@ -44,12 +47,8 @@ useSshAgent="1"
 # Hostname to send updates to.
 targetHost="osprey.vm.bytemark.co.uk"
 
-# Google Drive upload authentication method.
-# "cmdline": print the URL of a page to be manually opened. This page
-#            gives a code to type/copy in.
-# "browser": open a browser with a URL that allows logging in. This
-#            avoids having to type in the code.
-googleDriveAuth="browser"
+# GitHub OAuth token with repo access for uploading assets.
+gitHubOAuthToken="token"
 
 # FCP host hostname / IP.
 fcpHost="127.0.0.1"

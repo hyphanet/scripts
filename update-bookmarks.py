@@ -18,8 +18,6 @@ args = parser.parse_args()
 # https://wiki.freenetproject.org/FCPv2/GetFailed#Fetch_Error_Codes
 REDIRECT = 27
 
-node = fcp.node.FCPNode(host=args.host, port=args.port)
-
 with open(args.path) as bookmark_file:
     bookmarks = bookmark_file.readlines()
 
@@ -28,6 +26,7 @@ with open(args.path, "w") as bookmark_file:
         if line and line != "End\n":
             key, value = line.split("=", 1)
             if key.endswith("URI"):
+                node = fcp.node.FCPNode(host=args.host, port=args.port)
                 try:
                     # readlines() lines end with a newline.
                     uri = value.rstrip()
@@ -36,9 +35,13 @@ with open(args.path, "w") as bookmark_file:
                         print("Fetching {}".format(uri))
 
                     node.get(uri, nodata=True)
-                    # Get succeeded; up to date.
+
+                    if args.verbose:
+                        print("Success - up to date.")
                 except fcp.FCPGetFailed as e:
                     if e.info['Code'] == REDIRECT:
+                        if args.verbose:
+                            print("Updating")
                         uri = e.info['RedirectURI']
                         bookmark_file.write("{}={}\n".format(key, uri))
                         continue

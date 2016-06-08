@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+import subprocess
+import argparse
+import tempfile
+import os
+import io
+import re
+import shutil
+
+parser = argparse.ArgumentParser(description="""Convert Inno Setup localization
+between UTF-8, which Transifex supports, to the various Windows code pages
+Inno Setup requires.
+
+TODO: implement Windows to UTF-8.""")
+parser.add_argument("wininstaller_translations_dir")
+args = parser.parse_args()
+
+# TODO: pycountry exposes Debian's ISO 639 language database, but it lacks
+# questionbly-standard language codes that Transifex uses like zh_CN and id_ID.
+
+# TODO: Is there an existing Windows encoding list?
+# Windows code pages by language - see the Inno Setup LanguageCodePage value or
+# https://en.wikipedia.org/wiki/Windows_code_page#List
+# 0 is ASCII:
+# See http://www.jrsoftware.org/ishelp/index.php?topic=langoptionssection
+code_pages = {
+    "bg": 1251,  # Bulgarian
+    "cs": 1250,  # Czech
+    "de": 1252,  # German
+    "el": 1253,  # Greek
+    "en": 0,  # English
+    "es": 1252,  # Spanish
+    "fi": 1252,  # Finnish
+    "fr": 1252,  # French
+    "hr": 1250,  # Croatian
+    "hu": 1250,  # Hungarian
+    "id_ID": 0,  # Indonesian
+    "it": 1252,  # Italian
+    "ja": 932,   # Japanese
+    "nl": 1252,  # Dutch
+    "pl": 1250,  # Polish
+    "pt_BR": 1252,  # Brazilian Portuguese
+    "pt_PT": 1252,  # Portuguese (Portugal)
+    "ru": 1251,  # Russian
+    "sr": 1251,  # Serbian
+    "zh_CN": 936,  # Simplified Chinese
+    "zh_TW": 950,  # Traditional Chinese
+}
+
+utf8_encoded = re.compile("Messages_([a-zA-Z_]+)_utf8\.isl")
+windows_template = "Messages_{}.isl"
+
+os.chdir(os.path.abspath(args.wininstaller_translations_dir))
+
+converted = []
+
+for filename in os.listdir("."):
+    match = utf8_encoded.match(filename)
+    if match:
+        # Unexpected to have a directory with such a name; could just ignore
+        # if need be.
+        assert os.path.isfile(filename)
+
+        language_code = match.group(1)
+        if language_code not in code_pages:
+            print("Language code '{}' encoding not found; add it to "
+                  "code_pages.".format(language_code))
+            exit(1)
+        code_page = code_pages[language_code]
+        encoding = "CP{}".format(code_page) if code_page else "ASCII"
+
+        # Remove a UTF-8 byte-order mark if present; iconv does not support it.
+        temp_file = None
+        with open(filename, 'rb') as file:
+            file_stream = io.BufferedReader(file)
+            has_bom = file_stream.read(3) == bytearray.fromhex("EFBBBF")
+            if has_bom:
+                temp_file = tempfile.NamedTemporaryFile()
+                temp_file.file.write(file_stream.read())
+                temp_file.file.flush()
+
+        source = temp_file.name if temp_file else filename
+        target = windows_template.format(language_code)
+        subprocess.check_call(["iconv", "--from-code", "UTF-8",
+                               "--to-code", encoding, "--output", target,
+                               source])
+
+        if temp_file:
+            temp_file.close()
+
+        converted.append(language_code)
+
+print("Converted {} files: {}".format(len(converted), sorted(converted)))

@@ -1,0 +1,111 @@
+#!/usr/bin/env python2
+import argparse
+import fcp
+import subprocess
+import os
+import re
+
+# TODO: Check that swap is disabled or encrypted.
+
+parser = argparse.ArgumentParser(description="""Generates a USK insert key
+encrypted for the given GPG key, as well as the requested configuration of
+Shamir's Secret Sharing shares (also encrypted) to reconstruct the insert key.
+For use in recovering the autoupdate key in case of disaster. Requires
+ssss, gpg, a running Freenet node, and pyFreenet. Relies on either disabled or
+encrypted swap to avoid writing the unencrypted key to disk.""")
+parser.add_argument("share_count", help="Number of shares to create.",
+                    type=int)
+parser.add_argument("threshold", help="Number of shares needed to recombine.",
+                    type=int)
+parser.add_argument("key_name", help="Name to use in the secret shares.")
+parser.add_argument("gpg_key", help="GPG key to encrypt the insert key to.")
+parser.add_argument("secret_gpg_key", nargs="+",
+                    help="GPG key to encrypt each secret share to. Specify a "
+                         "key multiple times if needed.")
+
+args = parser.parse_args()
+
+if len(args.secret_gpg_key) != args.share_count:
+    print("Expected as many secret share GPG keys as secret shares.")
+    print("Got {} keys for {} shares.".format(len(args.secret_gpg_key),
+                                              args.share_count))
+    exit(1)
+
+if '-' in args.key_name:
+    print("Cannot use given key name: ssss (as of version 0.5) prevents")
+    print("allowing key names with dashes.")
+    exit(1)
+
+# Print versions and by extension ensure ssss and gpg are installed.
+subprocess.check_call(["ssss-split", "-v"])
+subprocess.check_call(["gpg", "--version"])
+
+# TODO: Also check here that the keys are not expired and can be encrypted to,
+# otherwise that may be encountered while attempting to encrypt after generating
+# the key.
+print("Will encrypt insert key to:")
+subprocess.check_call(["gpg", "--list-key", args.gpg_key])
+
+print("Will encrypt {} shares to:".format(args.share_count))
+for key in args.secret_gpg_key:
+    subprocess.check_call(["gpg", "--list-key", key])
+
+# TODO: Allow non-default node settings.
+fcp_node = fcp.node.FCPNode()
+fetch_key, insert_key = fcp_node.genkey()
+fcp_node.shutdown()
+
+gpg = subprocess.Popen([
+    "gpg",
+    "--output", os.path.join(args.key_name + ".gpg"),
+    "--recipient", args.gpg_key,
+    "--encrypt",
+    ],
+    stdin=subprocess.PIPE,
+)
+
+gpg.communicate(insert_key)
+
+if gpg.returncode:
+    raise subprocess.CalledProcessError(gpg.returncode, "gpg")
+
+ssss = subprocess.Popen([
+    "ssss-split",
+    "-n", str(args.share_count),
+    "-t", str(args.threshold),
+    "-w", args.key_name,
+    "-q",  # Disable interactive output; only output shares.
+    ],
+    stdout=subprocess.PIPE,
+    stdin=subprocess.PIPE,
+)
+
+share_lines, _ = ssss.communicate(insert_key)
+
+if ssss.returncode:
+    raise subprocess.CalledProcessError(ssss.returncode, "ssss-split")
+
+shares = share_lines.splitlines(True)
+assert len(shares) == args.share_count
+
+# With a name specified share lines are of the format "name-number-secret"
+share_name_re = re.compile("^{}-[\d]+".format(args.key_name))
+for share, key in zip(shares, args.secret_gpg_key):
+    share_name = share_name_re.match(share).group()
+    gpg = subprocess.Popen([
+        "gpg",
+        "--output", os.path.join(share_name + ".gpg"),
+        "--recipient", key,
+        "--encrypt",
+        ],
+        stdin=subprocess.PIPE,
+    )
+
+    gpg.communicate(share)
+
+    if gpg.returncode:
+        raise subprocess.CalledProcessError(gpg.returncode, "gpg")
+
+print("Created {} shares with threshold of {}.".format(args.share_count,
+                                                       args.threshold))
+print("Autoupdate fetch key: {}".format(fetch_key))

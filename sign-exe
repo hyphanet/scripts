@@ -1,0 +1,12 @@
+#!/bin/bash
+
+source freenet-scripts-common || exit
+
+if [[ $# -ne 2 ]]
+then
+    echo "Usage: $0 executable program_name"
+    exit 1
+fi
+
+java -jar "$releaseDir/dependencies/jsign-1.3-SNAPSHOT.jar" -s "$jarsignerStoreLocation" --storepass "$jarsignerStorePassword" --keypass "$jarsignerCodeSigningKeyPassword" --storetype jks -a "$jarsignerAlias"  -t http://timestamp.comodoca.com/authenticode -n "$2" -u https://freenetproject.org "$1" || exit
+

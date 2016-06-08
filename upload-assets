@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+import argparse
+import os
+
+import github_releases
+
+parser = argparse.ArgumentParser(description="""
+Upload a release to GitHub: the .jar, the source archive (so the signatures
+will match it), the Java installer, and the Windows installer. If no directory
+is specified it will read existing assets.
+
+It assumes the build tag is 'build' followed by the build number
+zero-padded to 5 characters.
+""")
+parser.add_argument('build_number', help='The build number to upload.',
+                    type=int)
+parser.add_argument('release_directory',
+                    help='Path to the FreenetReleased directory containing '
+                         'the assets to upload.', nargs='?', default=None)
+parser.add_argument('--out', default='asset_urls',
+                    help='File to output URLs to')
+
+args = parser.parse_args()
+build_tag = 'build{0:05d}'.format(args.build_number)
+
+# TODO: Allow resuming: avoid clobbering existing assets when uploading.
+# TODO: Nicer error on missing environment variable.
+# TODO: Bind owner and repo to GitHubReleases instance? They're in every call.
+# TODO: Restructure the body of this into a module?
+# TODO: The name 'upload-assets' makes the non-upload behavior surprising.
+#  What's a better name for this script?
+conn = github_releases.GitHubReleases(os.environ['GITHUB_OAUTH'],
+                                      'Freenet-Release-Uploader')
+
+# Create a release at the tag, or get its ID if one already exists.
+try:
+    release = conn.create('freenet', 'fred', build_tag)
+    release_id = release['id']
+    print('Created release with ID {}'.format(release_id))
+except github_releases.GitHubError as e:
+    # TODO: Avoid hardcoding here?
+    if e.response['errors'][0]['code'] == 'already_exists':
+        release_id = conn.get('freenet', 'fred', build_tag)['id']
+        print('Found existing release with ID {}'.format(release_id))
+    else:
+        raise
+
+files = {
+    'jar': 'freenet-{0}.jar'.format(build_tag),
+    'source': 'freenet-{0}-source.tar.bz2'.format(build_tag),
+    'java_installer': 'new_installer_offline_{0}.jar'.format(args.build_number),
+    'windows_installer': 'FreenetInstaller-{0}.exe'.format(args.build_number),
+}
+urls = {}
+
+existing_assets = conn.list_assets("freenet", "fred", release_id)
+# Upload if the release directory is specified, otherwise find existing assets.
+if args.release_directory is not None:
+    existing_asset_files = [asset['name'] for asset in existing_assets]
+
+    def upload_asset(release_id, name, file, asset_type=None):
+        path = os.path.join(args.release_directory, file)
+        if file not in existing_asset_files:
+            print("Uploading asset {}".format(file))
+            result = conn.upload_asset("freenet", "fred", release_id, path,
+                                       asset_type)
+
+            urls[name + '_url'] = result['browser_download_url']
+        else:
+            print("Already uploaded {}".format(file))
+            asset = next(asset for asset in existing_assets
+                         if asset['name'] == file)
+            assert asset is not None
+            urls[name + '_url'] = asset['browser_download_url']
+
+    for name, file in files.items():
+        upload_asset(release_id, name, file)
+        upload_asset(release_id, name + "_signature", file + ".sig",
+                     "application/pgp-signature")
+else:
+    assets = {}
+    for asset in existing_assets:
+        assets[asset['name']] = asset['browser_download_url']
+
+    for name, file in files.items():
+        if file not in assets:
+            print('Missing asset: {}'.format(file))
+            exit(1)
+
+        print("Found asset {}".format(file))
+        urls[name + "_url"] = assets[file]
+
+# Each asset and its signature must have a URL.
+assert 2 * len(files) == len(urls)
+
+# Output URLs for use in substitution.
+# TODO: Verbosity vs readability with something like this?
+with open(args.out, 'w') as output:
+    total = files.copy()
+    total.update(urls)
+
+    output.write("""\
+# Generated for build {build_number} with upload-assets
+assetBuildNumber={build_number}
+FREENET_MAIN_JAR_URL={jar_url}
+FREENET_SOURCE_URL={source_url}
+FREENET_INSTALLER_URL={java_installer_url}
+FREENET_WINDOWS_INSTALLER_URL={windows_installer_url}
+FREENET_MAIN_JAR_SIG_URL=https://downloads.freenetproject.org/alpha/{jar}.sig
+FREENET_SOURCE_SIG_URL=https://downloads.freenetproject.org/alpha/{source}.sig
+FREENET_INSTALLER_SIG_URL=https://downloads.freenetproject.org/alpha/installer/{java_installer}.sig
+FREENET_WINDOWS_INSTALLER_SIG_URL=https://downloads.freenetproject.org/alpha/installer/{windows_installer}.sig
+""".format(build_number=args.build_number, **total))

@@ -16,11 +16,9 @@ You will also need ssh access to osprey.
 
 ## Verifying Fred builds
 
-Currently the official builds are made using Debian Squeeze, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
+Currently the official builds are made using Debian Wheezy, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
 
-Enable non-free repositories so that Oracle's Java package is available. Add `non-free` to the end of the main repository line. (Ex. `deb http://ftp.us.debian.org/debian squeeze main`.) Then `apt-get update` to apply those changes. Of course the following is just one way to do things.
-
-    # apt-get install git-core python sun-java6-jdk ant unzip
+    # apt-get install git-core python openjdk-6-jdk ant unzip
     $ git clone git://github.com/freenet/scripts.git
     $ git clone git://github.com/freenet/fred.git
     $ git clone git://github.com/freenet/lib-pyFreenet.git
@@ -28,9 +26,10 @@ Enable non-free repositories so that Oracle's Java package is available. Add `no
     $ scripts/set-freenetrc-base
     $ mkdir FreenetReleased
     $ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleased/freenet-ext.jar
-    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar -O FreenetReleased/bcprov.jar
+    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-152.jar -O FreenetReleased/dependencies/bcprov-jdk15on-152.jar
     $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
     $ gpg --import toad.gpg
+    $ gpg --recv-key 0x7EDBA5E0
     $ cd lib-pyFreenet
     # python setup.py install
 
@@ -50,9 +49,23 @@ This will write the changes in the override file to the source file. To write th
 
 ## Releasing plugins
 
-Run `release-plugin [plugin name]`. This requires that there is a repository of that plugin (or a link to one) at `$freenetRoot/plugin-[plugin name]`. Update the key in the plugin manager, and test that the plugin loads correctly. Do not increment the mandatory version for connection-essential plugins like UPnP: they will not be loaded and the new version cannot be fetched without a connection.
+Ensure that the plugin is at a signed version tag. Run `release-plugin [plugin name]`. This requires that there is a repository of that plugin (or a link to one) at `$freenetRoot/plugin-[plugin name]`. Update the key in the plugin manager, and test that the plugin loads correctly. Do not increment the mandatory version for connection-essential plugins like UPnP: they will not be loaded and the new version cannot be fetched without a connection.
 
-## Releasing Freenet
+Sign the commit that upates the key (`--gpg-sign`) and mention the tag the
+plugin is built from:
+
+    Update $pluginName to $tag
+    
+    Built from the tag $tag. ...
+
+## Releasing testing Freenet builds
+
+Insert the jar to a USK an edition beyond the build number being upgraded from.
+This can mean inserting as an SSK: `SSK@.../testing-jar-editionNumber+1`
+Set the auto-update key in Configuration > Auto-update in advanced mode to
+`USK@.../testing-jar/editionNumber` and restart the node to apply the setting.
+
+## Releasing stable Freenet builds
 
 To upload things to the FPI webserver requires SSH access and membership (`usermod -aG [group] [user]`) in the `www-downloads` and `www-freenet-website` groups.
 
@@ -74,11 +87,7 @@ slash. Surrounding the value with double quotes is optional.)
 * Dependencies such as plugins either built or
 [downloaded](https://github.com/freenet/fred/blob/next/src/freenet/pluginmanager/OfficialPlugins.java#L23),
 (listing of loadedFrom() CHKs) into FreenetReleased. Repositories using these files can be set up with symlinks.
-* That pyDrive is [set up](http://pythonhosted.org/PyDrive/quickstart.html#authentication).
-  (Already installed by `setup-release-environment`.) Note that this
-  requires setting a product name and email address on the "APIs & Auth" > "Consent Screen" page.
-  To avoid the application launching a browser as in the authentication directed by the quick start guide,
-  create an "installed application" OAuth client ID and change `googleDriveAuth` in `freenetrc` to `"cmdline"`.
+* A GitHub OAuth token with `public_repo` access set in `~/.freenetrc` under `gitHubOAuthToken`.
 * A jarsigner certificate. This can be a self-signed one, though once (or if) one exists for FPI one should use it. See [here](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html). For example: `keytool -genkeypair -keyalg RSA -sigalg SHA256withRSA -keysize 4096 -dname "cn=Robert Releaserson, o=The Freenet Project Inc, c=US" -alias freenet -storepass SomePassphrase -validity 365 -keystore ~/.keystore`
  * Set freenetrc `jarsignerAlias` and `jarsignerPassword` to the alias and store passphrase, respectively.
 * For the Java installer: [launch4j](http://sourceforge.net/projects/launch4j/)
@@ -86,11 +95,8 @@ slash. Surrounding the value with double quotes is optional.)
 `standalone-compiler.jar` in `lib/`.
 * For the Windows installer: see the list in the header of `build.cmd`, though
 `release-wininstaller` assumes locations in `FreenetReleased/` and `FreenetReleased/dependencies`.
-Note that non-L AutoHotKey appears to no longer be hosted, and AutoHotKey-L
-triggers some resource packaging bug in Wine that results in 0-byte files. See
-[here](https://bugs.freenetproject.org/view.php?id=5456#c9812). In the case of
-configuration problems or prompts it might be useful to also install `xnest` and
-run `release-wininstaller --dry-run --xnest` first.
+In the case of configuration problems or prompts it might be useful to also
+install `xnest` and run `release-wininstaller --dry-run --xnest` first.
 * The FPI code signing certificate set up as though with
 
     keytool -importkeystore -srckeystore code-signing.p12  -srcstoretype pkcs12 -srcalias "freenet project inc's comodo ca limited id" -destkeystore ~/.gnupg/freenet/code-signing/code-signing.jks -deststoretype jks -destalias freenet -destkeypass "password"
@@ -138,11 +144,10 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 
 5. `java -jar [location of released jars]/new_installer_offline_[buildnumber].jar` runs an installer. The release manager should test installing a node both with the Linux / OS X installer and the Windows one. It should be able to bootstrap successfully, access FProxy, and otherwise have no obvious problems.
 
-6. `upload-to-google-drive.py` uploads the jars and installers to Google Drive which serves the majority of downloads.
+6. `upload-assets` uploads the jars and installers to GitHub which serves the majority of downloads.
 
 7. `deploy-website`, when run from osprey, updates the website to point to the latest version as defined by the given `fred` repository. The script's `-u` switch updates both `fred` and `website`, so if one wants to avoid pulling in website changes as well it may be preferable to manually update the `fred` repository only, or use the `--force-*-id` options.
 
 8. `insert-update` inserts the jars over FCP. This is intended to be the test node which was installed by testing the installer as above. This is so that a development node which may have heavy logging does not leak the keys into the logs.
 
-
-9. Once the inserts have completed announce the release.
+9. Once the inserts have completed announce the release: FMS, IRC (including the channel topic), devl, support, website, Wikipedia article.

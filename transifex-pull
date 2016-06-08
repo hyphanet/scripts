@@ -22,33 +22,34 @@ source freenet-scripts-common || exit
 starting_directory="$(readlink -e "$(dirname "$0")")"
 
 function filter() {
-    # No files of this type.
-    if [ -z "$(find . -type f -name "$1")" ]
-    then
-        return
-    fi
-    # Remove commented lines
-    sed -i '/^#/d' $1
-    # Remove backslash before :
-    sed -i 's/\\\:/:/g' $1
-    # Remove backslash before !
-    sed -i 's/\\!/!/g' $1
+    for file in $1
+    do
+        # Remove commented lines
+        sed -i '/^#/d' "$file"
+        # Remove backslash before :
+        sed -i 's/\\\:/:/g' "$file"
+        # Remove backslash before !
+        sed -i 's/\\!/!/g' "$file"
+    done
 }
 
-# Takes absolute repo path, resource name, localization path relative to the repo path.
+# Takes absolute repo path, resource name, localization path relative to the
+# repo path, and localization glob.
 function pull() {
     cd "$1"
     tx pull -r "freenet.$2" --mode=default --minimum-perc=30 -a -f
+    cd "$(dirname "$3")"
+    filter "$4"
 
     cd "$starting_directory"
     python remove-untranslated.py "$1/$3" "$4"
 }
 
-# These expressions are more permissive then they need to be but are sufficient.
+# These expressions are more permissive than they need to be but are sufficient.
 pull "$fredDir" master "src/freenet/l10n/freenet.l10n.en.properties" "freenet.l10n.*.properties"
 
 # TODO: Support directories named something other than the repo name
-pull "$freenetRoot/plugin-FlogHelper" floghelper "src/plugins/floghelper/l10n/UI_en.l10n" "UI_.*.l10n"
-pull "$freenetRoot/plugin-Freemail" freemail "src/org/freenetproject/freemail/l10n/lang_en.l10n" "lang_.*.l10n"
-pull "$freenetRoot/plugin-KeyExplorer" keyexplorer "src/plugins/KeyUtils/intl/en.txt" ".*.txt"
-pull "$freenetRoot/plugin-WebOfTrust" weboftrust "src/plugins/WebOfTrust/l10n/lang_en.l10n" "lang_.*.l10n"
+pull "$freenetRoot/plugin-FlogHelper" floghelper "src/plugins/floghelper/l10n/UI_en.l10n" "UI_*.l10n"
+pull "$freenetRoot/plugin-Freemail" freemail "src/org/freenetproject/freemail/l10n/lang_en.l10n" "lang_*.l10n"
+pull "$freenetRoot/plugin-KeyUtils" keyexplorer "src/plugins/KeyUtils/intl/en.txt" "*.txt"
+pull "$freenetRoot/plugin-WebOfTrust" weboftrust "src/plugins/WebOfTrust/l10n/lang_en.l10n" "lang_*.l10n"

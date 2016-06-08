@@ -1,5 +1,5 @@
 import argparse
-import re
+import glob
 import os
 
 parser = argparse.ArgumentParser(description="""
@@ -12,22 +12,18 @@ pattern.
 parser.add_argument("source",
                     help="Path to source file of key-value pairs to remove")
 parser.add_argument("pattern",
-                    help="Regular expression matching files to remove from")
+                    help="Glob expression matching files to remove from")
 args = parser.parse_args()
-
-file_pattern = re.compile(args.pattern)
 
 with open(args.source) as source_file:
     source_lines = set(source_file.readlines())
 
 os.chdir(os.path.dirname(args.source))
 
-for filename in os.listdir("."):
+for filename in glob.iglob(args.pattern):
     if not os.path.isfile(filename):
         continue
     if filename == os.path.basename(args.source):
-        continue
-    if not file_pattern.match(filename):
         continue
 
     with open(filename) as matched_file:

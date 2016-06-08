@@ -7,10 +7,10 @@ source freenet-scripts-common || exit
 cd $(dirname $0)
 startingDir=$(pwd)
 update=false
-dryRun=false
 testing=false
 forceWebsiteID=""
 forceFredID=""
+branch="master"
 
 show_help() {
     cat <<EOF
@@ -22,11 +22,10 @@ for the latest version of Fred in the repository.
 OPTIONS
     -u, --update    Update the website and fred repos before deploying.
 
-    -d, --dry-run   Generate the website, but pause to allow inspection of the
-                    output instead of deploying or updating the money totals.
+    -t, --testing [branch]
 
-    -t, --testing   Deploy the "next" branch to the testing subdomain, and
-                    do not update the money totals."
+                    Deploy the optionally specified branch, or "next" branch if
+                    unspecified, to the testing subdomain.
 
     --force-website-id Checkout and verify the given git ID for the website.
                        Only if -u.
@@ -43,15 +42,18 @@ FREENETVERSION with the build number. Ex: 1405
 FREENETTAG with the build tag. Ex: build014105
 
 Pages containing MONEYBALANCE or MONEYDAYS are copied to
-\"$moneyBalanceDir\"
+\"$moneyBalanceLiveDir\" (or $moneyBalanceTestingDir")
 so the values can be periodically updated automatically.
 EOF
 }
 
+args=$(getopt --longoptions help,update,testing::,force-website-id:,force-fred-id: --options hcut:: -- "$@")
+eval set -- "$args"
+
 while :
 do
     case $1 in
-        -h | --help | -\?)
+        -h | --help)
             show_help
             exit 0
             ;;
@@ -63,13 +65,18 @@ do
             update=true
             shift
             ;;
-        -d | --dry-run)
-            dryRun=true
-            shift
-            ;;
         -t | --testing)
             testing=true
-            shift
+            case $2 in
+                "")
+                    branch="next"
+                    shift 2
+                    ;;
+                *)
+                    branch="$2"
+                    shift 2
+                    ;;
+            esac
             ;;
         --force-website-id)
             forceWebsiteID="$2"
@@ -83,21 +90,12 @@ do
             shift
             break
             ;;
-        -*)
-            echo "Unknown option: $1"
+        *)
+            echo Internal error.
             exit 1
-            ;;
-        *)  # No more options; stop parsing.
-            break
             ;;
     esac
 done
-
-if $testing; then
-    branch="next"
-else
-    branch="master"
-fi
 
 websiteOutputDir="$websiteDir/output"
 
@@ -148,30 +146,27 @@ popd
 #Determine version information.
 getBuildInfo
 
-#Read links to release files on Google Drive.
-if [ ! -e google_drive_links ]; then
-    echo "Missing Google Drive links. Please generate them:"
-    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+# Read URLs of release files.
+if [ ! -e asset_urls ]; then
+    echo "Missing asset URLs. Please generate them:"
+    echo "./upload-assets $buildNumber"
     exit 3
 fi
-source google_drive_links || exit
+source asset_urls || exit
 
-if [[ "$linkBuildNumber" -ne "$buildNumber" ]]; then
-    echo "The current build is $buildNumber but the links are for $linkBuildNumber"
-    echo "Please generate them again:"
-    echo "python upload-to-google-drive.py $buildNumber --skip_upload"
+if [[ "$assetBuildNumber" -ne "$buildNumber" ]]; then
+    echo "The current build is $buildNumber but the URLs are for $assetBuildNumber"
+    echo "Please generate them:"
+    echo "./upload-assets $buildNumber"
     exit 3
 fi
 
 #Generate website.
 cd "$websiteDir"
-./make-pages.sh
-
-#Determine which languages are present.
-presentLangs=$(perl -we 'my @index = glob("output/index.html.*"); foreach my $file (@index) { if ($file =~ /output\/index\.html\.([a-z]{2})/) { print "$1 "; } }')
+./generate
 
 cd "$fredDir"
-if ! git tag -v "$gitVersion"
+if ! git tag -v "$gitVersion" > /dev/null
 then
 	echo Verification of tag "$gitVersion" for fred repository failed
 	echo Please ensure you have all relevant gpg keys, and check the fingerprints.
@@ -181,15 +176,17 @@ fi
 cat <<EOF
 Using FREENETVERSION "$buildNumber"
 Using FREENETTAG "$gitVersion"
-Website contains languages: $presentLangs
 Using website repo in: "$websiteDir"
 EOF
 
 cd "$websiteDir"
-echo "Website commit ID is $(git rev-parse --verify HEAD)"
+echo "Website is at"
+git log -1
+cd "$fredDir"
+echo "Fred is at"
+git log -1
 cd "$startingDir"
-echo "Fred commit ID is $commitID"
-for value in "$buildNumber" "$gitVersion" "$presentLangs"
+for value in "$buildNumber" "$gitVersion"
 do
     if [[ ! "$value" ]]
     then
@@ -198,25 +195,19 @@ do
     fi
 done
 
-if $dryRun; then
-    echo -n "Continue dry run [y/N]?"
-else
     if $testing; then
         echo -n "Deploy to testing site [y/N]?"
+        balanceDir="$moneyBalanceTestingDir"
     else
         echo -n "Deploy to live site [y/N]? "
+        balanceDir="$moneyBalanceLiveDir"
     fi
-fi
 read response
 
 #Case insensitive.
 if [[ $(echo "$response" | tr '[:upper:]' '[:lower:]') != "y" ]]
 then
-    if $dryRun; then
-        echo "User declined to continue dry run. Exiting."
-    else
     echo "User declined to deploy. Exiting."
-    fi
     exit 1
 fi
 
@@ -240,7 +231,7 @@ do
         replace "FREENET_MAIN_JAR_URL" "$FREENET_MAIN_JAR_URL"\
                 "FREENET_SOURCE_URL" "$FREENET_SOURCE_URL"\
                 "FREENET_INSTALLER_URL" "$FREENET_INSTALLER_URL"\
-                "FREENET_INSTALLER_REDIRECT_URL" "https://freenetproject.org/jnlp/freenet_installer.jar"\
+                "FREENET_INSTALLER_REDIRECT_URL" "https://freenetproject.org/assets/jnlp/freenet_installer.jar"\
                 "FREENET_WINDOWS_INSTALLER_URL" "$FREENET_WINDOWS_INSTALLER_URL"\
                 "FREENET_MAIN_JAR_SIG_URL" "$FREENET_MAIN_JAR_SIG_URL"\
                 "FREENET_SOURCE_SIG_URL" "$FREENET_SOURCE_SIG_URL"\
@@ -249,7 +240,7 @@ do
                 -- "$file"
        sed -i 's/FREENETVERSION/'"$buildNumber"'/g;s/FREENETTAG/'"$gitVersion"'/g' "$file"
     fi
-    if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" "$file"
+    if grep -Fq -e "MONEYBALANCE" -e "MONEYDAYS" -e "MONEYMONTHS" "$file"
     then
         relativePath=${file:$tempSubLength}
         echo "\"$relativePath\" contains money substitutions."
@@ -271,34 +262,29 @@ sudo chown -R www-freenet-website:www-freenet-website "$tempBal"
 sudo chmod 700 "$tempSub"
 sudo chown -R www-freenet-website:www-freenet-website "$tempSub"
 
-if $dryRun; then
-    echo "---Dry run---"
-    echo "If desired, please inspect these temporary directories:"
-    echo " * Would be deployed to balance directory: $tempBal"
-    echo " * Would be deployed to website directory: $tempSub"
-    echo "Waiting - press a key for the temporary directories to be removed."
-    read -er -n 1
-elif $testing; then
+if $testing; then
     echo "Copying to testing target from temporary directories."
-    echo "Testing mode: not updating money totals."
     sudo rsync -ar --owner --group --delete "$tempSub"/ "$websiteDeployTestingDir"
 else
     echo "Copying to live target from temporary directories."
-    sudo rsync -ar --owner --group --delete  "$tempBal"/ "$moneyBalanceDir"
     sudo rsync -ar --owner --group --delete  "$tempSub"/ "$websiteDeployLiveDir"
 fi
 
-echo "Removing temporary directories."
-sudo rm -rf "$tempSub"
-sudo rm -rf "$tempBal"
+function removeTemp {
+    echo "Removing temporary directories."
+    sudo rm -rf "$tempSub"
+    sudo rm -rf "$tempBal"
+}
 
-if $dryRun; then
-    echo "Dry run complete."
-elif $testing; then
+sudo rsync -ar --owner --group --delete  "$tempBal"/ "$balanceDir"
+echo "Updating money totals."
+sudo /root/bin/fix-money-totals
+
+removeTemp
+
+if $testing; then
     echo "Deploy to testing site complete."
 else
-    echo "Updating money totals."
-    sudo /root/bin/fix-money-totals
     echo "Deploy to live site complete."
 fi
 

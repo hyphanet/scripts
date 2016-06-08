@@ -54,8 +54,10 @@ Changes in $BUILD:
 
 - Release manager name
 
-Authors:
-$(git log --format="format:%an <%ae>" "$PREVTAG.." | sort | uniq)
+[include shortlogs of any installer or plugin changes]
+
+---
+$(git shortlog --no-merges "$PREVTAG..")
 EOF
 fi
 editor $FULLCHANGELOG || exit 10
@@ -114,7 +116,7 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	# Common case: Releasing from a branch, e.g. stable-9999, fixes
 	echo "Merging active branch $BRANCH back into master."
 	git checkout master
-	git merge --ff-only $TAG || exit 7
+	git merge -S --ff-only $TAG || exit 7
 
 	# Then offer to delete it.
 	echo "Delete branch $BRANCH? [y/N]"
@@ -129,12 +131,12 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 
 	# Merge master into next.
 	git checkout next
-	git merge master
+	git merge -S master
 elif test $BRANCH == "next"; then
 	# Releasing from next.
 	# Merge next into master.
 	git checkout master
-	git merge next
+	git merge -S next
 fi
 
 # Push changes and end on next.

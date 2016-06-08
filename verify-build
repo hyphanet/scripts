@@ -2,6 +2,7 @@
 # Attempts to verify that the latest build corresponds to the bytecode.
 # Main requirement is to run the script on a system using the same Java compiler as the system that released it.
 # For builds by toad, this is Sun 1.6.0_26 (sun-java6-jdk; 6.26-0squeeze1) on Debian Squeeze.
+# For builds by operhiem1 build 1473 or later, this is openjdk-7-jdk 7u101-2.6.6-1~deb8u1 on Debian Jessie.
 # Uses lib-pyFreenet to fetch the in-Freenet JAR over FCP,
 # and so requires Python and lib-pyFreenet. (fcpget)
 
@@ -110,11 +111,11 @@ if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
     echo Unable to copy freenet-ext.jar from "$freenetExtPath"
     exit 12
 fi
-if ! cp "$bcprovPath" lib/bcprov.jar; then
+if ! cp "$bcprovPath" lib/; then
     echo Unable to copy bcprov.jar from "$bcprovPath"
     exit 12
 fi
-if ! (ant clean && ant package-only); then
+if ! ant package-only; then
     echo Unable to build from repository.
     exit 8
 fi

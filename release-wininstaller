@@ -13,11 +13,9 @@
 #
 # The following files should be in the releaseDirectory:
 #
-# * dependencies/bcprov-jdk15on-149.jar -   http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar
-# * dependencies/is-unicode.exe         -   http://www.jrsoftware.org/download.php/is-unicode.exe
-# * dependencies/Ahk2Exe.exe            -   http://ahkscript.org/download/ahk2exe.zip
-# * dependencies/Unicode 32-bit.bin
-# * dependencies/jsign-1.2.jar          -   http://people.apache.org/~ebourg/jsign/jsign-1.2.jar
+# * dependencies/bcprov-jdk15on-154.jar -   https://bouncycastle.org/download/bcprov-jdk15on-154.jar
+# * dependencies/isetup-5.5.9-unicode.exe -   http://www.jrsoftware.org/download.php/is-unicode.exe
+# * dependencies/jsign-1.3-SNAPSHOT.jar -   build from https://github.com/ebourg/jsign
 # * freenet.jar                         -   Whatever's pointed at by https://downloads.freenetproject.org/alpha/freenet-stable-latest.jar.url
 # * JSTUN.jar                           -   https://downloads.freenetproject.org/alpha/plugins/JSTUN/
 # * KeyUtils.jar                        -   https://downloads.freenetproject.org/alpha/plugins/KeyUtils/
@@ -146,18 +144,14 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 cp "$releaseDir/freenet.jar"                         "install_node/"                || exit
 cp "$freenetExtPath"                                 "install_node/freenet-ext.jar" || exit
-cp "$releaseDir/dependencies/bcprov-jdk15on-149.jar" "install_node/"                || exit
+cp "$bcprovPath"                                     "install_node/"                || exit
 cp "$releaseDir/seednodes.fref"                      "install_node/"                || exit
 # TODO: Create plugin directory in the build dir instead of assuming it's part of the repo.
 # TODO: Is this an appropriate place to have a bundled plugin list?
 for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
   cp "$releaseDir/${x}.jar"                          "install_node/plugins/"        || exit
 done
-cp "$releaseDir/dependencies/is-unicode.exe"         .                              || exit
-compilerDir="AutoHotKey_files/tools/ahk/Compiler"
-mkdir -p "$compilerDir"
-cp "$releaseDir/dependencies/Ahk2Exe.exe"            "$compilerDir"                 || exit
-cp "$releaseDir/dependencies/Unicode 32-bit.bin"     "$compilerDir"                 || exit
+cp "$releaseDir/dependencies/isetup-5.5.9-unicode.exe" .                            || exit
 echo Copied dependencies.
 
 # Update the installer's listing of Fred version with the current version.
@@ -191,14 +185,10 @@ $ssh $wineUser@localhost <<EOF
 cd $buildDir;
 mkdir .wine;
 export WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine WINEDLLOVERRIDES="mscoree,mshtml=";
-$xvfbrun wine is-unicode.exe /SILENT;
-pushd AutoHotKey_files;
-$xvfbrun wine cmd /c build_AHK_binaries.cmd;
-popd;
+$xvfbrun wine isetup-5.5.9-unicode.exe /SILENT;
 # "Program Files (x86)" is for Windows 7 - later versions of Wine.
-# XP is still the default for 1.4.1, which is packaged in Wheezy.
+# XP is still the default for 1.6.2, which is packaged in Jessie.
 wine "C:\Program Files\Inno Setup 5\ISCC.exe" "FreenetInstall_InnoSetup.iss";
-wineserver -k;
 chmod -R 770 .wine Output;
 EOF
 
@@ -207,7 +197,9 @@ if [ "$xnest" == "true" ]; then
 	DISPLAY="$OLDDISPLAY"
 fi
 cp "Output/FreenetInstaller.exe" "FreenetInstaller-$buildNumber.exe" || exit
-java -jar "$releaseDir/dependencies/jsign-1.2.jar" -s "$jarsignerStoreLocation" --storepass "$jarsignerStorePassword" --keypass "$jarsignerCodeSigningKeyPassword" --storetype jks -a "$jarsignerAlias"  -t http://timestamp.comodoca.com/authenticode -n "Freenet 0.7 Installer" -u https://freenetproject.org "FreenetInstaller-$buildNumber.exe" || exit
+pushd $freenetRoot/scripts
+./sign-exe "$buildDir/FreenetInstaller-$buildNumber.exe" "Freenet 0.7 Installer" || exit
+popd
 
 pushd "install_node/updater/" || exit
 cp update.cmd update-new.cmd || exit
@@ -250,13 +242,18 @@ echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry" || exit
 
+# Delete the old version to avoid running out of disk space.
+OLDVERSION=$[$buildNumber-3]
+echo Deleting old version ${OLDVERSION}
+ssh $targetHost rm /var/www/downloads/alpha/installer/FreenetInstaller-${OLDVERSION}.exe
+
 cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
 
 cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
 
-cp "$buildDir/install_node/freenetlauncher.exe" freenetlauncher-new.exe || exit
+cp "$buildDir/install_node/FreenetTray.exe" FreenetTray.exe || exit
 
-for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll freenetlauncher-new.exe; do
+for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll FreenetTray.exe; do
 
     echo Uploading $name version $gitVersion
 

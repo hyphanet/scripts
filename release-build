@@ -25,16 +25,16 @@ if [ "$useSshAgent" == "1" ]; then
     trap stopAgent EXIT
 fi
 
-update-bookmarks || exit
-update-version $BUILD || exit
-tag-build $BUILD || exit 1
+./update-bookmarks || exit
+./update-version $BUILD || exit
+./tag-build $BUILD || exit 1
 # Get build info after tagging the new build.
 getBuildInfo
 echo Releasing build $buildNumber
-release-fred --build || exit 2
-release-installer || exit 3
-release-wininstaller --release || exit 4
-python upload-to-google-drive.py $buildNumber --release_directory "$releaseDir" --auth_type "$googleDriveAuth" || exit 5
+./release-fred build || exit 2
+./release-installer || exit 3
+./release-wininstaller --release || exit 4
+env GITHUB_OAUTH="$gitHubOAuthToken" ./upload-assets $buildNumber "$releaseDir" || exit
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.
 echo Deploy the build only when:
@@ -44,9 +44,9 @@ echo The test node you just installed will do fine.
 java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
 require "Perform release?"
 echo Performing final release.
-remote-deploy-website
+./remote-deploy-website
 require "Final chance: Deploy to auto-update?"
-insert-update || exit 9
+./insert-update || exit 9
 #killall gpg-agent
 # TODO How to terminate our gpg-agent and no others?
 echo All done.
