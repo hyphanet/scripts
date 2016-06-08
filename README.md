@@ -18,18 +18,18 @@ You will also need ssh access to osprey.
 
 Currently the official builds are made using Debian Wheezy, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
 
-    # apt-get install git-core python openjdk-6-jdk ant unzip
+    # apt-get install git-core python openjdk-7-jdk ant unzip
     $ git clone git://github.com/freenet/scripts.git
     $ git clone git://github.com/freenet/fred.git
     $ git clone git://github.com/freenet/lib-pyFreenet.git
     $ cp scripts/freenetrc-sample ~/.freenetrc
     $ scripts/set-freenetrc-base
-    $ mkdir FreenetReleased
+    $ mkdir -p FreenetReleased/dependencies
     $ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleased/freenet-ext.jar
-    $ wget http://www.bouncycastle.org/download/bcprov-jdk15on-152.jar -O FreenetReleased/dependencies/bcprov-jdk15on-152.jar
+    $ wget https://www.bouncycastle.org/download/bcprov-jdk15on-154.jar -O FreenetReleased/dependencies/bcprov-jdk15on-154.jar
     $ wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg
     $ gpg --import toad.gpg
-    $ gpg --recv-key 0x7EDBA5E0
+    $ gpg --keyserver keys.gnupg.net --recv-key 0x7EDBA5E0
     $ cd lib-pyFreenet
     # python setup.py install
 
