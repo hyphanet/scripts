@@ -58,3 +58,4 @@ OLDVERSION=$[$buildNumber-3]
 echo Deleting old version ${OLDVERSION}
 ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
 ssh $targetHost -- "sed -i \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" /var/www/downloads/alpha/.registry"
+ssh $targetHost -- "sed -i \"s/new_installer_offline.jar.sig .*$/new_installer_offline.jar.sig installer\/new_installer_offline_${buildNumber}.jar.sig/\" /var/www/downloads/alpha/.registry"

@@ -241,6 +241,7 @@ rsync wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit
 echo Uploading to webserver
 rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
 ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry" || exit
+ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe.sig .*$/FreenetInstaller.exe.sig installer\/FreenetInstaller-$buildNumber.exe.sig/\" /var/www/downloads/alpha/.registry" || exit
 
 # Delete the old version to avoid running out of disk space.
 OLDVERSION=$[$buildNumber-3]
