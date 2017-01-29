@@ -142,6 +142,7 @@ if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 # Copy files
 
+mkdir -p "install_node/plugins/"
 cp "$releaseDir/freenet.jar"                         "install_node/"                || exit
 cp "$freenetExtPath"                                 "install_node/freenet-ext.jar" || exit
 cp "$bcprovPath"                                     "install_node/"                || exit
