@@ -104,22 +104,21 @@ export jarsignerAlias="$jarsignerAlias"
 export jarsignerCodeSigningKeyPassword="$jarsignerCodeSigningKeyPassword"
 
 if [[ "$target" = "build" ]]; then
-    ant -f build-clean.xml || exit 16
-    ant javadoc || exit 32
     jarName="freenet-$gitVersion.jar"
 elif [[ "$target" = "snapshot" ]]; then
-    # now build it (without api doc)
-    ant -f build-clean.xml -Ddoc.skip=true || exit 9
     jarName="freenet-$gitVersion-snapshot.jar"
 else
     echo "Internal error: Unrecognized target \"$target\"."
     exit 15
 fi
 
+# Build without JavaDocs; CI builds and uploads them.
+./gradlew jar || exit
+
 archiveName="freenet-$gitVersion-source.tar.bz2"
 
 # move file in position
-mv dist/freenet.jar "$jarName" || exit 10
+mv build/libs/freenet.jar "$jarName" || exit 10
 
 # create source archive
 git archive --format=tar HEAD --prefix="freenet-$gitVersion/" | bzip2 -v9 > "$archiveName" || exit 11
