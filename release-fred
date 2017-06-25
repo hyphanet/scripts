@@ -169,15 +169,6 @@ fi
 
 echo "Performing $target release."
 
-# create and update pointer files
-echo "https://downloads.freenetproject.org/alpha/$jarName" > freenet-testing-latest.jar.url
-wget -O ".registry" "https://downloads.freenetproject.org/alpha/.registry" || exit 28
-sed -i "s/freenet-testing-latest.jar .*$/freenet-testing-latest.jar $jarName/" .registry || exit 29
-
-if [[ "$target" = "build" ]]; then
-    sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
-fi
-
 # TODO: Upload to project mvn repository
 
 # Upload snapshot binary, source, and signatures to Freenet.
