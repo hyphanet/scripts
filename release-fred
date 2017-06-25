@@ -178,16 +178,7 @@ if [[ "$target" = "build" ]]; then
     sed -i "s/freenet-stable-latest.jar .*$/freenet-stable-latest.jar $jarName/" .registry || exit 31
 fi
 
-# upload all files
-chmod a+rX "$jarName"*
-rsync -vvzP "$jarName"* freenet-testing-latest.jar.url .registry "$archiveName"* "$targetHost:/var/www/downloads/alpha/" || exit 24
-
-# Unlike a snapshot, a new build updates the localization diff and the stable-latest.url.
-if [[ "$target" = "build" ]]; then
-    rsync -vz "$releaseDir/$diffName" "$targetHost:/var/www/emu/l10n/" || exit 25
-    rsync -vvzP freenet-testing-latest.jar.url "$targetHost:/var/www/downloads/alpha/freenet-stable-latest.jar.url" || exit 26
-    rsync --delete -rz javadoc/* "$targetHost:/var/www/freenet-javadoc" || exit 27
-fi
+# TODO: Upload to project mvn repository
 
 # Upload snapshot binary, source, and signatures to Freenet.
 if [[ "$target" = "snapshot" ]]; then
