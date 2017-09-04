@@ -141,7 +141,9 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config
-key="SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber"
+key="SSK@O~UmMwTeDcyDIW-NsobFBoEicdQcogw7yrLO2H-sJ5Y,JVU4L7m9mNppkd21UNOCzRHKuiTucd6Ldw8vylBOe5o,AQACAAE/jar-$buildNumber"
+# old key:
+# SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber"
 echo "" ; echo "Downloading from freenet - this can take a moment... key: $key"
 fcpget --verbose --fcpHost="$fcpHost" --fcpPort="$fcpPort" "$key" inserted-freenet.jar
 if [ ! -e "inserted-freenet.jar" ]; then
