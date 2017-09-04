@@ -112,7 +112,7 @@ echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
 # Get the name of the active branch. TODO: More idiomatic?
 BRANCH="$(git branch | grep "^\*" | cut -b 3-)"
 
-if test $BRANCH != "master" && test $BRANCH != "next"; then
+if test x"$BRANCH" != x"master" && test x"$BRANCH" != x"next"; then
 	# Common case: Releasing from a branch, e.g. stable-9999, fixes
 	echo "Merging active branch $BRANCH back into master."
 	git checkout master
@@ -132,7 +132,7 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	# Merge master into next.
 	git checkout next
 	git merge -S master
-elif test $BRANCH == "next"; then
+elif test x"$BRANCH" == x"next"; then
 	# Releasing from next.
 	# Merge next into master.
 	git checkout master
