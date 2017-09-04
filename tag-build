@@ -139,8 +139,10 @@ elif test x"$BRANCH" == x"next"; then
 	git merge -S next
 fi
 
-# Push changes and end on next.
+# Push changes and end on master.
+# TODO: end on next, once next is release-ready again
 git push origin next
 git push origin master
 
-git checkout next
+# git checkout next
+git checkout master
