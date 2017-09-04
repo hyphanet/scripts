@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 source freenet-scripts-common || exit
 

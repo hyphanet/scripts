@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # This script uses Wine to build the Windows installer executables under a
 # restricted user account. A temporary directory contains both a clone of
 # the installer repos and the Wine prefix used to build. It is removed after

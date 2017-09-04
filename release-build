@@ -4,6 +4,7 @@
 # Usage is "release-build 9999" for build 9999. 
 # TODO Add --help etc.
 # TODO Add --snapshot to proxy to release-fred --snapshot ???
+set -x
 
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
@@ -34,6 +35,7 @@ echo Releasing build $buildNumber
 ./release-fred build || exit 2
 ./release-installer || exit 3
 ./release-wininstaller --release || exit 4
+# upload assets
 env GITHUB_OAUTH="$gitHubOAuthToken" ./upload-assets $buildNumber "$releaseDir" || exit
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.
@@ -46,6 +48,7 @@ require "Perform release?"
 echo Performing final release.
 ./remote-deploy-website
 require "Final chance: Deploy to auto-update?"
+# TODO: this does not stop
 ./insert-update || exit 9
 #killall gpg-agent
 # TODO How to terminate our gpg-agent and no others?
