@@ -46,7 +46,10 @@ echo The test node you just installed will do fine.
 java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
 require "Perform release?"
 echo Performing final release.
-./remote-deploy-website
+# FIXME: remote-deploy-website was also broken by the infra breakage
+#        release to the website is currently done manually
+#        by changing links to github releases.
+# ./remote-deploy-website
 require "Final chance: Deploy to auto-update?"
 # TODO: this does not stop
 ./insert-update || exit 9
