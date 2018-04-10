@@ -34,7 +34,6 @@ cp dist/* . || exit
 
 ../scripts/sign-installer-files . || exit
 
-cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
-cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
-cp new_installer_offline_${buildNumber}.jar* $releaseDir || exit 10
-rm new_installer_offline_${buildNumber}.jar new_installer_offline_${buildNumber}.jar.sig
+mv new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
+mv new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
+mv new_installer_offline_${buildNumber}.jar* $releaseDir || exit 10
