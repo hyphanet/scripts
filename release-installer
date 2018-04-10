@@ -14,11 +14,9 @@ git clone "$installerDir" "$buildDir/java_installer" || exit
 pushd "$buildDir/java_installer"
 mkdir lib
 
-cp "$freenetExtPath" bin/freenet-ext.jar || exit
-cp "$releaseDir/freenet.jar" bin/freenet.jar || exit
 cp "$seedrefsPath" bin/seednodes.fref || exit
-cp "$bcprovPath" bin/ || exit
-cp "$releaseDir/dependencies/standalone-compiler.jar" lib/ || exit
+cp "$dependenciesDir/*" bin/ || exit
+cp "$dependenciesDir/standalone-compiler.jar" lib/ || exit
 
 # Build script uses environment variables.
 export jarsignerStoreLocation="$jarsignerStoreLocation"
