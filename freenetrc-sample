@@ -5,18 +5,6 @@
 # Absolute path to base directory. Used for convenience in setting other paths.
 freenetRoot="/home/freenet"
 
-# Webserver directory for updating project money balance.
-moneyBalanceLiveDir="/var/www/freenet-website-not-subbed/money-not-subbed-in"
-
-# Webserver testing directory for updating project money balance.
-moneyBalanceTestingDir="/var/www/freenet-website-testing-not-subbed/money-not-subbed-in"
-
-# Webserver directory for the live website.
-websiteDeployLiveDir="/var/www/freenet-website"
-
-# Webserver directory for the testing website.
-websiteDeployTestingDir="/var/www/freenet-website-testing"
-
 # Target directory for generated files.
 releaseDir="$freenetRoot/FreenetReleased"
 
@@ -43,9 +31,6 @@ bcprovPath="$releaseDir/dependencies/bcprov-jdk15on-154.jar"
 
 # If "1" starts ssh agent before sending the update to the target host and stops it afterward.
 useSshAgent="1"
-
-# Hostname to send updates to.
-targetHost="osprey.vm.bytemark.co.uk"
 
 # GitHub OAuth token with repo access for uploading assets.
 gitHubOAuthToken="token"
@@ -91,9 +76,6 @@ countryDataFile="$freenetRoot/IpToCountry/IpToCountry.dat"
 
 # Where are the (encrypted) auto-update insert keys stored?
 insertKeys="~/.freenet.insertKeys.gpg"
-
-# Path to directory with `deploy-website` relative to home directory.
-remoteDeployPrefix="scripts"
 
 # Path to individual seed node reference directory.
 seedrefsDir="$freenetRoot/seedrefs"
