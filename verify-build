@@ -119,12 +119,14 @@ if ! unzip "fred/dist/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
-if ! wget "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar.sig" -O freenet.jar.sig; then
-    echo Unable to fetch signature "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar.sig" from the official Freenet website.
+jarUrl="https://github.com/freenet/fred/releases/download/build01480/freenet-build01480.jar"
+signatureUrl="$jarUrl.sig"
+if ! wget "$signatureUrl" -O freenet.jar.sig; then
+    echo Unable to fetch signature "$signatureUrl" from the official Freenet repository.
     exit 4
 fi
-if ! wget "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar" -O freenet.jar; then
-    echo Unable to fetch jar file "https://downloads.freenetproject.org/alpha/freenet-$gitVersion.jar" from the official Freenet website.
+if ! wget "$jarUrl" -O freenet.jar; then
+    echo Unable to fetch jar file "$jarUrl" from the official Freenet repository.
     exit 5;
 fi
 if ! gpg --logger-fd 1 --verify freenet.jar.sig freenet.jar; then
