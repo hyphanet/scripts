@@ -88,12 +88,6 @@ echo "Building $target."
 cd "$buildDir"
 git checkout "$gitVersion" || exit 12
 
-# copy freenet-ext.jar
-mkdir -p lib 2>/dev/null
-cp "$freenetExtPath" lib/freenet-ext.jar || exit 3
-mkdir -p lib/freenet
-cp lib/freenet-ext.jar lib/freenet/ || exit 4
-
 # Build script uses environment variables.
 export jarsignerStoreLocation="$jarsignerStoreLocation"
 export jarsignerStorePassword="$jarsignerStorePassword"
