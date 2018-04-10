@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# Build a plugin, push it to the webserver, update the URL registry, and insert
-# it to a CHK with the node on $fcpPort.
+# Build a plugin, copy it to the release directory, and insert it to a CHK using
+# the node on $fcpPort.
 #
 
 # Load configuration and utility functions.
@@ -12,7 +12,8 @@ if [[ -z "$1" ]]; then
 	cat <<EOF
 Usage: $0 [plugin name]
 
-Requires that "$freenetRoot/plugin-[plugin name]" contains a repository.
+Requires that "$freenetRoot/plugin-[plugin name]" contains a repository built
+with ant.
 EOF
 	exit 1
 fi
