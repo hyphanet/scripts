@@ -34,28 +34,7 @@ cp dist/* . || exit
 
 ../scripts/sign-installer-files . || exit
 
-# Generate checksums.
-cp scripts/* .
-# TODO: Use sha512 as well as sha256, update the update scripts, installers etc, see release-fred
-sha1sum update.sh > update.sh.sha1 || exit 7
-cp res/wrapper.conf . || exit 7
-sha1sum wrapper.conf > wrapper.conf.sha1 || exit 7
-
-# Upload generated files to web host.
-echo Uploading
-rsync update.* wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit 7
 cp new_installer_offline.jar new_installer_offline_${buildNumber}.jar || exit 8
 cp new_installer_offline.jar.sig new_installer_offline_${buildNumber}.jar.sig || exit 9
 cp new_installer_offline_${buildNumber}.jar* $releaseDir || exit 10
 rm new_installer_offline_${buildNumber}.jar new_installer_offline_${buildNumber}.jar.sig
-
-rsync -v new_installer* sha1test.jar* wrapper* $targetHost:/var/www/downloads/alpha/installer/
-ssh $targetHost -- "cp /var/www/downloads/alpha/installer/new_installer_offline.jar /var/www/downloads/alpha/installer/new_installer_offline_${buildNumber}.jar"
-rsync -v new_installer_offline.jar.sig $targetHost:/var/www/downloads/alpha/installer/new_installer_offline_${buildNumber}.jar.sig
-
-# Delete the old version to avoid running out of disk space.
-OLDVERSION=$[$buildNumber-3]
-echo Deleting old version ${OLDVERSION}
-ssh $targetHost rm /var/www/downloads/alpha/installer/new_installer_offline_${OLDVERSION}.jar
-ssh $targetHost -- "sed -i \"s/new_installer_offline.jar .*$/new_installer_offline.jar installer\/new_installer_offline_${buildNumber}.jar/\" /var/www/downloads/alpha/.registry"
-ssh $targetHost -- "sed -i \"s/new_installer_offline.jar.sig .*$/new_installer_offline.jar.sig installer\/new_installer_offline_${buildNumber}.jar.sig/\" /var/www/downloads/alpha/.registry"

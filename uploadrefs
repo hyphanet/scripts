@@ -25,11 +25,6 @@ then
     exit 1
 fi
 
-# TODO: sha256/512
-sha1sum "$seedrefsPath" > "$seedrefsPath.sha1" || exit
-
 # gpg will prompt before overwriting, which is not desirable here.
 rm -f "$seedrefsPath.gpg"
 gpg -o "$seedrefsPath.gpg" --sign "$seedrefsPath" || exit
-
-rsync -v "$seedrefsPath" "$seedrefsPath.sha1" "$seedrefsPath.gpg" "$targetHost:/var/www/downloads/alpha/opennet/"

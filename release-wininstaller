@@ -8,9 +8,6 @@
 # Commands are executed as the Wine user via SSH, so passwordless SSH login with
 # authorized_keys may be helpful. Wine GUI elements are surpressed with xvfb.
 #
-# After the build the executables are signed, and then there is a confirmation
-# prompt for release.
-#
 # The following files should be in the releaseDirectory:
 #
 # * dependencies/bcprov-jdk15on-154.jar -   https://bouncycastle.org/download/bcprov-jdk15on-154.jar
@@ -49,8 +46,6 @@ wineDebug=""
 branch="master"
 # Whether to use Xnest rather than Xvfb. Useful for debugging.
 xnest="false"
-# Whether to make the release without prompting.
-release="false"
 
 if [[ $(id -u) -eq 0 && -z "$RUN_AS_USER" ]]
 then
@@ -63,8 +58,7 @@ do
     case $1 in
         --help | - | -\?)
             cat <<EOF
-Builds and releases the Windows installers.
-Prompts for confirmation before releasing.
+Builds the Windows installer.
 Configuration file is at $configPath by default.
 
 --branch BRANCH   Branch to build. Defaults to master.
@@ -73,7 +67,6 @@ Configuration file is at $configPath by default.
 --wine-debug      Run Wine with the given WINEDEBUG environment variable value.
                   See http://wiki.winehq.org/DebugChannels
 --xnest           Run Wine in an Xnest window to display the graphical output.
---release         Release without prompting for confirmation.
 EOF
             exit 0
             ;;
@@ -96,10 +89,6 @@ EOF
         --branch)
             branch="$2"
             shift 2
-            ;;
-        --release)
-            release="true"
-            shift
             ;;
         --) # End of all options
             shift
@@ -221,48 +210,3 @@ fi
 echo "Fred git version is $gitVersion"
 echo "Fred commit ID is $commitID"
 cp FreenetInstaller-$buildNumber.exe* $releaseDir || exit
-if [[ "$dryRun" = "true" ]]; then
-    echo "Dry run - exiting without performing release."
-    exit 0
-fi
-
-# If release is specified proceed without prompting.
-if ! $release; then
-    require "Perform release?"
-fi
-
-echo Uploading update scripts
-rsync install_node/updater/update*cmd* "$targetHost:/var/www/downloads/alpha/update/" || exit
-
-echo Uploading wrapper.conf
-cp install_node/wrapper/wrapper.conf wrapper.conf.windows || exit
-sha1sum wrapper.conf.windows > wrapper.conf.windows.sha1 || exit
-rsync wrapper.conf* $targetHost:/var/www/downloads/alpha/update/ || exit
-
-echo Uploading to webserver
-rsync -v FreenetInstaller-$buildNumber.exe* "$targetHost:/var/www/downloads/alpha/installer/" || exit
-ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe .*$/FreenetInstaller.exe installer\/FreenetInstaller-$buildNumber.exe/\" /var/www/downloads/alpha/.registry" || exit
-ssh $targetHost -- "sed -i \"s/FreenetInstaller.exe.sig .*$/FreenetInstaller.exe.sig installer\/FreenetInstaller-$buildNumber.exe.sig/\" /var/www/downloads/alpha/.registry" || exit
-
-# Delete the old version to avoid running out of disk space.
-OLDVERSION=$[$buildNumber-3]
-echo Deleting old version ${OLDVERSION}
-ssh $targetHost rm /var/www/downloads/alpha/installer/FreenetInstaller-${OLDVERSION}.exe
-
-cp "$buildDir/install_node/wrapper/freenetwrapper.exe" "wrapper-windows-x86-32.exe" || exit
-
-cp "$buildDir/install_node/wrapper/wrapper-windows-x86-32.dll" . || exit
-
-cp "$buildDir/install_node/FreenetTray.exe" FreenetTray.exe || exit
-
-for name in wrapper-windows-x86-32.exe wrapper-windows-x86-32.dll FreenetTray.exe; do
-
-    echo Uploading $name version $gitVersion
-
-    mv $name $name.$gitVersion
-    sha1sum $name.$gitVersion > $name.$gitVersion.sha1
-    rsync -v $name.$gitVersion* $targetHost:/var/www/downloads/alpha/installer/ || exit
-
-    ssh $targetHost -- "sed -i \"s/$name .*$/$name installer\/$name.$gitVersion/\" /var/www/downloads/alpha/.registry" || exit
-
-done

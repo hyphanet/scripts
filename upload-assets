@@ -17,8 +17,6 @@ parser.add_argument('build_number', help='The build number to upload.',
 parser.add_argument('release_directory',
                     help='Path to the FreenetReleased directory containing '
                          'the assets to upload.', nargs='?', default=None)
-parser.add_argument('--out', default='asset_urls',
-                    help='File to output URLs to')
 
 args = parser.parse_args()
 build_tag = 'build{0:05d}'.format(args.build_number)
@@ -92,22 +90,3 @@ else:
 
 # Each asset and its signature must have a URL.
 assert 2 * len(files) == len(urls)
-
-# Output URLs for use in substitution.
-# TODO: Verbosity vs readability with something like this?
-with open(args.out, 'w') as output:
-    total = files.copy()
-    total.update(urls)
-
-    output.write("""\
-# Generated for build {build_number} with upload-assets
-assetBuildNumber={build_number}
-FREENET_MAIN_JAR_URL={jar_url}
-FREENET_SOURCE_URL={source_url}
-FREENET_INSTALLER_URL={java_installer_url}
-FREENET_WINDOWS_INSTALLER_URL={windows_installer_url}
-FREENET_MAIN_JAR_SIG_URL=https://downloads.freenetproject.org/alpha/{jar}.sig
-FREENET_SOURCE_SIG_URL=https://downloads.freenetproject.org/alpha/{source}.sig
-FREENET_INSTALLER_SIG_URL=https://downloads.freenetproject.org/latest/{java_installer}.sig
-FREENET_WINDOWS_INSTALLER_SIG_URL=https://downloads.freenetproject.org/latest/{windows_installer}.sig
-""".format(build_number=args.build_number, **total))

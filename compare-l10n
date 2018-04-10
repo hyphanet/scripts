@@ -7,4 +7,3 @@ buildDir=$(mktemp -d)
 git clone "$fredDir" "$buildDir" || exit 1
 compareL10n "$1"
 rm -Rf "$buildDir"
-rsync -vz "$releaseDir/$diffName" "$targetHost:/var/www/emu/l10n/" || exit 1

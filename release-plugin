@@ -47,21 +47,6 @@ require "Release $name?"
 
 cp "$jarName" "$releaseDir/$plugin.jar" || exit 5
 
-eval "$(ssh-agent -s)"
-ssh-add
-rsync -vz "$jarName"* "${targetHost}:/var/www/downloads/alpha/plugins/$plugin/" || exit 6
-echo Uploaded jar
-rsync -vz "$sourceName" "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 7
-echo Uploaded source
-
-urlName="$plugin.jar.url"
-echo "https://downloads.freenetproject.org/alpha/plugins/$plugin/$jarName" > "$urlName"
-sha1sum "$urlName" > "$urlName.sha1"
-
-rsync -vz "$urlName"* "${targetHost}:/var/www/downloads/alpha/plugins/" || exit 8
-ssh $targetHost -- "sed -i \"s/$plugin.jar .*$/$plugin.jar plugins\\/$plugin\\/$jarName/\" /var/www/downloads/alpha/.registry" || exit 9
-echo Updated registry
-
 echo "Started insert"
 put "$jarName" "application/x-java-archive"
 put "$sourceName" "application/x-bzip"

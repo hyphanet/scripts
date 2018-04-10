@@ -43,8 +43,8 @@ echo 2: You have a node running on FCP port $fcpUpdatePort, without excessive lo
 echo The test node you just installed will do fine.
 java -jar ${releaseDir}/new_installer_offline_${buildNumber}.jar || exit 6
 require "Perform release?"
-echo Performing final release.
-./remote-deploy-website
+# TODO: automate website update?
+echo "FIXME: deploy news entry for new version"
 require "Final chance: Deploy to auto-update?"
 ./insert-update || exit 9
 #killall gpg-agent
