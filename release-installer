@@ -15,7 +15,8 @@ pushd "$buildDir/java_installer"
 mkdir lib
 
 cp "$seedrefsPath" bin/seednodes.fref || exit
-cp "$dependenciesDir/*" bin/ || exit
+cp "$dependenciesDir/"* bin/ || exit
+cp "$releaseDir/freenet.jar" bin/ || exit
 cp "$dependenciesDir/standalone-compiler.jar" lib/ || exit
 
 # Build script uses environment variables.
