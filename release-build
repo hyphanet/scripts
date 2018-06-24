@@ -33,7 +33,7 @@ getBuildInfo
 echo Releasing build $buildNumber
 ./release-fred build || exit 2
 ./release-installer || exit 3
-./release-wininstaller --release || exit 4
+./release-wininstaller || exit 4
 env GITHUB_OAUTH="$gitHubOAuthToken" ./upload-assets $buildNumber "$releaseDir" || exit
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.

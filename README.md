@@ -150,3 +150,9 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 8. `insert-update` inserts the jars over FCP. This is intended to be the test node which was installed by testing the installer as above. This is so that a development node which may have heavy logging does not leak the keys into the logs.
 
 9. Once the inserts have completed announce the release: FMS, IRC (including the channel topic), devl, support, website, Wikipedia article.
+
+
+If you have everything set up and everything works, you can use the shortcut
+
+
+    ./release-build BUILD_NUMBER
