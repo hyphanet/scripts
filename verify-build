@@ -108,7 +108,7 @@ if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
     echo Unable to copy freenet-ext.jar from "$freenetExtPath"
     exit 12
 fi
-if ! ./gradlew assemble; then
+if ! ./gradlew --offline assemble; then
     echo Unable to build from repository.
     exit 8
 fi
