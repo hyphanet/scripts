@@ -156,3 +156,8 @@ If you have everything set up and everything works, you can use the shortcut
 
 
     ./release-build BUILD_NUMBER
+
+
+## notes for transitioning to a new key
+
+also insert the update to the new key or the new keys, else users cannot access the changelog anymore.
