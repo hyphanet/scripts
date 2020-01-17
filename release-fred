@@ -104,7 +104,8 @@ else
 fi
 
 # Build without JavaDocs; CI builds and uploads them.
-./gradlew --offline jar || exit
+# ./gradlew --offline jar || exit
+./gradlew jar || exit
 
 archiveName="freenet-$gitVersion-source.tar.bz2"
 

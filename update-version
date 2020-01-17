@@ -11,4 +11,4 @@ versionPath="$fredDir/src/freenet/node/Version.java"
 cd "$fredDir"
 # Ensure it still builds.
 echo "Checking that the modified code builds."
-./gradlew --offline clean build && git commit -m "Build $1" -m "" -m "See tag for changelog." "$versionPath"
+./gradlew --parallel --offline clean jar && git commit -m "Build $1" -m "" -m "See tag for changelog." "$versionPath"

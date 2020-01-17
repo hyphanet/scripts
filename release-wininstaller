@@ -138,7 +138,7 @@ cp "$dependenciesDir/"*                              "install_node/"            
 cp "$releaseDir/seednodes.fref"                      "install_node/"                || exit
 # TODO: Create plugin directory in the build dir instead of assuming it's part of the repo.
 # TODO: Is this an appropriate place to have a bundled plugin list?
-for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library; do
+for x in JSTUN KeyUtils ThawIndexBrowser UPnP Library Sharesite; do
   cp "$releaseDir/${x}.jar"                          "install_node/plugins/"        || exit
 done
 cp "$dependenciesDir/isetup-5.5.9-unicode.exe" .                                    || exit
@@ -172,13 +172,15 @@ fi
 # WINEDLLOVERRIDES to prevent prompts about Gecko and Mono as they are not needed.
 # See https://wiki.archlinux.org/index.php/Wine_PKGBUILD_Guidelines#Gecko
 $ssh $wineUser@localhost <<EOF
+set -x
 cd $buildDir;
 mkdir .wine;
 export WINEDEBUG=$wineDebug WINEPREFIX=$buildDir/.wine WINEDLLOVERRIDES="mscoree,mshtml=";
-$xvfbrun wine isetup-5.5.9-unicode.exe /SILENT;
+$xvfbrun wine64 isetup-5.5.9-unicode.exe /SILENT;
 # "Program Files (x86)" is for Windows 7 - later versions of Wine.
 # XP is still the default for 1.6.2, which is packaged in Jessie.
-wine "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "FreenetInstall_InnoSetup.iss";
+# wine 'C:\Program Files\Inno Setup 5\ISCC.exe' "FreenetInstall_InnoSetup.iss";
+wine64 'C:\Program Files (x86)\Inno Setup 5\ISCC.exe' "FreenetInstall_InnoSetup.iss";
 chmod -R 770 .wine Output;
 EOF
 

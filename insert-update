@@ -3,6 +3,9 @@
 # Format of keys file: NEWKEY=[SSK private URI]
 # We used to also include OLDKEY, but this is not used any more, since the transition version is the last build inserted on the old key and the first inserted on the new key.
 
+# when uploading to multiple keys (i.e. java 7 and java 8), we need an identifier-fragment to allow multiple simultaneous uploads
+ID_FRAGMENT="$1"
+
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
 
@@ -72,7 +75,7 @@ for WHAT in binary source installer wininstaller seednodes changelog fullchangel
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
 # Of course, you should run this against the testing node which should already be running the new version, so won't restart.
 PCLASS=0
-IDENT=update-new-$buildNumber
+IDENT="update-new-${buildNumber}-${ID_FRAGMENT}"
 if [[ $WHAT == "source" ]]; then
   INSERTFILE=$SOURCENAME
   PCLASS=$((PCLASS+3))

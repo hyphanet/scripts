@@ -5,10 +5,18 @@
 # TODO Add --help etc.
 # TODO Add --snapshot to proxy to release-fred --snapshot ???
 
+
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 BUILD=$1
+TARGET=$2
+if [[ x"$TARGET" == x"" || x"$BUILD" == x"" ]]; then
+    echo usage: "$0" BUILDNUMBER TARGET
+    echo BUILDNUMBER: XXXX, i.e. 1484
+    echo TARGET: build or snapshot, used in release-fred
+    exit 1
+fi
 
 # Set up agents at the beginning of this script, but not the individual scripts.
 # TODO We could put this in freenet-scripts-common but only if it doesn't get re-run in every script we call.
@@ -26,12 +34,16 @@ if [ "$useSshAgent" == "1" ]; then
 fi
 
 ./update-bookmarks || exit
-./update-version $BUILD || exit
-./tag-build $BUILD || exit 1
+# ./update-version $BUILD || exit
+# ./tag-build $BUILD || exit 1
 # Get build info after tagging the new build.
 getBuildInfo
-echo Releasing build $buildNumber
-./release-fred build || exit 2
+echo Releasing $TARGET $buildNumber
+./release-fred $TARGET || exit 2
+if [ x"$TARGET" == x"snapshot"; then
+    echo "skipping further actions because this is a snapshot release";
+    exit 0;
+fi
 ./release-installer || exit 3
 ./release-wininstaller || exit 4
 env GITHUB_OAUTH="$gitHubOAuthToken" ./upload-assets $buildNumber "$releaseDir" || exit
