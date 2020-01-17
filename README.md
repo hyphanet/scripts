@@ -126,7 +126,7 @@ Ensure the fred, scripts, website, Java installer, and Windows installer reposit
 date before starting the release. Ensure the bundled plugins in the `FreenetReleased`
 (or equivalent) directory are up to date as well.
 
-The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build [build number]`, which automates running these steps:
+The first release with an environment, run these steps individually to get all the configuration right. Once everything works, run `release-build [build number] build`, which automates running these steps:
 
 0. `update-bookmarks` updates the default bookmark editions and commits if any changes have been made.
 
@@ -155,7 +155,7 @@ If used with `--snapshot` inserts the Fred jar and signature into Freenet.
 If you have everything set up and everything works, you can use the shortcut
 
 
-    ./release-build BUILD_NUMBER
+    ./release-build BUILD_NUMBER build
 
 
 ## notes for transitioning to a new key
