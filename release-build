@@ -15,9 +15,9 @@ if [[ x"$TARGET" == x"" || x"$BUILD" == x"" ]]; then
     echo usage: "$0" BUILDNUMBER TARGET
     echo BUILDNUMBER: XXXX, i.e. 1484
     echo TARGET:
-        - build (release),
-        - testing (use latest testing tag), or
-        - snapshot (no tag, no installer, identified by vcs-rev)
+    echo "- build (release),"
+    echo "- testing (use latest testing tag), or"
+    echo "- snapshot (no tag, no installer, identified by vcs-rev)"
     exit 1
 fi
 
