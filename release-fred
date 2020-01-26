@@ -7,7 +7,7 @@
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
 
-# What to build / release. Possible values: "build", "snapshot"
+# What to build / release. Possible values: "build", "testing", "snapshot"
 target=""
 # Whether to exit before releasing.
 dryRun="false"
@@ -25,6 +25,8 @@ Configuration file is at $configPath by default.
 
 TARGET:
 build           If present packages the highest-numbered build tag.
+                Builds documentation.
+testing         If present packages the highest-numbered testing build tag.
                 Builds documentation.
 snapshot        If present packages the current HEAD.
                 Outputs into a pre/ subdirectory of the release directory.
@@ -58,7 +60,7 @@ done
 
 # Target should be set.
 if [[ -z "$1" ]]; then
-    echo "Please specify a target. Options are build and snapshot."
+    echo "Please specify a target. Options are build, testing, and snapshot."
     exit 13
 fi
 
@@ -71,7 +73,7 @@ cd "$fredDir"
 # Function in freenet-scripts-common - sets $gitVersion, $buildNumber, and $commitID.
 getBuildInfo
 # If releasing a stable build checkout the latest build tag.
-if [[ "$target" = "build" ]]; then
+if [[ x"$target" = x"build" || x"$target" = x"testing" ]]; then
     # Recognized; gitVersion is already set by getBuildInfo.
     echo -n
 elif [[ "$target" = "snapshot" ]]; then

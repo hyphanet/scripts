@@ -14,7 +14,10 @@ TARGET=$2
 if [[ x"$TARGET" == x"" || x"$BUILD" == x"" ]]; then
     echo usage: "$0" BUILDNUMBER TARGET
     echo BUILDNUMBER: XXXX, i.e. 1484
-    echo TARGET: build or snapshot, used in release-fred
+    echo TARGET:
+        - build (release),
+        - testing (use latest testing tag), or
+        - snapshot (no tag, no installer, identified by vcs-rev)
     exit 1
 fi
 
@@ -34,18 +37,24 @@ if [ "$useSshAgent" == "1" ]; then
 fi
 
 ./update-bookmarks || exit
-# ./update-version $BUILD || exit
-# ./tag-build $BUILD || exit 1
+if [ x"$TARGET" != x"snapshot"; then
+    ./update-version $BUILD || exit
+    ./tag-build $BUILD || exit 1
+fi
 # Get build info after tagging the new build.
-getBuildInfo
+getBuildInfo $TARGET
 echo Releasing $TARGET $buildNumber
 ./release-fred $TARGET || exit 2
 if [ x"$TARGET" == x"snapshot"; then
     echo "skipping further actions because this is a snapshot release";
     exit 0;
 fi
-./release-installer || exit 3
-./release-wininstaller || exit 4
+./release-installer $TARGET || exit 3
+./release-wininstaller $TARGET || exit 4
+if [ x"$TARGET" == x"testing"; then
+    echo "skipping further actions because this is a testing release";
+    exit 0;
+fi
 env GITHUB_OAUTH="$gitHubOAuthToken" ./upload-assets $buildNumber "$releaseDir" || exit
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 echo Now please test the new build.

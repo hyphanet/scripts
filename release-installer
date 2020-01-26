@@ -1,9 +1,16 @@
 #!/bin/bash
 
+TARGET=$1
+if [[ x"$TARGET" == x"" ]]; then
+    echo usage: "$0" TARGET
+    echo TARGET: build, testing, or snapshot
+    exit 1
+fi
+
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
 
-getBuildInfo
+getBuildInfo "$TARGET"
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 4; fi
 echo Version is $buildNumber
 

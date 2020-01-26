@@ -31,12 +31,18 @@ function compareL10n {
 # All of these are set for the highest build number.
 function getBuildInfo {
     pushd "$fredDir" || exit
+    if [[ x"$1" == x"snapshot" || x"$1" == x"testing" ]]; then
+        versionMatcher='testing-build[-0-9]*-pre*';
+    else
+        versionMatcher='build[0-9]*';
+    fi
     # Get highest build number, sorted numerically.
     # Git tag includes only those tags starting with "build", and the awk
     # substring excludes the first 5 characters, which are "build".
-    buildNumber=$(git tag -l 'build[0-9]*' | awk '{print substr($0, 6)}' | grep "^[0-9]*$" | sort --numeric-sort | tail -n1)
+    buildNumber=$(git tag -l "${versionMatcher}" | grep -o "[0-9]*" | sort --numeric-sort | tail -n1)
+    buildNumber=${buildNumber##0}
     # Get tag with highest build number.
-    gitVersion=$(git tag -l 'build[0-9]*' | grep "$buildNumber$")
+    gitVersion=$(git tag -l "${versionMatcher}" | grep "[0-]*$buildNumber")
     getTagInfo $gitVersion
     popd
 }
@@ -48,10 +54,10 @@ function getBuildInfo {
 function getTagInfo {
     pushd "$fredDir" || exit
     gitVersion=$1
-    # Exclude first 5 characters - required to be "build"
-    buildNumber=${1:5}
-    # Strip possible leading zeros.
-    buildNumber=${buildNumber#0}
+    # Strip away everything until the end of "build"
+    buildNumber=${gitVersion##*build}
+    # Strip possible leading zeros or minusses.
+    buildNumber=${buildNumber#[0-]}
     # Resolve tag to commit hash.
     commitID=$(git rev-parse $gitVersion^{})
     popd

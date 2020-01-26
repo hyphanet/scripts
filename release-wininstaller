@@ -35,8 +35,15 @@
 #   Release:
 #       rsync
 
+TARGET=$1
+if [[ x"$TARGET" == x"" ]]; then
+    echo usage: "$0" TARGET
+    echo TARGET: build or snapshot, used in release-fred
+    exit 1
+fi
+
 # Load configuration and utility functions.
-source freenet-scripts-common || exit
+source freenet-scripts-common "$TARGET" || exit
 
 # Whether to exit before releasing.
 dryRun="false"
@@ -126,7 +133,7 @@ fi
 git clone "$wininstallerDir" "$buildDir"
 pushd "$buildDir" || exit
 git checkout "$branch"
-getBuildInfo
+getBuildInfo $TARGET
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 # Copy files
