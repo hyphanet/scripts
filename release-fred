@@ -71,7 +71,7 @@ git clone "$fredDir" "$buildDir" || exit 2
 cd "$fredDir"
 
 # Function in freenet-scripts-common - sets $gitVersion, $buildNumber, and $commitID.
-getBuildInfo
+getBuildInfo $target
 # If releasing a stable build checkout the latest build tag.
 if [[ x"$target" = x"build" || x"$target" = x"testing" ]]; then
     # Recognized; gitVersion is already set by getBuildInfo.
@@ -96,9 +96,9 @@ export jarsignerStorePassword="$jarsignerStorePassword"
 export jarsignerAlias="$jarsignerAlias"
 export jarsignerCodeSigningKeyPassword="$jarsignerCodeSigningKeyPassword"
 
-if [[ "$target" = "build" ]]; then
+if [[ x"$target" = x"build" || x"$target" = x"testing" ]]; then
     jarName="freenet-$gitVersion.jar"
-elif [[ "$target" = "snapshot" ]]; then
+elif [[ x"$target" = x"snapshot" ]]; then
     jarName="freenet-$gitVersion-snapshot.jar"
 else
     echo "Internal error: Unrecognized target \"$target\"."
