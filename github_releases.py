@@ -109,7 +109,8 @@ class GitHubReleases(object):
             if asset_type is None:
                 raise UnknownMIMETypeError()
 
-        headers = {'Content-Type': asset_type}
+        content_length = os.path.getsize(asset_path)
+        headers = {'Content-Type': asset_type, 'Content-Length': content_length}
         headers.update(self.base_headers)
 
         self.uploads_host.request(
