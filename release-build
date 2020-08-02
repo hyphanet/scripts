@@ -37,7 +37,7 @@ if [ "$useSshAgent" == "1" ]; then
 fi
 
 ./update-bookmarks || exit
-if [ x"$TARGET" != x"snapshot" && x"$TARGET" != x"testing" ]; then
+if [ x"$TARGET" == x"build" ]; then
     ./update-version $BUILD || exit
     ./tag-build $BUILD || exit 1
 fi
