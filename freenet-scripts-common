@@ -42,7 +42,7 @@ function getBuildInfo {
     buildNumber=$(git tag -l "${versionMatcher}" | grep -o "[0-9]*" | sort --numeric-sort | tail -n1)
     buildNumber=${buildNumber##0}
     # Get tag with highest build number.
-    gitVersion=$(git tag -l "${versionMatcher}" | grep "[0-]*$buildNumber")
+    gitVersion=$(git tag -l "${versionMatcher}" | grep "[0-]*$buildNumber" | tail -n1)
     getTagInfo $gitVersion
     popd
 }
