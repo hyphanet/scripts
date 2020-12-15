@@ -50,7 +50,7 @@ if [ x"$TARGET" == x"snapshot" ]; then
     exit 0;
 fi
 ./release-installer $TARGET || exit 3
-./release-wininstaller $TARGET || exit 4
+# ./release-wininstaller $TARGET || exit 4
 echo Now please test the new build.
 echo Deploy the build only when:
 echo 1: You have tested the new build and are satisfied that it works, and
@@ -62,7 +62,7 @@ if [ x"$TARGET" == x"testing" ]; then
    echo "skipping further actions because this is a testing release";
    exit 0;
 fi
-# require "upload to github?"
+require "upload to github? Requires FreenetInstaller-${buildNumber}.exe in $releaseDir. Add all jars from ~/Freenet to the release, then trigger an action at https://github.com/freenet/wininstaller-innosetup/actions/ and extract FreenetInstaller.exe from the zip. Move it to $releaseDir/FreenetInstaller-${buildNumber}.exe"
 env GITHUB_OAUTH="$gitHubOAuthToken" ./upload-assets $buildNumber "$releaseDir" || exit
 # REDFLAG IT IS NEVER SAFE TO INSERT A BUILD ON A DEVELOPMENT NODE!!!!!
 require "Perform release?"
