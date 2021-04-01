@@ -74,7 +74,7 @@ for WHAT in binary source installer wininstaller seednodes changelog fullchangel
 
 # Insert the binary LAST so that the node doesn't restart before completing the insert.
 # Of course, you should run this against the testing node which should already be running the new version, so won't restart.
-PCLASS=0
+PCLASS=1
 IDENT="update-new-${buildNumber}-${ID_FRAGMENT}"
 if [[ $WHAT == "source" ]]; then
   INSERTFILE=$SOURCENAME
