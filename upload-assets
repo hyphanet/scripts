@@ -12,14 +12,17 @@ is specified it will read existing assets.
 It assumes the build tag is 'build' followed by the build number
 zero-padded to 5 characters.
 """)
-parser.add_argument('build_number', help='The build number to upload.',
-                    type=int)
+parser.add_argument('build_number', help='The build number to upload.')
 parser.add_argument('release_directory',
                     help='Path to the FreenetReleased directory containing '
                          'the assets to upload.', nargs='?', default=None)
 
 args = parser.parse_args()
-build_tag = 'build{0:05d}'.format(args.build_number)
+testing = "-" in args.build_number
+if testing: # testing-release, eg 1491-pre1
+    build_tag = 'build{0:05d}'.format(int(args.build_number.split("-")[0])) + "-" + args.build_number.split("-")[1]
+else:
+    build_tag = 'build{0:05d}'.format(args.build_number)
 
 # TODO: Allow resuming: avoid clobbering existing assets when uploading.
 # TODO: Nicer error on missing environment variable.
@@ -44,8 +47,8 @@ except github_releases.GitHubError as e:
         raise
 
 files = {
-    'jar': 'freenet-{0}.jar'.format(build_tag),
-    'source': 'freenet-{0}-source.tar.bz2'.format(build_tag),
+    'jar': 'freenet-{0}.jar'.format(build_tag) if not testing else 'freenet-testing-build-{0}.jar'.format(args.build_number),
+    'source': 'freenet-testing-build-{0}-source.tar.bz2'.format(args.build_number),
     'java_installer': 'new_installer_offline_{0}.jar'.format(args.build_number),
     'windows_installer': 'FreenetInstaller-{0}.exe'.format(args.build_number),
 }
