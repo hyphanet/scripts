@@ -22,7 +22,7 @@ testing = "-" in args.build_number
 if testing: # testing-release, eg 1491-pre1
     build_tag = 'build{0:05d}'.format(int(args.build_number.split("-")[0])) + "-" + args.build_number.split("-")[1]
 else:
-    build_tag = 'build{0:05d}'.format(args.build_number)
+    build_tag = 'build{0:05d}'.format(int(args.build_number))
 
 # TODO: Allow resuming: avoid clobbering existing assets when uploading.
 # TODO: Nicer error on missing environment variable.
