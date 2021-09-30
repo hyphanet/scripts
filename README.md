@@ -16,7 +16,7 @@ You will also need ssh access to osprey.
 
 ## Verifying Fred builds
 
-Currently the official builds are made using Debian Wheezy, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
+Currently the official builds are made using Debian Stable, and verify-build verifies only freenet.jar. It does not verify freenet-ext, libraries, source archives, or installers. `lib-pyFreenet` is used for `fcpget` to fetch and verify the freenet.jar inserted into Freenet.
 
     # apt-get install git-core python openjdk-7-jdk ant unzip
     $ git clone git://github.com/freenet/scripts.git
