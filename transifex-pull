@@ -42,7 +42,7 @@ function pull() {
     filter "$4"
 
     cd "$starting_directory"
-    python remove-untranslated.py "$1/$3" "$4"
+    python3 remove-untranslated.py "$1/$3" "$4"
 }
 
 # These expressions are more permissive than they need to be but are sufficient.
