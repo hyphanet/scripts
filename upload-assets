@@ -48,7 +48,7 @@ except github_releases.GitHubError as e:
 
 files = {
     'jar': 'freenet-{0}.jar'.format(build_tag) if not testing else 'freenet-testing-build-{0}.jar'.format(args.build_number),
-    'source': 'freenet-testing-build-{0}-source.tar.bz2'.format(args.build_number),
+    'source': 'freenet-{0}-source.tar.bz2'.format(build_tag) if not testing else 'freenet-testing-build-{0}-source.tar.bz2'.format(args.build_number),
     'java_installer': 'new_installer_offline_{0}.jar'.format(args.build_number),
     'windows_installer': 'FreenetInstaller-{0}.exe'.format(args.build_number),
 }
@@ -73,6 +73,7 @@ if args.release_directory is not None:
                          if asset['name'] == file)
             assert asset is not None
             urls[name + '_url'] = asset['browser_download_url']
+
 
     for name, file in files.items():
         upload_asset(release_id, name, file)
