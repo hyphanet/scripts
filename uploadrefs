@@ -28,3 +28,9 @@ fi
 # gpg will prompt before overwriting, which is not desirable here.
 rm -f "$seedrefsPath.gpg"
 gpg -o "$seedrefsPath.gpg" --sign "$seedrefsPath" || exit
+
+# update the installer seedrefs
+for i in wininstaller-innosetup/install_node/seednodes.fref wininstaller/res/install_node/seednodes.fref java_installer/offline/seednodes.fref java_installer/bin/seednodes.fref; do
+    cp "$seedrefsPath" $HOME/$i
+    (cd $(dirname $HOME/$i); git diff --name-only $HOME/$i | grep . && echo seednodes were updated in $HOME/$i - Please commit.;  cd -)
+done
