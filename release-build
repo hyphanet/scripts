@@ -72,7 +72,7 @@ require "Perform release?"
 # TODO: automate website update?
 echo "FIXME: deploy news entry for new version"
 require "Final chance: Deploy to auto-update?"
-./insert-update || exit 9
+./insert-update "$TARGET" || exit 9
 #killall gpg-agent
 # TODO How to terminate our gpg-agent and no others?
 echo All done.

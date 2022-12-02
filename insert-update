@@ -3,15 +3,18 @@
 # Format of keys file: NEWKEY=[SSK private URI]
 # We used to also include OLDKEY, but this is not used any more, since the transition version is the last build inserted on the old key and the first inserted on the new key.
 
+# release or testing
+TARGET="$1"
+
 # when uploading to multiple keys (i.e. java 7 and java 8), we need an identifier-fragment to allow multiple simultaneous uploads
-ID_FRAGMENT="$1"
+ID_FRAGMENT="$2"
 
 # Load configuration and utility functions.
 source freenet-scripts-common || exit
 
 SEEDNODESFILE="$releaseDir/seednodes.fref"
 
-getBuildInfo
+getBuildInfo $TARGET
 if [[ -z "$gitVersion" ]]; then echo Could not get git version; exit 1; fi
 
 echo Build number $buildNumber git tag $gitVersion
