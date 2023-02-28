@@ -1,5 +1,16 @@
 #!/bin/bash
-# wget --no-check-cert https://checksums.freenetproject.org/latest/seednodes.fref -O /tmp/seednodes.fref || exit 1
-cp ../FreenetReleased/seednodes.fref /tmp/seednodes.fref
-java -Xmx128M -cp $HOME/freenet/wrapper.jar:$HOME/Freenet/bcprov-jdk15on-1.59.jar:$HOME/Freenet/freenet-ext.jar:$HOME/Freenet/freenet.jar:$HOME/Freenet/jna-4.2.2.jar:$HOME/Freenet/jna-platform-4.2.2.jar:$HOME/freenet/bin/ freenet.node.simulator.SeednodePingTest 2>&1 | tee log.seednodes
+#This scripts believes Freenet is installed in the default location $HOME/Freenet
+#Substitute the path to your Freenet install everywhere if different (case sensitive)
+#Always check the bcprov-jdk15on, jna and jna-platform versions to match the versions
+#in your Freenet install
+current_script_name=$(basename "$0")
+for pid in $(pidof -x $current_script_name); do
+  if [ $pid != $$ ] ; then
+    echo "[$(date)] : "$current_script_name" : Critical Error - Aborting - script / process is already running with PID $pid"
+    exit 1
+  fi
+done
+cp $HOME/Freenet/seednodes.fref /tmp/seednodes.fref
+java -Xmx128M -cp $HOME/Freenet/wrapper.jar:$HOME/Freenet/bcprov-jdk15on-1.59.jar:$HOME/Freenet/freenet-ext.jar:$HOME/Freenet/freenet.jar:$HOME/Freenet/jna-4.5.2.jar:$HOME/Freenet/jna-platform-4.5.2.jar:$HOME/Freenet/bin/ freenet.node.simulator.SeednodePingTest 2>&1 | tee log.seednodes
+rm -rf /tmp/seednodes.fref
 exit $?
