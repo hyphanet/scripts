@@ -35,13 +35,13 @@ conn = github_releases.GitHubReleases(os.environ['GITHUB_OAUTH'],
 
 # Create a release at the tag, or get its ID if one already exists.
 try:
-    release = conn.create('freenet', 'fred', build_tag)
+    release = conn.create('hyphanet', 'fred', build_tag)
     release_id = release['id']
     print('Created release with ID {}'.format(release_id))
 except github_releases.GitHubError as e:
     # TODO: Avoid hardcoding here?
     if e.response['errors'][0]['code'] == 'already_exists':
-        release_id = conn.get('freenet', 'fred', build_tag)['id']
+        release_id = conn.get('hyphanet', 'fred', build_tag)['id']
         print('Found existing release with ID {}'.format(release_id))
     else:
         raise
@@ -54,7 +54,7 @@ files = {
 }
 urls = {}
 
-existing_assets = conn.list_assets("freenet", "fred", release_id)
+existing_assets = conn.list_assets("hyphanet", "fred", release_id)
 # Upload if the release directory is specified, otherwise find existing assets.
 if args.release_directory is not None:
     existing_asset_files = [asset['name'] for asset in existing_assets]
@@ -63,7 +63,7 @@ if args.release_directory is not None:
         path = os.path.join(args.release_directory, file)
         if file not in existing_asset_files:
             print("Uploading asset {}".format(file))
-            result = conn.upload_asset("freenet", "fred", release_id, path,
+            result = conn.upload_asset("hyphanet", "fred", release_id, path,
                                        asset_type)
 
             urls[name + '_url'] = result['browser_download_url']
