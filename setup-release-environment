@@ -24,7 +24,7 @@ wget software77.net/geo-ip/?DL=4 -O "$countryDataFile"
 # Clone if not set up already.
 if [ ! -d "$fredDir" ]; then
     require "Clone Freenet repository into \"$fredDir\"?"
-    git clone git@github.com:freenet/fred.git "$fredDir" || exit
+    git clone git@github.com:hyphanet/fred.git "$fredDir" || exit
 fi
 
 if [ ! -d "$installerDir" ]; then
