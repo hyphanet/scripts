@@ -40,12 +40,17 @@ do
             cat <<EOF
     --tag TAG      specifies build tag to checkout.
     --tmpbase PATH specifies temporary directory. Default /tmp/
+    --online       download dependencies automatically. Accesses the web.
 EOF
             exit 0
             ;;
         --tag)
             gitVersion="$2"
             shift 2
+            ;;
+        --online)
+            online="true"
+            shift
             ;;
         --tmpbase)
             tmpBase="$2"
@@ -104,22 +109,29 @@ if ! git tag -v "$gitVersion"; then
     exit 11
 fi
 echo Build number $buildNumber
+mkdir -p lib/freenet/
 if ! cp "$freenetExtPath" lib/freenet/freenet-ext.jar; then
     echo Unable to copy freenet-ext.jar from "$freenetExtPath"
     exit 12
 fi
-if ! ./gradlew --offline assemble; then
-    echo Unable to build from repository.
-    exit 8
+if [[ -z "$online" ]]; then
+    if ! ./gradlew --offline jar; then
+        echo Unable to build from repository.
+        exit 8
+    fi
+else
+    if ! ./gradlew jar; then
+        echo Unable to build from repository.
+        exit 8
+    fi
 fi
 cd ..
-
 mkdir unpacked-built
-if ! unzip "fred/dist/freenet.jar" -d unpacked-built > /dev/null; then
+if ! unzip "fred/build/libs/freenet.jar" -d unpacked-built > /dev/null; then
     echo Failed to unpack built jar
     exit 9
 fi
-jarUrl="https://github.com/freenet/fred/releases/download/build01480/freenet-build01480.jar"
+jarUrl="https://github.com/freenet/fred/releases/download/${gitVersion}/freenet-${gitVersion}.jar"
 signatureUrl="$jarUrl.sig"
 if ! wget "$signatureUrl" -O freenet.jar.sig; then
     echo Unable to fetch signature "$signatureUrl" from the official Freenet repository.
@@ -136,7 +148,7 @@ fi
 
 # Check that the website and hosted versions are identical.
 # TODO: Detect update USK from node config
-key="SSK@O~UmMwTeDcyDIW-NsobFBoEicdQcogw7yrLO2H-sJ5Y,JVU4L7m9mNppkd21UNOCzRHKuiTucd6Ldw8vylBOe5o,AQACAAE/jar-$buildNumber"
+key="SSK@vCKGjQtKuticcaZ-dwOgmkYPVLj~N1dm9mb3j3Smg4Y,-wz5IYtd7PlhI2Kx4cAwpUu13fW~XBglPyOn8wABn60,AQACAAE/jar-$buildNumber"
 # old key:
 # SSK@sabn9HY9MKLbFPp851AO98uKtsCtYHM9rqB~A5cCGW4,3yps2z06rLnwf50QU4HvsILakRBYd4vBlPtLv0elUts,AQACAAE/jar-$buildNumber"
 echo "" ; echo "Downloading from freenet - this can take a moment... key: $key"
