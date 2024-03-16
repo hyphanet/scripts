@@ -157,6 +157,14 @@ if [ ! -e "inserted-freenet.jar" ]; then
     echo "Unable to fetch freenet.jar from Freenet."
     exit 12
 fi
+if [ ! -s "inserted-freenet.jar" ]; then
+    echo "Fetched freenet.jar is empty. Trying again."
+    fcpget --verbose --fcpHost="$fcpHost" --fcpPort="$fcpPort" "$key" inserted-freenet.jar
+    if [ ! -s "inserted-freenet.jar" ]; then
+        echo "Fetched freenet.jar is empty after second try."
+        exit 12
+    fi
+fi
 echo "Downloaded file: "
 sha512sum inserted-freenet.jar
 
