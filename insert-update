@@ -68,8 +68,11 @@ then
 else
   if [[ ! -f "$WININSTALLERFILE" ]]
   then
+    echo '!!!!!! !!!!!!'
     echo Windows installer file does not exist: "$WININSTALLERFILE"
-    exit
+    echo You MUST run the insertion again once the wininstaller has been built.
+    echo '!!!!!! !!!!!!'
+    # exit
   fi
 fi
 
@@ -125,7 +128,11 @@ if [[ $WHAT == "iptocountryv4" ]]; then
 fi
 if [[ ! -e "$INSERTFILE" ]]; then
     echo "File $INSERTFILE missing"
-    exit 5
+   if [[ $WHAT == "wininstaller" ]]; then
+       continue
+   else
+       exit 5
+   fi
 fi
 echo ClientPut >> $TEMPFILE
 # Turn off compression: Limit possibilities for things breaking
