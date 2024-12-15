@@ -65,6 +65,9 @@ if args.release_directory is not None:
             print("Uploading asset {}".format(file))
             result = conn.upload_asset("hyphanet", "fred", release_id, path,
                                        asset_type)
+            if name == 'jar':
+                result = conn.upload_asset("hyphanet", "fred", release_id, path,
+                                           asset_type, filename="freenet.jar")
 
             urls[name + '_url'] = result['browser_download_url']
         else:

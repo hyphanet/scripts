@@ -90,7 +90,7 @@ class GitHubReleases(object):
             return None
 
     def upload_asset(self, owner, repo, release_id, asset_path,
-                     asset_type=None):
+                     asset_type=None, filename=None):
         """
         Upload an asset to a release.
 
@@ -102,7 +102,8 @@ class GitHubReleases(object):
                            specified it will be detected.
         :throws UnknownMimeTypeError:
         """
-        filename = os.path.basename(asset_path)
+        if filename is None:
+            filename = os.path.basename(asset_path)
 
         if asset_type is None:
             asset_type = mimetypes.guess_type(filename)[0]

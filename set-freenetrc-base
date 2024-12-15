@@ -5,9 +5,9 @@
 #          intended for use with a "one click" setup script.
 
 # First get absolute path to freenet installation that is 1-level up form location of this script (../)
-this_script_filename="$(readlink -e "$0")"
+this_script_filename="$(realpath "$0")"
 this_script_dir="$(dirname "$this_script_filename")"
-freenet_dir="$(readlink -e "$this_script_dir/../")" # 1 dir above
+freenet_dir="$(realpath "$this_script_dir/../")" # 1 dir above
 
 if [ -z "$freenet_dir" ] ; then
 	echo "ERROR: Unable to find out the freenet_dir from reading our location $0"
