@@ -34,7 +34,7 @@ with open(args.path, "w") as bookmark_file:
                     if args.verbose:
                         print("Fetching {}".format(uri))
 
-                    node.get(uri, nodata=True)
+                    node.get(uri, nodata=True, ignoreds=True, realtime=True)
 
                     if args.verbose:
                         print("Success - up to date.")
