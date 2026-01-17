@@ -21,6 +21,18 @@ REDIRECT = 27
 with open(args.path) as bookmark_file:
     bookmarks = bookmark_file.readlines()
 
+if args.verbose: print("first try every bookmark once to launch subscriptions")
+for line in bookmarks:
+        if line and line != "End\n":
+            key, value = line.split("=", 1)
+            if key.endswith("URI"):
+                node = fcp.node.FCPNode(host=args.host, port=args.port)
+                try:
+                    uri = value.rstrip()
+                    node.get(uri, nodata=True, ignoreds=True, realtime=True)
+                except: pass
+
+if args.verbose: print("running the actual bookmark checks")
 with open(args.path, "w") as bookmark_file:
     for line in bookmarks:
         if line and line != "End\n":
