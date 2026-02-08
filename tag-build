@@ -103,7 +103,7 @@ require "Tag as $TAG?"
 # Tag with the message, and push the tags and changes.
 git tag "$gitSign" "$TAG" -F "$TEMP" || exit 8
 
-git push origin "$TAG"
+# git push origin "$TAG"
 
 echo "$TAG" > "$releaseDir/freenet.tag" || exit 6
 echo "$BUILD" > "$releaseDir/freenet.build" || exit 6
@@ -123,7 +123,7 @@ if test $BRANCH != "master" && test $BRANCH != "next"; then
 	read x
 	if [[ $x == "y" ]]; then
 		git branch -d $BRANCH
-		git push origin :$BRANCH
+		# git push origin :$BRANCH
 		echo Deleted branch $BRANCH
 	else
 		git checkout $BRANCH
@@ -140,7 +140,8 @@ elif test $BRANCH == "next"; then
 fi
 
 # Push changes and end on next.
-git push origin next
-git push origin master
+# git push origin next
+# git push origin master
 
 git checkout next
+
