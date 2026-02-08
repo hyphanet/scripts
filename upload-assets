@@ -79,9 +79,12 @@ if args.release_directory is not None:
 
 
     for name, file in files.items():
-        upload_asset(release_id, name, file)
-        upload_asset(release_id, name + "_signature", file + ".sig",
-                     "application/pgp-signature")
+        try:
+            upload_asset(release_id, name, file)
+            upload_asset(release_id, name + "_signature", file + ".sig",
+                         "application/pgp-signature")
+        except FileNotFoundError:
+            print("File", name, "does not exist. Skipping. Please re-run to complete the upload.")
 else:
     assets = {}
     for asset in existing_assets:
@@ -96,4 +99,5 @@ else:
         urls[name + "_url"] = assets[file]
 
 # Each asset and its signature must have a URL.
-assert 2 * len(files) == len(urls)
+if 2 * len(files) != len(urls):
+    print("ERROR: Not all files could be uploaded. Please re-run. This is not terminal, but the release is incomplete.")
