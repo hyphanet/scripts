@@ -168,7 +168,7 @@ The update key is split into 10 shares which get distributed to core developers 
 
 Required: gnupg, pyFreenet3 and ssss (Shamir’s Secret Sharing Scheme)
 
-- [X] generate a new key
+- [ ] generate a new key
   : echo "NEWKEY=$(fcpgenkey | tail -n 1 | cut -d / -f 1)" | gpg -e -r YOUR_RELEASE_MANAGER_GPG_PUBKEY -o ~/keys/key-to-release-1508-and-later-for-java17-rm.gpg
 - [ ] split the key into parts for other coredevs, with instructions: this is your share for the new update key. If necessary, get together with two other coredevs and combine your shares with ssss-combine -t 3 to recover the insert key
   : gpg -d  ~/keys/key-to-release-1508-and-later-for-java17-rm.gpg | ssss-split -t 3 -n 10 | gpg -e -r YOUR_RELEASE_MANAGER_GPG_PUBKEY -o ~/keys/key-to-release-1508-and-later-for-java17-rm--parts.gpg
